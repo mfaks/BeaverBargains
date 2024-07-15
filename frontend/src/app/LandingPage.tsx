@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { JSX, SVGProps } from "react"
 
-export default function Landing() {
+export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-[100dvh]">
       <header className="px-4 lg:px-6 h-14 flex items-center bg-[#1a1a1a] text-[#f0f0f0]">
@@ -50,7 +50,7 @@ export default function Landing() {
                     Unlock the Power of the Beaver Community
                   </h1>
                   <p className="max-w-[600px] text-[#1a1a1a] md:text-xl">
-                    BeaverBargains is the premier platform for Oregon State students to buy, sell, and trade their belongings while connecting with one another.
+                    BeaverBargains is the premier platform for Oregon State students to buy, sell, and trade their belongings in a safe and secure environment.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -64,13 +64,13 @@ export default function Landing() {
                 </div>
               </div>
               <div className="flex justify-center">
-                <img
-                  src="/placeholder.svg"
+                {/* <img
+                  src="" //will include logo svg here
                   width="400"
                   height="400"
-                  alt="BeaverBargains Logo"
+                  alt="BeaverBargains Logo" 
                   className="mx-auto aspect-square overflow-hidden rounded-xl object-contain"
-                />
+                /> */}
               </div>
             </div>
           </div>
@@ -106,7 +106,7 @@ export default function Landing() {
                         Safety is Our Number 1 Priority
                       </h3>
                       <p className="text-[#1a1a1a]">
-                      With only authenticated users from the Oregon State community, your payments and personal information are safe and secure.
+                      With only authenticated users from the Oregon State community, bad actors are prohibited from accessing the cite. Our robust security measures will ensure your payments and personal information are safe and secure.
                       </p>
                     </div>
                   </li>
@@ -120,13 +120,13 @@ export default function Landing() {
                   </li>
                 </ul>
               </div>
-              <img
-                src="/placeholder.svg"
+              {/* <img
+                src="" //will include svg of Oregon State community here
                 width="550"
                 height="310"
                 alt="BeaverBargains Community"
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full lg:order-last"
-              />
+              /> */}
             </div>
           </div>
         </section>
@@ -141,94 +141,7 @@ export default function Landing() {
               </div>
             </div>
             <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              <div className="rounded-lg border bg-[#f0f0f0] shadow-sm">
-                <img
-                  src="/placeholder.svg"
-                  width="300"
-                  height="200"
-                  alt="Product 1"
-                  className="h-48 w-full rounded-t-lg object-cover"
-                />
-                <div className="p-4">
-                  <h3 className="text-lg font-bold text-[#1a1a1a]">Vintage Typewriter</h3>
-                  <p className="text-[#1a1a1a]">$50</p>
-                  <div className="mt-2 flex gap-2">
-                    <Link
-                      href="#"
-                      className="inline-flex h-8 items-center justify-center rounded-md bg-[#d68720] px-4 text-sm font-medium text-[#1a1a1a] shadow transition-colors hover:bg-[#d68720]/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                      prefetch={false}
-                    >
-                      Buy Now
-                    </Link>
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-lg border bg-[#f0f0f0] shadow-sm">
-                <img
-                  src="/placeholder.svg"
-                  width="300"
-                  height="200"
-                  alt="Product 2"
-                  className="h-48 w-full rounded-t-lg object-cover"
-                />
-                <div className="p-4">
-                  <h3 className="text-lg font-bold text-[#1a1a1a]">Retro Camera</h3>
-                  <p className="text-[#1a1a1a]">$75</p>
-                  <div className="mt-2 flex gap-2">
-                    <Link
-                      href="#"
-                      className="inline-flex h-8 items-center justify-center rounded-md bg-[#d68720] px-4 text-sm font-medium text-[#1a1a1a] shadow transition-colors hover:bg-[#d68720]/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                      prefetch={false}
-                    >
-                      Buy Now
-                    </Link>
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-lg border bg-[#f0f0f0] shadow-sm">
-                <img
-                  src="/placeholder.svg"
-                  width="300"
-                  height="200"
-                  alt="Product 3"
-                  className="h-48 w-full rounded-t-lg object-cover"
-                />
-                <div className="p-4">
-                  <h3 className="text-lg font-bold text-[#1a1a1a]">Vintage Suitcase</h3>
-                  <p className="text-[#1a1a1a]">$40</p>
-                  <div className="mt-2 flex gap-2">
-                    <Link
-                      href="#"
-                      className="inline-flex h-8 items-center justify-center rounded-md bg-[#d68720] px-4 text-sm font-medium text-[#1a1a1a] shadow transition-colors hover:bg-[#d68720]/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                      prefetch={false}
-                    >
-                      Buy Now
-                    </Link>
-                  </div>
-                </div>
-              </div>
-              <div className="rounded-lg border bg-[#f0f0f0] shadow-sm">
-                <img
-                  src="/placeholder.svg"
-                  width="300"
-                  height="200"
-                  alt="Product 4"
-                  className="h-48 w-full rounded-t-lg object-cover"
-                />
-                <div className="p-4">
-                  <h3 className="text-lg font-bold text-[#1a1a1a]">Vintage Typewriter</h3>
-                  <p className="text-[#1a1a1a]">$50</p>
-                  <div className="mt-2 flex gap-2">
-                    <Link
-                      href="#"
-                      className="inline-flex h-8 items-center justify-center rounded-md bg-[#d68720] px-4 text-sm font-medium text-[#1a1a1a] shadow transition-colors hover:bg-[#d68720]/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                      prefetch={false}
-                    >
-                      Buy Now
-                    </Link>
-                  </div>
-                </div>
-              </div>
+              {/* Card component for featured items will go here */}
             </div>
           </div>
         </section>

@@ -1,8 +1,8 @@
-import Landing from "./landing";
+import LandingPage from "./LandingPage";
 export default function Home() {
   return (
     <>
-      <Landing/>
+      <LandingPage/>
     </>
   );
 }
