@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.example.beaver_bargains.BeaverBargainsApplicationTests
+-------------------------------------------------------------------------------
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.973 s -- in com.example.beaver_bargains.BeaverBargainsApplicationTests
