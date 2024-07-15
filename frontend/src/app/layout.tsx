@@ -5,7 +5,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "BeaverBargains - A Marketplace for Beavs",
+  title: "BeaverBargains - The Marketplace for Beavs",
   icons: {
     icon: '/beaver.svg',
   },

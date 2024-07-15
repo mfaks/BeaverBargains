@@ -47,7 +47,7 @@ export default function LandingPage() {
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
                   <h1 className="text-4xl font-bold tracking-tighter sm:text-6xl xl:text-7xl/none text-[#d68720]">
-                    Unlock the Power of the Beaver Community
+                    BeaverBargains - The Marketplace for Beavs.
                   </h1>
                   <p className="max-w-[600px] text-[#1a1a1a] md:text-xl">
                     BeaverBargains is the premier platform for Oregon State students to buy, sell, and trade their belongings in a safe and secure environment.
