@@ -19,7 +19,7 @@ export default function LandingPage() {
             Buy
           </Link>
           <Link
-            href="#" //will include selling page link here; ensure authentication first
+            href="/sell"
             className="text-sm font-medium hover:underline underline-offset-4 text-orange-500"
             prefetch={false}
           >
@@ -37,7 +37,7 @@ export default function LandingPage() {
             className="text-sm font-medium hover:underline underline-offset-4 text-orange-500"
             prefetch={false}
           >
-            Contact
+            Cart
           </Link>
         </nav>
       </header>
