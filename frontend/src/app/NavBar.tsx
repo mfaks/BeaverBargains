@@ -39,34 +39,50 @@ const Navbar = () => {
           </PopoverContent>
         </Popover>
 
-        <Drawer open={cartDrawerOpen} onOpenChange={setCartDrawerOpen}>
+        <Drawer open={cartDrawerOpen} onOpenChange={setCartDrawerOpen} direction="right">
           <DrawerTrigger asChild>
             <span className="text-sm font-medium hover:underline underline-offset-4 text-orange-500 flex items-center cursor-pointer" onClick={() => setCartDrawerOpen(true)}>
               <FaShoppingCart className="mr-2" />
               View Cart
             </span>
           </DrawerTrigger>
-          <DrawerContent className="animate-slide-in-up">
-            <DrawerHeader>
-              <DrawerTitle>Your Cart</DrawerTitle>
+          <DrawerContent className="top-0 right-0 left-auto mt-0 w-[300px] rounded-none">
+            <DrawerHeader className="flex justify-between items-center">
+              <DrawerTitle>My Cart: </DrawerTitle>
               <DrawerClose asChild>
-                <Button>Checkout</Button>
+                <Button
+                  onClick={() => setCartDrawerOpen(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  &times;
+                </Button>
               </DrawerClose>
             </DrawerHeader>
           </DrawerContent>
         </Drawer>
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <span className="text-sm font-medium hover:underline underline-offset-4 text-orange-500 cursor-pointer">
-            <FaUserCircle className="text-2xl" />
+        <Drawer open={profileDrawerOpen} onOpenChange={setProfileDrawerOpen} direction="right">
+          <DrawerTrigger asChild>
+            <span className="text-sm font-medium hover:underline underline-offset-4 text-orange-500 flex items-center cursor-pointer" onClick={() => setProfileDrawerOpen(true)}>
+              <FaUserCircle className="text-2xl" />
             </span>
-          </PopoverTrigger>
-          <PopoverContent className="w-80 p-4">
-            <h2 className="font-bold">Frequently Asked Questions</h2>
-            <p className="text-sm">Here you can add your FAQ content or links to specific questions.</p>
-          </PopoverContent>
-        </Popover>
+          </DrawerTrigger>
+          <DrawerContent className="top-0 right-0 left-auto mt-0 w-[333px] rounded-none">
+            <DrawerHeader className="flex justify-between items-center">
+              <DrawerTitle>Welcome User!</DrawerTitle>
+              <DrawerClose asChild>
+                <Button
+                  onClick={() => setProfileDrawerOpen(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  &times;
+                </Button>
+              </DrawerClose>
+            </DrawerHeader>
+          </DrawerContent>
+        </Drawer>
+
+
 
       </nav>
     </header>
