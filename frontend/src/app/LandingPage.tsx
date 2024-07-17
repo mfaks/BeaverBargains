@@ -1,48 +1,13 @@
 import Link from "next/link"
-import BeakerIcon from "@/components/ui/BeakerIcon"
+import Navbar from "./NavBar"
 import { Button } from "@/components/ui/button"
 
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-[100dvh]">
-      <header className="px-4 lg:px-6 h-14 flex items-center bg-[black] text-[white]">
-        <Link href="#" className="flex items-center justify-center" prefetch={false}>
-        <BeakerIcon/>
-          <span className="text-2xl font-bold text-orange-500">BeaverBargains</span>
-        </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link
-            href="/buy"
-            className="text-sm font-medium hover:underline underline-offset-4 text-orange-500"
-            prefetch={false}
-          >
-            Buy
-          </Link>
-          <Link
-            href="/sell"
-            className="text-sm font-medium hover:underline underline-offset-4 text-orange-500"
-            prefetch={false}
-          >
-            Sell
-          </Link>
-          <Link
-            href="#" //will include about page link here; ensure authentication first
-            className="text-sm font-medium hover:underline underline-offset-4 text-orange-500"
-            prefetch={false}
-          >
-            About
-          </Link>
-          <Link
-            href="#" //will include contact page link here; ensure authentication first
-            className="text-sm font-medium hover:underline underline-offset-4 text-orange-500"
-            prefetch={false}
-          >
-            Cart
-          </Link>
-        </nav>
-      </header>
+      <Navbar />
       <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-[#f0f0f0] text-[#1a1a1a]">
+        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-[white] text-[black]">
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
               <div className="flex flex-col justify-center space-y-4">
@@ -105,7 +70,7 @@ export default function LandingPage() {
                   <li>
                     <div className="grid gap-1">
                       <h3 className="text-xl font-bold text-orange-500">
-                        Safety is Our Number 1 Priority
+                        Safety is Our Ultimate Priority
                       </h3>
                       <p className="text-[#1a1a1a]">
                       With only authenticated users from the Oregon State community, bad actors are prohibited from accessing the cite. Our robust security measures will ensure your payments and personal information are safe and secure.
@@ -149,12 +114,12 @@ export default function LandingPage() {
         </section>
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t bg-[#1a1a1a] text-[#f0f0f0]">
-        <p className="text-xs text-[#f0f0f0]">&copy; 2024 BeaverBargains. All rights reserved.</p>
+        <p className="text-xs text-[#f0f0f0]">&copy; 2024 BeaverBargains.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link href="#"
             className="text-xs hover:underline underline-offset-4 text-orange-500"
             prefetch={false}>
-            About
+            Contact Us
           </Link>
           <Link href="#"
             className="text-xs hover:underline underline-offset-4 text-orange-500"
