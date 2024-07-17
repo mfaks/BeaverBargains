@@ -1,6 +1,5 @@
 import React from 'react'
-import Link from 'next/link'
-import BeakerIcon from '@/components/ui/BeakerIcon'
+import Navbar from '../NavBar'
 import { Button } from "@/components/ui/button"
 import {
     Card,
@@ -59,12 +58,7 @@ const items = [
 export default function Buy() {
     return (
         <div className="flex flex-col min-h-[100dvh] bg-[#f0f0f0] text-[#1a1a1a]">
-            <header className="px-4 lg:px-6 h-14 flex items-center bg-[#1a1a1a] text-[#f0f0f0]">
-                <Link href="#" className="flex items-center justify-center" prefetch={false}>
-                    <BeakerIcon/>
-                    <span className="text-2xl font-bold text-orange-500">BeaverBargains</span>
-                </Link>
-            </header>
+            <Navbar />
             <main className="flex-1 container mx-auto px-4 md:px-6 py-12">
                 <h1 className="text-3xl font-bold text-orange-500 mb-6">Items for Sale</h1>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
