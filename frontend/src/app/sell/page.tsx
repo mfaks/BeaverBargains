@@ -61,6 +61,9 @@ export default function Sell() {
             console.log('No image selected')
         }
 
+        //will print confirmation (let user know they can input another value)/error message; clear form
+        //send data to the market and associate it with the user
+
     }
 
 
@@ -167,12 +170,11 @@ export default function Sell() {
                                             />
                                             {value && imageVisible ? (
                                                 <div className="flex items-center">
-                                                    <img src={URL.createObjectURL(value)} alt="Uploaded" className="h-12 w-12" />
+                                                    <img src={URL.createObjectURL(value)} alt="Uploaded" className="h-16 w-16" />
                                                     <Button
                                                         type="button"
-                                                        variant="destructive"
                                                         size="sm"
-                                                        className="ml-2"
+                                                        className="ml-2 bg-red-500 text-white hover:bg-red-600 transition-colors duration-200 flex items-center"
                                                         onClick={() => {
                                                             onChange(null)
                                                             setImageVisible(false)
@@ -182,11 +184,11 @@ export default function Sell() {
                                                             }
                                                         }}
                                                     >
-                                                        Clear
+                                                        <TrashIcon className="h-4 w-4 mr-1" />
                                                     </Button>
                                                 </div>
                                             ) : (
-                                                <span className="text-gray-500 italic">No file selected</span>
+                                                <span className="text-gray-500 italic"></span>
                                             )}
                                         </div>
                                     </FormControl>
