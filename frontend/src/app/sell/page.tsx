@@ -12,7 +12,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, For
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { TrashIcon } from 'lucide-react'
-import { TagInput } from 'emblor'
+import { Tag, TagInput } from 'emblor'
 
 const formSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -170,6 +170,14 @@ export default function Sell() {
                                             setActiveTagIndex={setActiveTagIndex}
                                             setTags={(newTags) => {
                                                 field.onChange(newTags)
+                                            }}
+                                            className="border border-gray-300 rounded-md p-2"
+                                            styleClasses={{
+                                                tag: {
+                                                    body: 'bg-orange-400 text-white rounded-full px-3 py-1 flex items-center justify-center',
+                                                    closeButton: 'ml-2 text-white hover:text-gray-200',
+                                                },
+                                                input: 'w-full sm:max-w-[350px]',
                                             }}
                                         />
                                     </FormControl>
