@@ -11,6 +11,7 @@ import { z } from "zod"
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
+import { TrashIcon } from 'lucide-react'
 
 const formSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -155,6 +156,7 @@ export default function Sell() {
                                     <FormControl>
                                         <div className="flex items-center space-x-2">
                                             <FileInput
+                                                id="item-image-upload"
                                                 accept="image/*"
                                                 onChange={(e) => {
                                                     const file = e.target.files?.[0]
@@ -163,20 +165,28 @@ export default function Sell() {
                                                 }}
                                                 {...field}
                                             />
-                                            {value && imageVisible && (
+                                            {value && imageVisible ? (
                                                 <div className="flex items-center">
                                                     <img src={URL.createObjectURL(value)} alt="Uploaded" className="h-12 w-12" />
                                                     <Button
                                                         type="button"
-                                                        className="ml-2 bg-red-500 text-white rounded-md px-2 py-1 hover:bg-red-400"
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        className="ml-2"
                                                         onClick={() => {
                                                             onChange(null)
                                                             setImageVisible(false)
+                                                            const fileInput = document.getElementById('item-image-upload') as HTMLInputElement
+                                                            if (fileInput) {
+                                                                fileInput.value = ''
+                                                            }
                                                         }}
                                                     >
                                                         Clear
                                                     </Button>
                                                 </div>
+                                            ) : (
+                                                <span className="text-gray-500 italic">No file selected</span>
                                             )}
                                         </div>
                                     </FormControl>
