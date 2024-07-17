@@ -15,7 +15,17 @@ import { Textarea } from "@/components/ui/textarea"
 const formSchema = z.object({
     title: z.string().min(1, "Title is required"),
     description: z.string().min(1, "Description is required"),
-    price: z.coerce.number().min(0.00, "Price is required. List price as 0.00 if chosing to give an item for free"),
+    price: z.string()
+        .refine(
+            (value) => {
+                const regex = /^\d+(\.\d{0,2})?$/ 
+                return regex.test(value) && parseFloat(value) >= 0 
+            },
+            {
+                message: "Price must be a valid number with up to 2 decimal places and at least 0.00",
+            }
+        )
+        .transform((value) => parseFloat(parseFloat(value).toFixed(2))),
     image: z.instanceof(File).optional(),
 })
 
@@ -48,7 +58,6 @@ export default function Sell() {
     }
 
     const [imageVisible, setImageVisible] = useState(true)
-
 
     return (
         <div className="flex flex-col min-h-[100dvh] bg-[#f0f0f0] text-[#1a1a1a]">
@@ -98,15 +107,21 @@ export default function Sell() {
                                     <FormLabel>Price ($)</FormLabel>
                                     <FormControl>
                                         <Input
-                                            placeholder="Enter price"
+                                            placeholder="0.00"
                                             type="text"
-                                            step="0.01"
-                                            value={(field.value !== undefined && field.value !== null ? field.value.toFixed(2) : '0.00')}
+                                            value={field.value}
                                             onFocus={(e) => e.target.select()}
                                             onChange={(e) => {
-                                                const value = e.target.value;
-                                                if (/^\d*\.?\d*$/.test(value) || value === '') {
-                                                    field.onChange(value === '' ? '' : parseFloat(value));
+                                                const value = e.target.value 
+                                                if (/^\d*(\.\d{0,2})?$/.test(value) || value === '') {
+                                                    field.onChange(value)
+                                                }
+                                            }}
+                                            onBlur={(e) => {
+                                                let value = e.target.value 
+                                                if (value !== '' && !isNaN(parseFloat(value))) {
+                                                    value = parseFloat(value).toFixed(2) 
+                                                    field.onChange(value)
                                                 }
                                             }}
                                         />
@@ -127,9 +142,9 @@ export default function Sell() {
                                             <FileInput
                                                 accept="image/*"
                                                 onChange={(e) => {
-                                                    const file = e.target.files?.[0];
-                                                    onChange(file);
-                                                    setImageVisible(true);
+                                                    const file = e.target.files?.[0] 
+                                                    onChange(file) 
+                                                    setImageVisible(true) 
                                                 }}
                                                 {...field}
                                             />
@@ -140,8 +155,8 @@ export default function Sell() {
                                                         type="button"
                                                         className="ml-2 bg-red-500 text-white rounded-md px-2 py-1 hover:bg-red-400"
                                                         onClick={() => {
-                                                            onChange(null);
-                                                            setImageVisible(false);
+                                                            onChange(null) 
+                                                            setImageVisible(false) 
                                                         }}
                                                     >
                                                         Clear
@@ -155,7 +170,6 @@ export default function Sell() {
                                 </FormItem>
                             )}
                         />
-
                         <div className="flex justify-end">
                             <Button className="bg-orange-500 text-white rounded-md px-4 py-2 hover:bg-orange-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
                                 Submit
