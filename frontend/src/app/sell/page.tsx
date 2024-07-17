@@ -69,6 +69,9 @@ export default function Sell() {
         } else {
             console.log('No image selected')
         }
+
+        //will print confirmation (let user know they can input another value)/error message; clear form
+        //send data to the market and associate it with the user
     }
 
     const [imageVisible, setImageVisible] = useState(true)
