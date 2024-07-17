@@ -12,6 +12,7 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, For
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { TrashIcon } from 'lucide-react'
+import { TagInput } from 'emblor'
 
 const formSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -27,6 +28,7 @@ const formSchema = z.object({
             }
         )
         .transform((value) => parseFloat(parseFloat(value).toFixed(2))),
+    tags: z.array(z.string()).optional(),
     image: z.instanceof(File).optional(),
 })
 
@@ -37,14 +39,18 @@ export default function Sell() {
             title: "",
             description: "",
             price: "0.00",
+            tags: [],
             image: undefined,
         },
     })
+
+    const [activeTagIndex, setActiveTagIndex] = useState<number | null>(null)
 
     type SubmitData = {
         title: string
         description: string
         price: string
+        tags?: string[]
         image?: File
     }
 
@@ -55,17 +61,15 @@ export default function Sell() {
         formData.append('title', values.title)
         formData.append('description', values.description)
         formData.append('price', values.price.toString())
+        if (values.tags) {
+            formData.append('tags', JSON.stringify(values.tags))
+        }
         if (values.image) {
             formData.append('image', values.image)
         } else {
             console.log('No image selected')
         }
-
-        //will print confirmation (let user know they can input another value)/error message; clear form
-        //send data to the market and associate it with the user
-
     }
-
 
     const [imageVisible, setImageVisible] = useState(true)
 
@@ -143,9 +147,30 @@ export default function Sell() {
                                                 }
                                             }}
                                         />
-
                                     </FormControl>
                                     <FormDescription>Set the listing price for your item.</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="tags"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Tags</FormLabel>
+                                    <FormControl>
+                                        <TagInput
+                                            placeholder="Add tags"
+                                            tags={field.value}
+                                            activeTagIndex={activeTagIndex}
+                                            setActiveTagIndex={setActiveTagIndex}
+                                            setTags={(newTags) => {
+                                                field.onChange(newTags)
+                                            }}
+                                        />
+                                    </FormControl>
+                                    <FormDescription>Add tags to help others find your item.</FormDescription>
                                     <FormMessage />
                                 </FormItem>
                             )}
