@@ -5,7 +5,7 @@ import Link from 'next/link'
 import BeakerIcon from '@/components/ui/BeakerIcon'
 import FileInput from "@/components/ui/FileInput"
 import { Button } from "@/components/ui/button"
-import { useForm } from "react-hook-form"
+import { useForm, SubmitHandler } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from "@/components/ui/form"
@@ -18,8 +18,8 @@ const formSchema = z.object({
     price: z.string()
         .refine(
             (value) => {
-                const regex = /^\d+(\.\d{0,2})?$/ 
-                return regex.test(value) && parseFloat(value) >= 0 
+                const regex = /^\d+(\.\d{0,2})?$/
+                return regex.test(value) && parseFloat(value) >= 0
             },
             {
                 message: "Price must be a valid number with up to 2 decimal places and at least 0.00",
@@ -35,27 +35,33 @@ export default function Sell() {
         defaultValues: {
             title: "",
             description: "",
-            price: 0.00,
+            price: "0.00",
             image: undefined,
         },
     })
 
-    const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    type SubmitData = {
+        title: string
+        description: string
+        price: string
+        image?: File
+    }
+
+    const onSubmit: SubmitHandler<SubmitData> = async (values) => {
         console.log(values)
 
+        const formData = new FormData()
+        formData.append('title', values.title)
+        formData.append('description', values.description)
+        formData.append('price', values.price.toString())
         if (values.image) {
-
-            const formData = new FormData()
-            formData.append('title', values.title)
-            formData.append('description', values.description)
-            formData.append('price', values.price.toString())
             formData.append('image', values.image)
-
-
         } else {
             console.log('No image selected')
         }
+
     }
+
 
     const [imageVisible, setImageVisible] = useState(true)
 
@@ -110,21 +116,30 @@ export default function Sell() {
                                             placeholder="0.00"
                                             type="text"
                                             value={field.value}
-                                            onFocus={(e) => e.target.select()}
+                                            onFocus={(e) => {
+                                                if (field.value === "0.00") {
+                                                    e.target.value = ""
+                                                } else {
+                                                    e.target.select()
+                                                }
+                                            }}
                                             onChange={(e) => {
-                                                const value = e.target.value 
+                                                const value = e.target.value
                                                 if (/^\d*(\.\d{0,2})?$/.test(value) || value === '') {
                                                     field.onChange(value)
                                                 }
                                             }}
                                             onBlur={(e) => {
-                                                let value = e.target.value 
+                                                let value = e.target.value
                                                 if (value !== '' && !isNaN(parseFloat(value))) {
-                                                    value = parseFloat(value).toFixed(2) 
+                                                    value = parseFloat(value).toFixed(2)
                                                     field.onChange(value)
+                                                } else if (value === '') {
+                                                    field.onChange("0.00")
                                                 }
                                             }}
                                         />
+
                                     </FormControl>
                                     <FormDescription>Set the listing price for your item.</FormDescription>
                                     <FormMessage />
@@ -142,9 +157,9 @@ export default function Sell() {
                                             <FileInput
                                                 accept="image/*"
                                                 onChange={(e) => {
-                                                    const file = e.target.files?.[0] 
-                                                    onChange(file) 
-                                                    setImageVisible(true) 
+                                                    const file = e.target.files?.[0]
+                                                    onChange(file)
+                                                    setImageVisible(true)
                                                 }}
                                                 {...field}
                                             />
@@ -155,8 +170,8 @@ export default function Sell() {
                                                         type="button"
                                                         className="ml-2 bg-red-500 text-white rounded-md px-2 py-1 hover:bg-red-400"
                                                         onClick={() => {
-                                                            onChange(null) 
-                                                            setImageVisible(false) 
+                                                            onChange(null)
+                                                            setImageVisible(false)
                                                         }}
                                                     >
                                                         Clear
