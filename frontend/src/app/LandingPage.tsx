@@ -70,7 +70,7 @@ export default function LandingPage() {
                   <li>
                     <div className="grid gap-1">
                       <h3 className="text-xl font-bold text-orange-500">
-                        Safety is Our Number 1 Priority
+                        Safety is Our Ultimate Priority
                       </h3>
                       <p className="text-[#1a1a1a]">
                       With only authenticated users from the Oregon State community, bad actors are prohibited from accessing the cite. Our robust security measures will ensure your payments and personal information are safe and secure.
@@ -114,12 +114,12 @@ export default function LandingPage() {
         </section>
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t bg-[#1a1a1a] text-[#f0f0f0]">
-        <p className="text-xs text-[#f0f0f0]">&copy; 2024 BeaverBargains. All rights reserved.</p>
+        <p className="text-xs text-[#f0f0f0]">&copy; 2024 BeaverBargains.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link href="#"
             className="text-xs hover:underline underline-offset-4 text-orange-500"
             prefetch={false}>
-            About
+            Contact Us
           </Link>
           <Link href="#"
             className="text-xs hover:underline underline-offset-4 text-orange-500"

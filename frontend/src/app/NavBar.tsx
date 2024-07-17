@@ -56,21 +56,18 @@ const Navbar = () => {
           </DrawerContent>
         </Drawer>
 
-        <Drawer open={profileDrawerOpen} onOpenChange={setProfileDrawerOpen}>
-          <DrawerTrigger asChild>
-            <span className="text-sm font-medium hover:underline underline-offset-4 text-orange-500 flex items-center cursor-pointer" onClick={() => setProfileDrawerOpen(true)}>
-              <FaUserCircle className="text-2xl" />
+        <Popover>
+          <PopoverTrigger asChild>
+            <span className="text-sm font-medium hover:underline underline-offset-4 text-orange-500 cursor-pointer">
+            <FaUserCircle className="text-2xl" />
             </span>
-          </DrawerTrigger>
-          <DrawerContent className="animate-slide-in-right">
-            <DrawerHeader>
-              <DrawerTitle>Welcome User!</DrawerTitle>
-              <DrawerClose asChild>
-                <Button>Manage Profile</Button>
-              </DrawerClose>
-            </DrawerHeader>
-          </DrawerContent>
-        </Drawer>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-4">
+            <h2 className="font-bold">Frequently Asked Questions</h2>
+            <p className="text-sm">Here you can add your FAQ content or links to specific questions.</p>
+          </PopoverContent>
+        </Popover>
+
       </nav>
     </header>
   )
