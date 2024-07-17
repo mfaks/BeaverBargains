@@ -1,46 +1,11 @@
 import Link from "next/link"
-import BeakerIcon from "@/components/ui/BeakerIcon"
+import Navbar from "./NavBar"
 import { Button } from "@/components/ui/button"
 
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-[100dvh]">
-      <header className="px-4 lg:px-6 h-14 flex items-center bg-[black] text-[white]">
-        <Link href="#" className="flex items-center justify-center" prefetch={false}>
-        <BeakerIcon/>
-          <span className="text-2xl font-bold text-orange-500">BeaverBargains</span>
-        </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
-          <Link
-            href="/buy"
-            className="text-sm font-medium hover:underline underline-offset-4 text-orange-500"
-            prefetch={false}
-          >
-            Buy
-          </Link>
-          <Link
-            href="/sell"
-            className="text-sm font-medium hover:underline underline-offset-4 text-orange-500"
-            prefetch={false}
-          >
-            Sell
-          </Link>
-          <Link
-            href="#" //will include about page link here; ensure authentication first
-            className="text-sm font-medium hover:underline underline-offset-4 text-orange-500"
-            prefetch={false}
-          >
-            About
-          </Link>
-          <Link
-            href="#" //will include contact page link here; ensure authentication first
-            className="text-sm font-medium hover:underline underline-offset-4 text-orange-500"
-            prefetch={false}
-          >
-            Cart
-          </Link>
-        </nav>
-      </header>
+      <Navbar />
       <main className="flex-1">
         <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-[#f0f0f0] text-[#1a1a1a]">
           <div className="container px-4 md:px-6">
