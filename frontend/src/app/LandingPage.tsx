@@ -1,5 +1,6 @@
 import Link from "next/link"
 import Navbar from "./NavBar"
+import Footer from "./Footer"
 import { Button } from "@/components/ui/button"
 
 export default function LandingPage() {
@@ -20,10 +21,10 @@ export default function LandingPage() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                <Link
-                  href="#" //include link to join-now page here
-                  className="inline-flex h-14 items-center justify-center rounded-md bg-orange-500 px-8 text-sm font-medium text-white shadow transition-colors hover:bg-orange-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                  prefetch={false}
+                  <Link
+                    href="#" //include link to join-now page here
+                    className="inline-flex h-14 items-center justify-center rounded-md bg-orange-500 px-8 text-sm font-medium text-white shadow transition-colors hover:bg-orange-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+                    prefetch={false}
                   >
                     <Button className="bg-orange-500 text-white rounded-md px-4 py-2 ml-2">Join Now</Button>
                   </Link>
@@ -73,7 +74,7 @@ export default function LandingPage() {
                         Safety is Our Ultimate Priority
                       </h3>
                       <p className="text-[#1a1a1a]">
-                      With only authenticated users from the Oregon State community, bad actors are prohibited from accessing the cite. Our robust security measures will ensure your payments and personal information are safe and secure.
+                        With only authenticated users from the Oregon State community, bad actors are prohibited from accessing the cite. Our robust security measures will ensure your payments and personal information are safe and secure.
                       </p>
                     </div>
                   </li>
@@ -108,24 +109,12 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="mx-auto grid max-w-5xl grid-cols-1 gap-6 py-12 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-              {/* Card component for featured items will go here */}
+              {/* card component for featured items will go here */}
             </div>
           </div>
         </section>
       </main>
-      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t bg-[#1a1a1a] text-[#f0f0f0]">
-        <p className="text-xs text-[#f0f0f0]">&copy; 2024 BeaverBargains.</p>
-        <nav className="sm:ml-auto flex gap-4 sm:gap-6">
-          <Link href="#"
-            className="text-xs hover:underline underline-offset-4 text-orange-500"
-            prefetch={false}>
-            Contact Us
-          </Link>
-          <Link href="#"
-            className="text-xs hover:underline underline-offset-4 text-orange-500"
-            prefetch={false} />
-        </nav>
-      </footer>
+      <Footer />
     </div>
   )
 }

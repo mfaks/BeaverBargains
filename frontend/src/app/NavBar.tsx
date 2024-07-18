@@ -8,8 +8,7 @@ import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover
 import { FaShoppingCart, FaUserCircle } from 'react-icons/fa'
 import { useState } from 'react'
 
-const Navbar = () => {
-
+export default function NavBar() {
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
   const [profileDrawerOpen, setProfileDrawerOpen] = useState(false)
 
@@ -88,5 +87,3 @@ const Navbar = () => {
     </header>
   )
 }
-
-export default Navbar

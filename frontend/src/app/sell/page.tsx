@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import Navbar from '../NavBar'
+import Footer from '../Footer'
 import FileInput from "@/components/ui/FileInput"
 import { Button } from "@/components/ui/button"
 import { useForm, SubmitHandler } from "react-hook-form"
@@ -235,6 +236,7 @@ export default function Sell() {
                     </form>
                 </Form>
             </main>
+            <Footer />
         </div>
     )
 }

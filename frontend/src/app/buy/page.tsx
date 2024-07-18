@@ -1,5 +1,6 @@
 import React from 'react'
 import Navbar from '../NavBar'
+import Footer from '../Footer'
 import { Button } from "@/components/ui/button"
 import {
     Card,
@@ -53,11 +54,11 @@ const items = [
         sellerName: "Bob",
         listingDate: "9/4/2024"
     },
-];
+]
 
 export default function Buy() {
     return (
-        <div className="flex flex-col min-h-[100dvh] bg-[#f0f0f0] text-[#1a1a1a]">
+        <div className="flex flex-col min-h-[100dvh] bg-[white] text-[#black]">
             <Navbar />
             <main className="flex-1 container mx-auto px-4 md:px-6 py-12">
                 <h1 className="text-3xl font-bold text-orange-500 mb-6">Items for Sale</h1>
@@ -87,6 +88,7 @@ export default function Buy() {
                     ))}
                 </div>
             </main>
+            <Footer />
         </div>
-    );
+    )
 }
