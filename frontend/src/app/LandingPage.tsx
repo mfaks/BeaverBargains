@@ -26,7 +26,9 @@ export default function LandingPage() {
                     className="inline-flex h-14 items-center justify-center rounded-md bg-orange-500 px-8 text-sm font-medium text-white shadow transition-colors hover:bg-orange-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                     prefetch={false}
                   >
-                    <Button className="bg-orange-500 text-white rounded-md px-4 py-2 ml-2">Join Now</Button>
+                    <Button className="bg-orange-500 text-white rounded-md px-4 py-2 ml-2 hover:bg-orange-400">
+                      Join Now
+                    </Button>
                   </Link>
 
                 </div>
@@ -43,14 +45,14 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-[#f0f0f0] text-[#1a1a1a]">
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-[white] text-[black]">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-orange-500">
                   Your One Stop Shop for All Your Beaver Needs
                 </h2>
-                <p className="max-w-[900px] text-[#1a1a1a] md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                <p className="max-w-[900px] text-[black] md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                   Buying, selling, and trading has never been this safe and easy.
                 </p>
               </div>
@@ -63,7 +65,7 @@ export default function LandingPage() {
                       <h3 className="text-xl font-bold text-orange-500">
                         Buy, Sell, Trade
                       </h3>
-                      <p className="text-[#1a1a1a]">
+                      <p className="text-[black]">
                         List your items in seconds and browse a wide selection of products from your fellow Beavs.
                       </p>
                     </div>
@@ -73,7 +75,7 @@ export default function LandingPage() {
                       <h3 className="text-xl font-bold text-orange-500">
                         Safety is Our Ultimate Priority
                       </h3>
-                      <p className="text-[#1a1a1a]">
+                      <p className="text-[black]">
                         With only authenticated users from the Oregon State community, bad actors are prohibited from accessing the cite. Our robust security measures will ensure your payments and personal information are safe and secure.
                       </p>
                     </div>
@@ -81,7 +83,7 @@ export default function LandingPage() {
                   <li>
                     <div className="grid gap-1">
                       <h3 className="text-xl font-bold text-orange-500">Beaver Nation</h3>
-                      <p className="text-[#1a1a1a]">
+                      <p className="text-[black]">
                         Connect with other OSU community members, share your experiences, and build lasting relationships.
                       </p>
                     </div>
@@ -98,12 +100,12 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-[#f0f0f0] text-[#1a1a1a]">
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-[white] text-[black]">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl text-orange-500">Featured Listings</h2>
-                <p className="max-w-[900px] text-[#1a1a1a] md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                <p className="max-w-[900px] text-[black] md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                   Check out some of the latest and greatest items available on BeaverBargains.
                 </p>
               </div>
