@@ -4,7 +4,6 @@ import Link from "next/link"
 import BeakerIcon from "@/components/ui/BeakerIcon"
 import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose, DrawerFooter } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover"
 import { FaShoppingCart, FaUserCircle } from 'react-icons/fa'
 import { useState } from 'react'
 
@@ -25,17 +24,6 @@ export default function NavBar() {
         <Link href="/sell" className="text-sm font-medium hover:underline underline-offset-4 text-orange-500" prefetch={false}>
           Sell
         </Link>
-        <Popover>
-          <PopoverTrigger asChild>
-            <span className="text-sm font-medium hover:underline underline-offset-4 text-orange-500 cursor-pointer">
-              FAQs
-            </span>
-          </PopoverTrigger>
-          <PopoverContent className="w-80 p-4">
-            <h2 className="font-bold">Frequently Asked Questions</h2>
-            <p className="text-sm">Here you can add your FAQ content or links to specific questions.</p>
-          </PopoverContent>
-        </Popover>
         <Drawer open={cartDrawerOpen} onOpenChange={setCartDrawerOpen} direction="right">
           <DrawerTrigger asChild>
             <span className="text-sm font-medium hover:underline underline-offset-4 text-orange-500 flex items-center cursor-pointer" onClick={() => setCartDrawerOpen(true)}>
@@ -55,6 +43,13 @@ export default function NavBar() {
                 </Button>
               </DrawerClose>
             </DrawerHeader>
+            <DrawerFooter className="flex flex-col gap-2">
+              <Link href="/checkout" className="w-full">
+                <Button className="w-full bg-orange-500 text-white hover:bg-orange-600">
+                  Checkout
+                </Button>
+              </Link>
+            </DrawerFooter>
           </DrawerContent>
         </Drawer>
         <Drawer open={profileDrawerOpen} onOpenChange={setProfileDrawerOpen} direction="right">
