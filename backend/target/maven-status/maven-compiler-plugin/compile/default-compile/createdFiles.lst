@@ -1,1 +1,11 @@
+com/example/beaver_bargains/dto/ProductDTO.class
+com/example/beaver_bargains/repository/ProductRepository.class
+com/example/beaver_bargains/entity/OrderItem.class
+com/example/beaver_bargains/controller/ProductController.class
 com/example/beaver_bargains/BeaverBargainsApplication.class
+com/example/beaver_bargains/entity/Product.class
+com/example/beaver_bargains/service/implementation/ProductServiceImpl.class
+com/example/beaver_bargains/entity/User.class
+com/example/beaver_bargains/config/ModelMapperConfig.class
+com/example/beaver_bargains/entity/Order.class
+com/example/beaver_bargains/service/ProductService.class
