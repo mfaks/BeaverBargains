@@ -19,10 +19,10 @@ const createAccountSchema = z.object({
     path: ["confirmPassword"],
 })
 
-type SignupForm = z.infer<typeof createAccountSchema>
+type RegistrationForm = z.infer<typeof createAccountSchema>
 
-export default function Signup() {
-    const form = useForm<SignupForm>({
+export default function Register() {
+    const form = useForm<RegistrationForm>({
         resolver: zodResolver(createAccountSchema),
         defaultValues: {
             username: '',
@@ -32,7 +32,7 @@ export default function Signup() {
         },
     })
 
-    const onSubmit: SubmitHandler<SignupForm> = async (values) => {
+    const onSubmit: SubmitHandler<RegistrationForm> = async (values) => {
         console.log(values)
     }
 
