@@ -15,7 +15,6 @@ import {
     PopoverTrigger,
     PopoverContent,
 } from "@/components/ui/popover"
-import Image from 'next/image'
 
 // dummy data
 const items = [
@@ -71,7 +70,7 @@ export default function Buy() {
                                 <CardDescription>{item.price} - Sold by {item.sellerName}</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <Image src={item.imageUrl} alt={item.title} className="w-full h-auto rounded-lg mb-4" />
+                                <img src={item.imageUrl} alt={item.title} className="w-full h-auto rounded-lg mb-4" />
                             </CardContent>
                             <CardFooter className="flex justify-between">
                                 <Popover>

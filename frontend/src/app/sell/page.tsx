@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { TrashIcon } from 'lucide-react'
 import { Tag, TagInput } from 'emblor'
-import Image from 'next/image'
 
 const formSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -202,7 +201,7 @@ export default function Sell() {
                                             />
                                             {value && imageVisible ? (
                                                 <div className="flex items-center">
-                                                    <Image src={URL.createObjectURL(value)} alt="Uploaded" className="h-16 w-16" />
+                                                    <img src={URL.createObjectURL(value)} alt="Uploaded" className="h-16 w-16" />
                                                     <Button
                                                         type="button"
                                                         size="sm"
