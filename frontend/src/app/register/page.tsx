@@ -10,7 +10,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import Link from 'next/link'
 
 const createAccountSchema = z.object({
-    username: z.string().min(3, 'Username must be at least 3 characters'),
+    firstName: z.string().min(3, 'Last name must be at least 3 characters'),
+    lastName: z.string().min(3, 'First name must be at least 3 characters'),
     email: z.string().email('Invalid email format').min(5, 'Email must be at least 5 characters'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
     confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
@@ -25,7 +26,8 @@ export default function Register() {
     const form = useForm<RegistrationForm>({
         resolver: zodResolver(createAccountSchema),
         defaultValues: {
-            username: '',
+            firstName: '',
+            lastName: '',
             email: '',
             password: '',
             confirmPassword: '',
@@ -50,12 +52,25 @@ export default function Register() {
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
                                 control={form.control}
-                                name="username"
+                                name="firstName"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Username</FormLabel>
+                                        <FormLabel>First Name</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Enter your username" {...field} className="w-full" />
+                                            <Input placeholder="Enter your first name" {...field} className="w-full" />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="lastName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Last Name</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Enter your last name" {...field} className="w-full" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -109,10 +124,10 @@ export default function Register() {
                 <CardFooter className="flex flex-col items-center space-y-2">
                     <p className="text-sm text-gray-600">
                         Already have an account?
-                    </p>
-                    <Link href="/login" className="text-orange-400 underline hover:underline">
+                    <Link href="/login" className="text-orange-400 underline ml-1 hover:underline">
                         Log In
                     </Link>
+                    </p>
                     <Link href="/" className="text-sm text-orange-400 hover:underline">
                         Back to Home
                     </Link>
