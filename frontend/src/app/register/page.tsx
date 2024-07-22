@@ -6,12 +6,14 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import Link from 'next/link'
+import { FaHome } from 'react-icons/fa'
+import HomeButton from '../HomeButton'
 
 const createAccountSchema = z.object({
-    firstName: z.string().min(3, 'Last name must be at least 3 characters'),
-    lastName: z.string().min(3, 'First name must be at least 3 characters'),
+    firstName: z.string().min(3, 'First name must be at least 3 characters'),
+    lastName: z.string().min(3, 'Last name must be at least 3 characters'),
     email: z.string().email('Invalid email format').min(5, 'Email must be at least 5 characters'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
     confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
@@ -39,7 +41,7 @@ export default function Register() {
     }
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-orange-50">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-orange-50 space-y-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
                     <CardTitle className="text-2xl font-bold text-center text-orange-500">Create an Account</CardTitle>
@@ -121,18 +123,8 @@ export default function Register() {
                         </form>
                     </Form>
                 </CardContent>
-                <CardFooter className="flex flex-col items-center space-y-2">
-                    <p className="text-sm text-gray-600">
-                        Already have an account?
-                    <Link href="/login" className="text-orange-400 underline ml-1 hover:underline">
-                        Log In
-                    </Link>
-                    </p>
-                    <Link href="/" className="text-sm text-orange-400 hover:underline">
-                        Back to Home
-                    </Link>
-                </CardFooter>
             </Card>
+            <HomeButton />
         </div>
     )
 }
