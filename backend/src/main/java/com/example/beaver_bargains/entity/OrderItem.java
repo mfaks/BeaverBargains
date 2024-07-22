@@ -20,6 +20,5 @@ public class OrderItem {
     @ManyToOne
     private Product product;
     
-    private int quantity;
     private BigDecimal price; 
 }

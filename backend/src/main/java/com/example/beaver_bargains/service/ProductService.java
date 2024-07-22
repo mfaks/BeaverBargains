@@ -1,7 +1,7 @@
 package com.example.beaver_bargains.service;
-import com.example.beaver_bargains.dto.ProductDTO;
+import com.example.beaver_bargains.dto.ProductDto;
 
 public interface ProductService {
-    ProductDTO createProduct(ProductDTO productDTO);
-    ProductDTO getProductById(Long id);
+    ProductDto createProduct(ProductDto productDTO);
+    ProductDto getProductById(Long id);
 }

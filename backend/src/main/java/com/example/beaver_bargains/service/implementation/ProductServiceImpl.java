@@ -3,7 +3,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.beaver_bargains.dto.ProductDTO;
+import com.example.beaver_bargains.dto.ProductDto;
 import com.example.beaver_bargains.entity.Product;
 import com.example.beaver_bargains.repository.ProductRepository;
 import com.example.beaver_bargains.service.ProductService;
@@ -18,17 +18,17 @@ public class ProductServiceImpl implements ProductService {
     private ModelMapper modelMapper;
 
     @Override
-    public ProductDTO createProduct(ProductDTO productDTO) {
+    public ProductDto createProduct(ProductDto productDTO) {
         Product product = modelMapper.map(productDTO, Product.class);
         Product savedProduct = productRepository.save(product);
-        return modelMapper.map(savedProduct, ProductDTO.class);
+        return modelMapper.map(savedProduct, ProductDto.class);
     }
 
     @Override
-    public ProductDTO getProductById(Long id) {
+    public ProductDto getProductById(Long id) {
         Product product = productRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
-        return modelMapper.map(product, ProductDTO.class);
+        return modelMapper.map(product, ProductDto.class);
     }
 
     //include other method implementations here
