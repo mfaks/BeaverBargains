@@ -3,11 +3,13 @@
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import axios from 'axios'
 import { Button } from '@/components/ui/button'
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
-import HomeButton from '../HomeButton'
+import Link from 'next/link'
+import { FaHome } from 'react-icons/fa'
 
 const passwordSchema = z.string()
     .min(8, 'Password must be at least 8 characters')
@@ -37,8 +39,15 @@ export default function Login() {
     })
 
     const onSubmit: SubmitHandler<LoginForm> = async (values) => {
-        console.log(values)
+        try {
+            const response = await axios.post('http://localhost:8080/api/login', values)
+            console.log('Login successful', response.data)
+            localStorage.setItem('token', response.data.token)
+        } catch (error) {
+            console.error('There was a problem with the login request:', error)
+        }
     }
+
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-orange-50 space-y-4">
@@ -85,7 +94,22 @@ export default function Login() {
                     </Form>
                 </CardContent>
             </Card>
-            <HomeButton />
+            <Card className="w-full max-w-md p-6">
+                <div className="w-full max-w-md text-center space-y-2">
+                    <p className="text-sm text-gray-600">
+                        Already have an account?
+                        <Link href="/register" className="text-orange-400 underline ml-1 hover:underline">
+                            Create Account
+                        </Link>
+                    </p>
+                    <Button className="w-full bg-gray-100 text-orange-400 hover:bg-gray-200">
+                        <Link href="/" className="flex items-center justify-center space-x-1 w-full">
+                            <FaHome className="text-lg" />
+                            <span className="text-sm">Back to Home</span>
+                        </Link>
+                    </Button>
+                </div>
+            </Card>
         </div>
     )
 }

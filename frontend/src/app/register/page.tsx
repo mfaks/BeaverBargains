@@ -8,8 +8,9 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import axios from 'axios'
-import HomeButton from '../HomeButton'
 import { useState } from 'react'
+import Link from 'next/link'
+import { FaHome } from 'react-icons/fa'
 
 const createAccountSchema = z.object({
     firstName: z.string().min(3, 'First name must be at least 3 characters'),
@@ -37,7 +38,7 @@ export default function Register() {
     })
 
     const [registrationStatus, setRegistrationStatus] = useState<'idle' | 'success' | 'error'>('idle')
-    
+
     const onSubmit: SubmitHandler<RegistrationForm> = async (values) => {
         try {
             const response = await axios.post('http://localhost:8080/api/users/register', {
@@ -139,7 +140,22 @@ export default function Register() {
                     </Form>
                 </CardContent>
             </Card>
-            <HomeButton />
+            <Card className="w-full max-w-md p-6">
+                <div className="w-full max-w-md text-center space-y-2">
+                    <p className="text-sm text-gray-600">
+                        Already have an account?
+                        <Link href="/login" className="text-orange-400 underline ml-1 hover:underline">
+                            Log In
+                        </Link>
+                    </p>
+                    <Button className="w-full bg-gray-100 text-orange-400 hover:bg-gray-200">
+                        <Link href="/" className="flex items-center justify-center space-x-1 w-full">
+                            <FaHome className="text-lg" />
+                            <span className="text-sm">Back to Home</span>
+                        </Link>
+                    </Button>
+                </div>
+            </Card>
         </div>
     )
 }
