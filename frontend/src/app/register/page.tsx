@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
-import Link from 'next/link'
-import { FaHome } from 'react-icons/fa'
+import axios from 'axios'
 import HomeButton from '../HomeButton'
+import { useState } from 'react'
 
 const createAccountSchema = z.object({
     firstName: z.string().min(3, 'First name must be at least 3 characters'),
@@ -36,8 +36,23 @@ export default function Register() {
         },
     })
 
+    const [registrationStatus, setRegistrationStatus] = useState<'idle' | 'success' | 'error'>('idle')
+    
     const onSubmit: SubmitHandler<RegistrationForm> = async (values) => {
-        console.log(values)
+        try {
+            const response = await axios.post('http://localhost:8080/api/users/register', {
+                firstName: values.firstName,
+                lastName: values.lastName,
+                email: values.email,
+                password: values.password
+            })
+            console.log(response.data)
+            setRegistrationStatus('success')
+        }
+        catch (error) {
+            console.log(error)
+            setRegistrationStatus('error')
+        }
     }
 
     return (
