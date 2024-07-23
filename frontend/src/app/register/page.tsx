@@ -6,11 +6,14 @@ import { z } from 'zod'
 import { Button } from '@/components/ui/button'
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card'
-import Link from 'next/link'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
+import axios from 'axios'
+import HomeButton from '../HomeButton'
+import { useState } from 'react'
 
 const createAccountSchema = z.object({
-    username: z.string().min(3, 'Username must be at least 3 characters'),
+    firstName: z.string().min(3, 'First name must be at least 3 characters'),
+    lastName: z.string().min(3, 'Last name must be at least 3 characters'),
     email: z.string().email('Invalid email format').min(5, 'Email must be at least 5 characters'),
     password: z.string().min(6, 'Password must be at least 6 characters'),
     confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
@@ -19,25 +22,41 @@ const createAccountSchema = z.object({
     path: ["confirmPassword"],
 })
 
-type SignupForm = z.infer<typeof createAccountSchema>
+type RegistrationForm = z.infer<typeof createAccountSchema>
 
-export default function Signup() {
-    const form = useForm<SignupForm>({
+export default function Register() {
+    const form = useForm<RegistrationForm>({
         resolver: zodResolver(createAccountSchema),
         defaultValues: {
-            username: '',
+            firstName: '',
+            lastName: '',
             email: '',
             password: '',
             confirmPassword: '',
         },
     })
 
-    const onSubmit: SubmitHandler<SignupForm> = async (values) => {
-        console.log(values)
+    const [registrationStatus, setRegistrationStatus] = useState<'idle' | 'success' | 'error'>('idle')
+    
+    const onSubmit: SubmitHandler<RegistrationForm> = async (values) => {
+        try {
+            const response = await axios.post('http://localhost:8080/api/users/register', {
+                firstName: values.firstName,
+                lastName: values.lastName,
+                email: values.email,
+                password: values.password
+            })
+            console.log(response.data)
+            setRegistrationStatus('success')
+        }
+        catch (error) {
+            console.log(error)
+            setRegistrationStatus('error')
+        }
     }
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-orange-50">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-orange-50 space-y-4">
             <Card className="w-full max-w-md">
                 <CardHeader className="space-y-1">
                     <CardTitle className="text-2xl font-bold text-center text-orange-500">Create an Account</CardTitle>
@@ -50,12 +69,25 @@ export default function Signup() {
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField
                                 control={form.control}
-                                name="username"
+                                name="firstName"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Username</FormLabel>
+                                        <FormLabel>First Name</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Enter your username" {...field} className="w-full" />
+                                            <Input placeholder="Enter your first name" {...field} className="w-full" />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="lastName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Last Name</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Enter your last name" {...field} className="w-full" />
                                         </FormControl>
                                         <FormMessage />
                                     </FormItem>
@@ -106,18 +138,8 @@ export default function Signup() {
                         </form>
                     </Form>
                 </CardContent>
-                <CardFooter className="flex flex-col items-center space-y-2">
-                    <p className="text-sm text-gray-600">
-                        Already have an account?
-                    </p>
-                    <Link href="/login" className="text-orange-400 underline hover:underline">
-                        Log In
-                    </Link>
-                    <Link href="/" className="text-sm text-orange-400 hover:underline">
-                        Back to Home
-                    </Link>
-                </CardFooter>
             </Card>
+            <HomeButton />
         </div>
     )
 }

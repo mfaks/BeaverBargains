@@ -16,6 +16,7 @@ import com.example.beaver_bargains.security.CustomUserDetails;
 
 @Service
 public class UserService implements UserDetailsService {
+    
     @Autowired
     private UserRepository userRepository;
 
@@ -24,8 +25,10 @@ public class UserService implements UserDetailsService {
 
     public User registerUser(UserRegistrationDto registrationDto) {
         User user = new User();
-        user.setPassword(passwordEncoder.encode(registrationDto.getPassword()));
+        user.setFirstName(registrationDto.getFirstName());
+        user.setLastName(registrationDto.getLastName());
         user.setEmail(registrationDto.getEmail());
+        user.setPassword(passwordEncoder.encode(registrationDto.getPassword()));
         return userRepository.save(user);
     }
 

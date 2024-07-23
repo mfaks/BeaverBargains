@@ -29,8 +29,6 @@ export default function Footer() {
                     </a>
                 </nav>
             </footer>
-
-            {/* FAQ Dialog */}
             <Dialog open={isFaqDialogOpen} onOpenChange={setIsFaqDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
@@ -43,8 +41,6 @@ export default function Footer() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-
-            {/* Contact Us Dialog */}
             <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
                 <DialogContent>
                     <DialogHeader>

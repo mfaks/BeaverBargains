@@ -15,10 +15,11 @@ import io.jsonwebtoken.SignatureAlgorithm;
 
 @Component
 public class JwtUtil {
-    @Value("${jwt.secret}")
+
+    @Value("${security.jwt.secret-key}")
     private String secretKey;
 
-    @Value("${jwt.expiration}")
+    @Value("${security.jwt.expiration-time}")
     private long expirationTime;
 
     public String generateToken(UserDetails userDetails) {
