@@ -10,18 +10,12 @@ import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import Link from 'next/link'
 import { FaHome } from 'react-icons/fa'
-
-const passwordSchema = z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(20, 'Password must be no more than 20 characters')
-    .regex(/[A-Z]/, 'Password must include at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must include at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must include at least one digit')
-    .regex(/[@$!%*?&#]/, 'Password must include at least one special character')
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 const loginSchema = z.object({
     email: z.string().email('Invalid email format'),
-    password: passwordSchema,
+    password: z.string(),
 })
 
 interface LoginForm {
@@ -30,6 +24,9 @@ interface LoginForm {
 }
 
 export default function Login() {
+    const router = useRouter()
+    const [loginError, setLoginError] = useState<string | null>(null)
+
     const form = useForm<LoginForm>({
         resolver: zodResolver(loginSchema),
         defaultValues: {
@@ -40,14 +37,19 @@ export default function Login() {
 
     const onSubmit: SubmitHandler<LoginForm> = async (values) => {
         try {
-            const response = await axios.post('http://localhost:8080/api/login', values)
+            const response = await axios.post('http://localhost:8080/api/users/login', values)
             console.log('Login successful', response.data)
             localStorage.setItem('token', response.data.token)
+            router.push('/')
         } catch (error) {
             console.error('There was a problem with the login request:', error)
+            if (axios.isAxiosError(error) && error.response) {
+                setLoginError(error.response.data || 'An error occurred during login')
+            } else {
+                setLoginError('An unexpected error occurred')
+            }
         }
     }
-
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-orange-50 space-y-4">
@@ -61,6 +63,9 @@ export default function Login() {
                 <CardContent>
                     <Form {...form}>
                         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                            {loginError && (
+                                <div className="text-red-500 text-sm mb-4">{loginError}</div>
+                            )}
                             <FormField
                                 control={form.control}
                                 name="email"
@@ -97,7 +102,7 @@ export default function Login() {
             <Card className="w-full max-w-md p-6">
                 <div className="w-full max-w-md text-center space-y-2">
                     <p className="text-sm text-gray-600">
-                        Already have an account?
+                        Don&apos;t have an account yet?
                         <Link href="/register" className="text-orange-400 underline ml-1 hover:underline">
                             Create Account
                         </Link>

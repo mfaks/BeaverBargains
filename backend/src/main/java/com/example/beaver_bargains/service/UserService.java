@@ -16,7 +16,6 @@ import com.example.beaver_bargains.security.CustomUserDetails;
 
 @Service
 public class UserService implements UserDetailsService {
-    
     @Autowired
     private UserRepository userRepository;
 
@@ -47,5 +46,9 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
         return new CustomUserDetails(user);
+    }
+
+    public boolean userExists(String email) {        
+        return userRepository.findByEmail(email).isPresent();
     }
 }

@@ -12,12 +12,20 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { FaHome } from 'react-icons/fa'
 
+const passwordSchema = z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(20, 'Password must be no more than 20 characters')
+    .regex(/[A-Z]/, 'Password must include at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must include at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must include at least one digit')
+    .regex(/[@$!%*?&#]/, 'Password must include at least one special character')
+
 const createAccountSchema = z.object({
     firstName: z.string().min(3, 'First name must be at least 3 characters'),
     lastName: z.string().min(3, 'Last name must be at least 3 characters'),
     email: z.string().email('Invalid email format').min(5, 'Email must be at least 5 characters'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
-    confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
+    password: passwordSchema,
+    confirmPassword: passwordSchema
 }).refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
@@ -49,8 +57,7 @@ export default function Register() {
             })
             console.log(response.data)
             setRegistrationStatus('success')
-        }
-        catch (error) {
+        } catch (error) {
             console.log(error)
             setRegistrationStatus('error')
         }

@@ -41,6 +41,10 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody UserLoginDto loginDto) {
         try {
+            if (!userService.userExists(loginDto.getEmail())){
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("Email not found. Please check your email or register for an account.");
+            }
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword())
             );
