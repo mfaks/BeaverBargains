@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { FaHome } from 'react-icons/fa'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '../AuthContext'
 
 const loginSchema = z.object({
     email: z.string().email('Invalid email format'),
@@ -26,6 +27,7 @@ interface LoginForm {
 export default function Login() {
     const router = useRouter()
     const [loginError, setLoginError] = useState<string | null>(null)
+    const { login } = useAuth()
 
     const form = useForm<LoginForm>({
         resolver: zodResolver(loginSchema),
@@ -38,10 +40,8 @@ export default function Login() {
     const onSubmit: SubmitHandler<LoginForm> = async (values) => {
         try {
             const response = await axios.post('http://localhost:8080/api/users/login', values)
-            console.log("here")
-            console.log('Login successful', response.data)
             localStorage.setItem('token', response.data.token)
-            localStorage.setItem('firstName', response.data.firstName)
+            login({ firstName: response.data.firstName, email: values.email })
             router.push('/')
         } catch (error) {
             console.error('There was a problem with the login request:', error)
