@@ -23,6 +23,10 @@ public class UserService implements UserDetailsService {
     private PasswordEncoder passwordEncoder;
 
     public User registerUser(UserRegistrationDto registrationDto) {
+        if (userRepository.existsByEmail(registrationDto.getEmail())) {
+            throw new EmailAlreadyExistsException("Email already associated with a registered account");
+        }
+    
         User user = new User();
         user.setFirstName(registrationDto.getFirstName());
         user.setLastName(registrationDto.getLastName());

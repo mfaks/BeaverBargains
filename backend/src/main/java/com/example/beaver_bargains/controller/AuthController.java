@@ -19,6 +19,7 @@ import com.example.beaver_bargains.dto.UserRegistrationDto;
 import com.example.beaver_bargains.entity.User;
 import com.example.beaver_bargains.security.CustomUserDetails;
 import com.example.beaver_bargains.security.JwtUtil;
+import com.example.beaver_bargains.service.EmailAlreadyExistsException;
 import com.example.beaver_bargains.service.UserService;
 
 @RestController
@@ -36,8 +37,12 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody UserRegistrationDto registrationDto) {
-        User user = userService.registerUser(registrationDto);
-        return ResponseEntity.ok(user);
+        try {
+            User user = userService.registerUser(registrationDto);
+            return ResponseEntity.ok(user);
+        } catch (EmailAlreadyExistsException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
 
     @PostMapping("/login")

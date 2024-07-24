@@ -14,6 +14,17 @@ export default function NavBar() {
   const [profileDrawerOpen, setProfileDrawerOpen] = useState(false)
   const { isAuthenticated, user, logout } = useAuth()
 
+  const [watchItems, setWatchItems] = useState([])
+
+  // const fetchCartItems = async () => {
+  //   if (isAuthenticated && user) {
+  //     //include api call
+  //     const response = await fetch(`/api/cart/${user.id}`)
+  //     const data = await response.json();
+  //     setWatchItems(data);
+  //   }
+  // };
+
   return (
     <header className="sticky top-0 z-50 px-4 lg:px-6 h-14 flex items-center justify-between bg-[black] text-[white]">
       <div className="flex items-center">
@@ -37,7 +48,7 @@ export default function NavBar() {
       </div>
       <nav className="flex gap-4 sm:gap-6 items-center">
         <Link href="/buy" className="text-sm font-medium hover:underline underline-offset-4 text-orange-500" prefetch={false}>
-          Buy
+          Marketplace
         </Link>
         <Link href="/sell" className="text-sm font-medium hover:underline underline-offset-4 text-orange-500" prefetch={false}>
           Sell

@@ -34,6 +34,8 @@ const createAccountSchema = z.object({
 type RegistrationForm = z.infer<typeof createAccountSchema>
 
 export default function Register() {
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
     const form = useForm<RegistrationForm>({
         resolver: zodResolver(createAccountSchema),
         defaultValues: {
@@ -57,9 +59,16 @@ export default function Register() {
             })
             console.log(response.data)
             setRegistrationStatus('success')
+            setErrorMessage(null)
         } catch (error) {
             console.log(error)
             setRegistrationStatus('error')
+            if (axios.isAxiosError(error) && error.response) {
+                setErrorMessage(error.response.data)
+            }
+            else {
+                setErrorMessage('An unexpected error occured')
+            }
         }
     }
 
@@ -140,6 +149,11 @@ export default function Register() {
                                     </FormItem>
                                 )}
                             />
+                            {errorMessage && (
+                                <div className="text-red-500 text-sm mb-4 flex justify-center items-center text-center">
+                                    {errorMessage}
+                                </div>
+                            )}
                             <Button type="submit" className="w-full bg-orange-400 text-white hover:bg-orange-500 focus:bg-orange-500">
                                 Create Account
                             </Button>
