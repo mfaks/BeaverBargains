@@ -24,14 +24,20 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
+import { useRouter } from 'next/router'
 
 export default function NavBar() {
   const { isAuthenticated, user, logout } = useAuth()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const router = useRouter()
 
   const handleLogout = async () => {
     logout()
     setIsDialogOpen(true)
+    setTimeout(() => {
+      setIsDialogOpen(false)
+      router.push('/') // Redirect to home page after logout
+    }, 2000)
   }
 
   return (
@@ -78,9 +84,42 @@ export default function NavBar() {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {isAuthenticated ? (
-                <DropdownMenuItem onClick={handleLogout}>
-                  Logout
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem>
+                    <Link href="/account" className="w-full">
+                      Account
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link href="/orders" className="w-full">
+                      Orders
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link href="/wishlist" className="w-full">
+                      Wish List
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link href="/history" className="w-full">
+                      Browsing History
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link href="/recommendations" className="w-full">
+                      Recommendations
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link href="/account" className="w-full">
+                      Account Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    Sign Out
+                  </DropdownMenuItem>
+                </>
               ) : (
                 <>
                   <DropdownMenuItem>
@@ -104,7 +143,7 @@ export default function NavBar() {
           <DialogHeader>
             <DialogTitle>Logout Successful</DialogTitle>
             <DialogDescription>
-              You have been successfully logged out of your account.
+              You have been successfully logged out of your account. Now redirecting you back to home.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
