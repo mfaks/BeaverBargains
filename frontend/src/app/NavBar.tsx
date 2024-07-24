@@ -2,28 +2,21 @@
 
 import Link from "next/link"
 import BeakerIcon from "@/components/ui/BeakerIcon"
-import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose, DrawerFooter } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
-import { FaSearch, FaShoppingCart, FaUserCircle } from 'react-icons/fa'
-import { useState } from 'react'
+import { FaSearch, FaUserCircle } from 'react-icons/fa'
 import { useAuth } from '../app/AuthContext'
 import { Input } from "@/components/ui/input"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export default function NavBar() {
-  const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
-  const [profileDrawerOpen, setProfileDrawerOpen] = useState(false)
   const { isAuthenticated, user, logout } = useAuth()
-
-  const [watchItems, setWatchItems] = useState([])
-
-  // const fetchCartItems = async () => {
-  //   if (isAuthenticated && user) {
-  //     //include api call
-  //     const response = await fetch(`/api/cart/${user.id}`)
-  //     const data = await response.json();
-  //     setWatchItems(data);
-  //   }
-  // };
 
   return (
     <header className="sticky top-0 z-50 px-4 lg:px-6 h-14 flex items-center justify-between bg-[black] text-[white]">
@@ -53,36 +46,38 @@ export default function NavBar() {
         <Link href="/sell" className="text-sm font-medium hover:underline underline-offset-4 text-orange-500" prefetch={false}>
           Sell
         </Link>
-        <Drawer open={profileDrawerOpen} onOpenChange={setProfileDrawerOpen} direction="right">
-          <DrawerTrigger asChild>
-            <span className="text-sm font-medium hover:underline underline-offset-4 text-orange-500 flex items-center cursor-pointer" onClick={() => setProfileDrawerOpen(true)}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <span className="text-sm font-medium hover:underline underline-offset-4 text-orange-500 flex items-center cursor-pointer">
               <FaUserCircle className="text-2xl" />
               {isAuthenticated && user && <span className="ml-2">{user.firstName}</span>}
             </span>
-          </DrawerTrigger>
-          <DrawerContent className="top-0 right-0 left-auto mt-0 w-[333px] rounded-none">
-            <DrawerHeader className="flex justify-between items-center">
-              <DrawerTitle>{isAuthenticated && user ? `Welcome ${user.firstName}!` : 'Welcome Guest!'}</DrawerTitle>
-              <DrawerClose asChild>
-              </DrawerClose>
-            </DrawerHeader>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56">
+            <DropdownMenuLabel className="text-center">
+              {isAuthenticated && user ? `Welcome ${user.firstName}!` : 'Welcome Guest!'}
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
             {isAuthenticated ? (
-              <DrawerFooter>
-                <Button onClick={logout} className="w-full bg-orange-500 text-white hover:bg-orange-600">
-                  Logout
-                </Button>
-              </DrawerFooter>
+              <DropdownMenuItem onClick={logout}>
+                Logout
+              </DropdownMenuItem>
             ) : (
-              <DrawerFooter>
-                <Link href="/login" className="w-full">
-                  <Button className="w-full bg-orange-500 text-white hover:bg-orange-600">
+              <>
+                <DropdownMenuItem>
+                  <Link href="/login" className="w-full">
                     Login
-                  </Button>
-                </Link>
-              </DrawerFooter>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Link href="/register" className="w-full">
+                    Create Account
+                  </Link>
+                </DropdownMenuItem>
+              </>
             )}
-          </DrawerContent>
-        </Drawer>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </nav>
     </header>
   )
