@@ -4,9 +4,10 @@ import Link from "next/link"
 import BeakerIcon from "@/components/ui/BeakerIcon"
 import { Drawer, DrawerTrigger, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose, DrawerFooter } from "@/components/ui/drawer"
 import { Button } from "@/components/ui/button"
-import { FaShoppingCart, FaUserCircle } from 'react-icons/fa'
+import { FaSearch, FaShoppingCart, FaUserCircle } from 'react-icons/fa'
 import { useState } from 'react'
 import { useAuth } from '../app/AuthContext'
+import { Input } from "@/components/ui/input"
 
 export default function NavBar() {
   const [cartDrawerOpen, setCartDrawerOpen] = useState(false)
@@ -14,12 +15,29 @@ export default function NavBar() {
   const { isAuthenticated, user, logout } = useAuth()
 
   return (
-    <header className="sticky top-0 z-50 px-4 lg:px-6 h-14 flex items-center bg-[black] text-[white]">
-      <Link href="/" className="flex items-center justify-center" prefetch={false}>
-        <BeakerIcon />
-        <span className="text-2xl font-bold text-orange-500">BeaverBargains</span>
-      </Link>
-      <nav className="ml-auto flex gap-4 sm:gap-6 items-center">
+    <header className="sticky top-0 z-50 px-4 lg:px-6 h-14 flex items-center justify-between bg-[black] text-[white]">
+      <div className="flex items-center">
+        <Link href="/" className="flex items-center justify-center" prefetch={false}>
+          <BeakerIcon />
+          <span className="text-2xl font-bold text-orange-500">BeaverBargains</span>
+        </Link>
+      </div>
+
+      <div className="flex-1 max-w-md mx-4 relative"> 
+        <Input 
+          type="search" 
+          placeholder="Search BeaverBargains" 
+          className="w-full bg-gray-800 text-white placeholder-gray-400 border-white pr-10"
+        />
+        <button 
+          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+          onClick={() => {/*add fsearch functiaonltiy here*/}}
+        >
+          <FaSearch />
+        </button>
+      </div>
+
+      <nav className="flex gap-4 sm:gap-6 items-center">
         <Link href="/buy" className="text-sm font-medium hover:underline underline-offset-4 text-orange-500" prefetch={false}>
           Buy
         </Link>
@@ -37,12 +55,6 @@ export default function NavBar() {
             <DrawerHeader className="flex justify-between items-center">
               <DrawerTitle>{isAuthenticated && user ? `Welcome ${user.firstName}!` : 'Welcome Guest!'}</DrawerTitle>
               <DrawerClose asChild>
-                {/* <Button
-                  onClick={() => setProfileDrawerOpen(false)}
-                  className="inline-flex items-center justify-center rounded-md border border-transparent bg-orange-400 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  &times;
-                </Button> */}
               </DrawerClose>
             </DrawerHeader>
             {isAuthenticated ? (
