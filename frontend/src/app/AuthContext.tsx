@@ -10,7 +10,7 @@ interface User {
 interface AuthContextType {
   isAuthenticated: boolean
   user: User | null
-  login: (userData: User) => void
+  login: (userData: User, token: string) => void
   logout: () => void
 }
 
@@ -26,17 +26,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user')
-    if (storedUser) {
+    const token = localStorage.getItem('token')
+    if (storedUser && token) {
       const userData = JSON.parse(storedUser)
       setIsAuthenticated(true)
       setUser(userData)
     }
   }, [])
 
-  const login = (userData: User) => {
+  const login = (userData: User, token: string) => {
     setIsAuthenticated(true)
     setUser(userData)
     localStorage.setItem('user', JSON.stringify(userData))
+    localStorage.setItem('token', token)
   }
 
   const logout = () => {
