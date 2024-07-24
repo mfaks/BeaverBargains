@@ -13,9 +13,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.beaver_bargains.dto.JwtResponseDto;
 import com.example.beaver_bargains.dto.UserLoginDto;
 import com.example.beaver_bargains.dto.UserRegistrationDto;
 import com.example.beaver_bargains.entity.User;
+import com.example.beaver_bargains.security.CustomUserDetails;
 import com.example.beaver_bargains.security.JwtUtil;
 import com.example.beaver_bargains.service.UserService;
 
@@ -41,9 +43,9 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody UserLoginDto loginDto) {
         try {
-            if (!userService.userExists(loginDto.getEmail())){
+            if (!userService.userExists(loginDto.getEmail())) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("Email not found. Please check your email or register for an account.");
+                    .body("Email not found. Please check your email or register for an account.");
             }
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword())
@@ -55,24 +57,20 @@ public class AuthController {
         final UserDetails userDetails = userService.loadUserByUsername(loginDto.getEmail());
         final String jwt = jwtUtil.generateToken(userDetails);
 
-        return ResponseEntity.ok(new JwtResponse(jwt));
+        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
+        User user = customUserDetails.getUser();
+        String firstName = user.getFirstName();
+
+        JwtResponseDto response = new JwtResponseDto();
+        response.setToken(jwt);
+        response.setFirstName(firstName);
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logoutUser() {
-        //invalidate the token on the client-side
+        // Invalidate the token on the client-side
         return ResponseEntity.ok("Logged out successfully");
-    }
-
-    private class JwtResponse {
-        private String token;
-
-        public JwtResponse(String token) {
-            this.token = token;
-        }
-
-        public String getToken() {
-            return token;
-        }
     }
 }
