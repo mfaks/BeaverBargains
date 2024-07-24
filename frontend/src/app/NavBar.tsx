@@ -22,21 +22,19 @@ export default function NavBar() {
           <span className="text-2xl font-bold text-orange-500">BeaverBargains</span>
         </Link>
       </div>
-
-      <div className="flex-1 max-w-md mx-4 relative"> 
-        <Input 
-          type="search" 
-          placeholder="Search BeaverBargains" 
-          className="w-full bg-gray-800 text-white placeholder-gray-400 border-white pr-10"
+      <div className="flex-1 max-w-md mx-4 relative">
+        <Input
+          type="search"
+          placeholder="Search BeaverBargains"
+          className="w-full bg-gray-800 text-white placeholder-gray-400 border border-white rounded-md pr-12"
         />
-        <button 
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
-          onClick={() => {/*add fsearch functiaonltiy here*/}}
+        <button
+          className="absolute right-[3px] top-[3px] bottom-[3px] px-3 flex items-center justify-center bg-orange-500 hover:bg-orange-600 text-white rounded-r-[4px] transition-colors duration-200"
+          onClick={() => {/*add search functionality here*/ }}
         >
           <FaSearch />
         </button>
       </div>
-
       <nav className="flex gap-4 sm:gap-6 items-center">
         <Link href="/buy" className="text-sm font-medium hover:underline underline-offset-4 text-orange-500" prefetch={false}>
           Buy
