@@ -50,7 +50,12 @@ export default function Login() {
         try {
           const response = await axios.post('http://localhost:8080/api/users/login', values)
           const token = response.data.token
-          login({ firstName: response.data.firstName, email: values.email }, token)
+          login({ 
+            firstName: response.data.firstName, 
+            lastName: response.data.lastName,
+            email: values.email, 
+            profileImage: response.data.profileImage
+            }, token)
           setUserFirstName(response.data.firstName)
           setIsLoginSuccessful(true)
           setTimeout(() => {

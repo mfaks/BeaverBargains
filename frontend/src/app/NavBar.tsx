@@ -24,19 +24,18 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { useRouter } from 'next/router'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default function NavBar() {
   const { isAuthenticated, user, logout } = useAuth()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const router = useRouter()
 
   const handleLogout = async () => {
     logout()
     setIsDialogOpen(true)
     setTimeout(() => {
       setIsDialogOpen(false)
-      router.push('/') // Redirect to home page after logout
+      window.location.href ='/'
     }, 2000)
   }
 
@@ -74,7 +73,17 @@ export default function NavBar() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <span className="text-sm font-medium hover:underline underline-offset-4 text-orange-500 flex items-center cursor-pointer">
-                <FaUserCircle className="text-2xl" />
+                {isAuthenticated && user ? (
+                  <Avatar>
+                    <AvatarImage src={user.profileImage || "/default-avatar.png"} alt={user.firstName} />
+                    <AvatarFallback>
+                      {user.firstName.charAt(0).toUpperCase()}
+                      {user.lastName ? user.lastName.charAt(0).toUpperCase() : ''}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <FaUserCircle className="text-2xl" />
+                )}
                 {isAuthenticated && user && <span className="ml-2">{user.firstName}</span>}
               </span>
             </DropdownMenuTrigger>
@@ -91,23 +100,18 @@ export default function NavBar() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
+                    <Link href="/messages" className="w-full">
+                      Messages
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
                     <Link href="/orders" className="w-full">
                       Orders
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Link href="/wishlist" className="w-full">
-                      Wish List
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link href="/history" className="w-full">
-                      Browsing History
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link href="/recommendations" className="w-full">
-                      Recommendations
+                    <Link href="/watchlist" className="w-full">
+                      Watch List
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
