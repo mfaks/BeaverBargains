@@ -19,7 +19,7 @@ import com.example.beaver_bargains.dto.UserRegistrationDto;
 import com.example.beaver_bargains.entity.User;
 import com.example.beaver_bargains.security.CustomUserDetails;
 import com.example.beaver_bargains.security.JwtUtil;
-import com.example.beaver_bargains.service.EmailAlreadyExistsException;
+import com.example.beaver_bargains.service.CustomExceptions.EmailAlreadyExistsException;
 import com.example.beaver_bargains.service.UserService;
 
 @RestController
@@ -64,18 +64,26 @@ public class AuthController {
 
         CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
         User user = customUserDetails.getUser();
+        Long id = user.getId();
         String firstName = user.getFirstName();
+        String lastName = user.getLastName();
+        String email = user.getEmail();
+        String bio = user.getBio();
 
         JwtResponseDto response = new JwtResponseDto();
         response.setToken(jwt);
+        response.setId(id);
         response.setFirstName(firstName);
-
+        response.setLastName(lastName);
+        response.setEmail(email);
+        response.setBio(bio);
+        
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/logout")
     public ResponseEntity<?> logoutUser() {
-        // Invalidate the token on the client-side
+        //invalidate the token on the client-side
         return ResponseEntity.ok("Logged out successfully");
     }
 }

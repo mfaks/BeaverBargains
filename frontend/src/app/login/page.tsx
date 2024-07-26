@@ -50,7 +50,10 @@ export default function Login() {
         try {
           const response = await axios.post('http://localhost:8080/api/users/login', values)
           const token = response.data.token
+          console.log(token)
+          localStorage.setItem('token', token);
           login({ 
+            id: response.data.id,
             firstName: response.data.firstName, 
             lastName: response.data.lastName,
             email: values.email, 
@@ -143,7 +146,7 @@ export default function Login() {
                     <DialogHeader>
                         <DialogTitle>Login Successful</DialogTitle>
                         <DialogDescription>
-                            Welcome, {userFirstName}! You are being redirected to the market place.
+                            Welcome, {userFirstName}! Redirecting you to the Marketplace.
                         </DialogDescription>
                     </DialogHeader>
                 </DialogContent>

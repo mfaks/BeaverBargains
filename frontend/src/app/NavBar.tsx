@@ -35,7 +35,7 @@ export default function NavBar() {
     setIsDialogOpen(true)
     setTimeout(() => {
       setIsDialogOpen(false)
-      window.location.href ='/'
+      window.location.href ='/login'
     }, 2000)
   }
 
@@ -105,18 +105,18 @@ export default function NavBar() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Link href="/orders" className="w-full">
-                      Orders
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
                     <Link href="/watchlist" className="w-full">
                       Watch List
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <Link href="/account" className="w-full">
-                      Account Settings
+                    <Link href="/listings" className="w-full">
+                      My Listings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Link href="/orders" className="w-full">
+                      Orders
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -147,7 +147,7 @@ export default function NavBar() {
           <DialogHeader>
             <DialogTitle>Logout Successful</DialogTitle>
             <DialogDescription>
-              You have been successfully logged out of your account. Now redirecting you back to home.
+              You have been successfully logged out of your account. Now redirecting you back to login.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

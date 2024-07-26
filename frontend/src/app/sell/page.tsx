@@ -42,10 +42,10 @@ export default function Sell() {
 
     useEffect(() => {
         if (!isAuthenticated) {
-            setErrorMessage("You must be logged in to access the sell page. Navigating you back to home.")
+            setErrorMessage("You must be logged in to access the sell page. Redirecting to login.")
             setModalOpen(true)
             setTimeout(() => {
-                window.location.href = '/'
+                window.location.href = '/login'
             }, 2000)
         }
     }, [isAuthenticated])

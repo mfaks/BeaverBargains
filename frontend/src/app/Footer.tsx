@@ -46,7 +46,7 @@ export default function Footer() {
                     <DialogHeader>
                         <DialogTitle>Contact Us</DialogTitle>
                         <DialogDescription>
-                            For any questions about payments, data security, or any other concerns, please feel free to contact us at BeaverBargains@gmail.com.
+                            For any questions about payments, data security, or any other concerns, please feel free to contact the developer team at faksm@oregonstate.edu
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>

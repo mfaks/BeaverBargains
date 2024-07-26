@@ -5,12 +5,12 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class JwtResponseDto {
-    private String token;
-    private Long   id;
+public class UserUpdateDto {
     private String firstName;
     private String lastName;
     private String email;
     private String bio;
     private String profileImageUrl;
+    private String currentPassword;
+    private String newPassword;
 }
