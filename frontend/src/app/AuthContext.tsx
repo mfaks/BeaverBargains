@@ -7,6 +7,7 @@ interface User {
   firstName: string
   lastName: string
   email: string
+  bio: string
   profileImage?: string
 }
 

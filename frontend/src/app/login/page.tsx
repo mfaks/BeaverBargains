@@ -57,6 +57,7 @@ export default function Login() {
             firstName: response.data.firstName, 
             lastName: response.data.lastName,
             email: values.email, 
+            bio: response.data.bio,
             profileImage: response.data.profileImage
             }, token)
           setUserFirstName(response.data.firstName)

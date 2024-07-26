@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Link from "next/link"
 import { useRouter } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
@@ -12,47 +11,105 @@ import NavBar from "../NavBar"
 import Footer from "../Footer"
 import { FaFacebookMessenger, FaBox, FaStar, FaList } from "react-icons/fa"
 import { useAuth } from '../AuthContext'
-import UnauthorizedModal from '../UnauthorizedModal'
 import axios from 'axios'
+import { useToast } from "@/components/ui/use-toast"
+
+interface UserDetails {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  bio: string;
+  profileImage?: string;
+}
 
 export default function ProfilePage() {
-  const [bio, setBio] = useState("Enter your bio here")
+  const [bio, setBio] = useState("")
+  const [bioChanged, setBioChanged] = useState(false)
+  const [userDetails, setUserDetails] = useState<UserDetails | null>(null)
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
+  const [confirmNewPassword, setConfirmNewPassword] = useState("")
+  const [passwordError, setPasswordError] = useState("")
   const [profileImage, setProfileImage] = useState<File | null>(null)
   const router = useRouter()
-  const { isAuthenticated, user } = useAuth()
-  const [errorMessage, setErrorMessage] = useState("")
-  const [modalOpen, setModalOpen] = useState(false)
+  const { isAuthenticated, user, logout } = useAuth()
+  const { toast } = useToast()
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      setErrorMessage("You must be logged in to access the profile page. Redirecting to login.")
-      setModalOpen(true)
-      setTimeout(() => {
-        router.push('/login')
-      }, 2000)
+    const fetchUserDetails = async () => {
+      if (isAuthenticated && user) {
+        try {
+          const token = localStorage.getItem('token');
+          const config = {
+            headers: { Authorization: `Bearer ${token}` }
+          };
+          const response = await axios.get<UserDetails>(`http://localhost:8080/api/users/${user.id}`, config);
+          setUserDetails(response.data);
+          setBio(response.data.bio || "");
+        } catch (error) {
+          console.error("Error fetching user details:", error);
+          toast({
+            title: "Error",
+            description: "Failed to fetch user details. Please try again.",
+            variant: "destructive",
+          })
+        }
+      }
+    };
+
+    fetchUserDetails();
+  }, [isAuthenticated, user, toast]);
+
+  const validatePassword = (password: string) => {
+    return password.length >= 8;
+  };
+
+  const handlePasswordChange = () => {
+    setPasswordError("");
+
+    if (currentPassword === newPassword) {
+      setPasswordError("New password must be different from the current password.");
+      return;
     }
-  }, [isAuthenticated, router])
+
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError("New password and confirmation do not match.");
+      return;
+    }
+
+    if (!validatePassword(newPassword)) {
+      setPasswordError("Password must be at least 8 characters long.");
+      return;
+    }
+
+    handleSaveProfile();
+  };
 
   const handleSaveProfile = async () => {
     try {
       const token = localStorage.getItem('token');
       const config = {
         headers: { Authorization: `Bearer ${token}` }
-      };
+      }
 
       const updateDto = {
         firstName: user?.firstName,
         lastName: user?.lastName,
         email: user?.email,
-        bio,
-
-        currentPassword,
-        newPassword
+        bio: bio,
       }
-      
-      await axios.put(`http://localhost:8080/api/users/${user?.id}/profile`, updateDto, config);
+
+      if (bioChanged) {
+        await axios.put(`http://localhost:8080/api/users/${user?.id}/biography`, updateDto, config);
+      }
+
+      if (currentPassword && newPassword) {
+        await axios.put(`http://localhost:8080/api/users/${user?.id}/password`, {
+          currentPassword,
+          newPassword
+        }, config);
+      }
 
       if (profileImage) {
         const formData = new FormData();
@@ -60,13 +117,47 @@ export default function ProfilePage() {
         await axios.post(`http://localhost:8080/api/users/${user?.id}/profile-image`, formData, config);
       }
 
-      alert("Profile updated successfully!");
+      toast({
+        title: "Success",
+        description: "Profile updated successfully!",
+        variant: "default",
+      })
+      setBioChanged(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmNewPassword("");
     } catch (error) {
       console.error("Error updating profile:", error);
-      if (axios.isAxiosError(error) && error.response) {
-        alert(`Failed to update profile: ${error.response.data}`);
-      } else {
-        alert("An unexpected error occurred while updating the profile.");
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleDeleteAccount = async () => {
+    if (window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+      try {
+        const token = localStorage.getItem('token');
+        const config = {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+        await axios.delete(`http://localhost:8080/api/users/${user?.id}`, config);
+        toast({
+          title: "Account Deleted",
+          description: "Your account has been deleted successfully.",
+          variant: "default",
+        });
+        logout();
+        router.push('/');
+      } catch (error) {
+        console.error("Error deleting account:", error);
+        toast({
+          title: "Error",
+          description: "Failed to delete account. Please try again.",
+          variant: "destructive",
+        })
       }
     }
   }
@@ -103,18 +194,24 @@ export default function ProfilePage() {
                 </div>
                 <div>
                   <Label className="text-sm font-medium">Biography</Label>
-                  <textarea
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    className="border-gray-300 rounded-lg p-2 w-full text-sm"
-                    rows={2}
+                  <Input
                     placeholder="Include a short bio to introduce yourself to buyers!"
+                    value={bio}
+                    onChange={(e) => {
+                      setBio(e.target.value);
+                      setBioChanged(userDetails ? e.target.value !== userDetails.bio : false);
+                    }}
+                    className="border-gray-300"
                   />
                 </div>
                 <div className="flex justify-between items-center mt-4">
                   <Button
                     variant="outline"
-                    className="text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+                    className={`${
+                      bioChanged
+                        ? "bg-orange-500 text-white"
+                        : "text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+                    }`}
                     onClick={handleSaveProfile}
                   >
                     Save Biography
@@ -143,6 +240,7 @@ export default function ProfilePage() {
                         setProfileImage(files[0])
                       }
                     }}
+                    className="text-sm text-gray-500"
                   />
                 </div>
               </div>
@@ -150,7 +248,6 @@ export default function ProfilePage() {
                 <Label className="text-sm font-medium">Current Password</Label>
                 <Input
                   type="password"
-                  placeholder="Enter your current password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   className="border-gray-300"
@@ -160,7 +257,6 @@ export default function ProfilePage() {
                 <Label className="text-sm font-medium">New Password</Label>
                 <Input
                   type="password"
-                  placeholder="Enter your new password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="border-gray-300"
@@ -170,83 +266,48 @@ export default function ProfilePage() {
                 <Label className="text-sm font-medium">Confirm New Password</Label>
                 <Input
                   type="password"
-                  placeholder="Confirm your new password"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
                   className="border-gray-300"
                 />
               </div>
-              <div>
-                <Button
-                  variant="outline"
-                  className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
-                  onClick={handleSaveProfile}
-                >
-                  Change Password
-                </Button>
-              </div>
+              {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
             </CardContent>
-            <CardFooter className="p-4 flex justify-center">
-              <Button variant="destructive" className="w-full max-w-xs text-white bg-red-600 hover:bg-red-700 border-red-600">
+            <CardFooter className="p-4 flex justify-between items-center">
+              <Button
+                variant="outline"
+                className="bg-red-500 text-white"
+                onClick={handleDeleteAccount}
+              >
                 Delete My Account
               </Button>
-            </CardFooter>
-          </Card>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6">
-          <Card className="bg-white shadow rounded-lg text-black">
-            <CardHeader className="flex items-center justify-center p-4">
-              <FaFacebookMessenger className="text-3xl text-orange-500" />
-            </CardHeader>
-            <CardContent className="text-center">
-              <CardTitle className="text-lg font-semibold">Messages</CardTitle>
-              <CardDescription>View your messages with buyers and sellers.</CardDescription>
-            </CardContent>
-            <CardFooter className="text-center">
-              <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white">
-                View Messages
+              <Button
+                variant="outline"
+                className="bg-orange-500 text-white"
+                onClick={handlePasswordChange}
+              >
+                Save Changes
               </Button>
             </CardFooter>
           </Card>
           <Card className="bg-white shadow rounded-lg text-black">
-            <CardHeader className="flex items-center justify-center p-4">
-              <FaStar className="text-3xl text-orange-500" />
+            <CardHeader className="p-4">
+              <CardTitle className="text-lg font-semibold text-center">Activity</CardTitle>
             </CardHeader>
-            <CardContent className="text-center">
-              <CardTitle className="text-lg font-semibold">Watch List</CardTitle>
-              <CardDescription>View items you've added to your watch list.</CardDescription>
+            <CardContent className="p-4 space-y-3">
+              <div className="flex flex-col items-center">
+                <FaFacebookMessenger className="h-10 w-10 mb-2 text-gray-600" />
+                <span className="text-center text-gray-600">Messages</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <FaBox className="h-10 w-10 mb-2 text-gray-600" />
+                <span className="text-center text-gray-600">Orders</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <FaList className="h-10 w-10 mb-2 text-gray-600" />
+                <span className="text-center text-gray-600">Wish List</span>
+              </div>
             </CardContent>
-            <CardFooter className="text-center">
-              <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white">
-                View Watch List
-              </Button>
-            </CardFooter>
-          </Card>
-          <Card className="bg-white shadow rounded-lg text-black">
-            <CardHeader className="flex items-center justify-center p-4">
-              <FaList className="text-3xl text-orange-500" />
-            </CardHeader>
-            <CardContent className="text-center">
-              <CardTitle className="text-lg font-semibold">Order List</CardTitle>
-              <CardDescription>View the status of your orders and transactions.</CardDescription>
-            </CardContent>
-            <CardFooter className="text-center">
-              <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white">
-                View Order List
-              </Button>
-            </CardFooter>
-          </Card>
-          <Card className="bg-white shadow rounded-lg text-black">
-            <CardHeader className="flex items-center justify-center p-4">
-              <FaBox className="text-3xl text-orange-500" />
-            </CardHeader>
-            <CardContent className="text-center">
-              <CardTitle className="text-lg font-semibold">Orders</CardTitle>
-              <CardDescription>Manage your orders and track deliveries.</CardDescription>
-            </CardContent>
-            <CardFooter className="text-center">
-              <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white">
-                Manage Orders
-              </Button>
-            </CardFooter>
           </Card>
         </div>
       </main>

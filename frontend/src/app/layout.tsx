@@ -1,8 +1,9 @@
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import { AuthProvider } from "../app/AuthContext"
 import { AuthProviderWrapper } from './AuthProviderWrapper'
+import { Toaster } from "@/components/ui/toaster"
+
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
@@ -23,6 +24,7 @@ export default function RootLayout({
         <AuthProviderWrapper>
           {children}
         </AuthProviderWrapper>
+        <Toaster />
       </body>
     </html>
   )

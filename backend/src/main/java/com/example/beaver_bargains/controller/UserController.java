@@ -4,20 +4,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
+import com.example.beaver_bargains.dto.ChangePasswordDto;
+import com.example.beaver_bargains.dto.ProfileImageUpdateDto;
+import com.example.beaver_bargains.dto.UserBioUpdateDto;
 import com.example.beaver_bargains.dto.UserDto;
-import com.example.beaver_bargains.dto.UserUpdateDto;
 import com.example.beaver_bargains.service.UserService;
-
-import io.jsonwebtoken.io.IOException;
 
 @RestController
 @RequestMapping("/api/users")
@@ -27,20 +25,34 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @PutMapping("/{userId}/profile")
-    public ResponseEntity<UserDto> updateUserProfile(
+    @GetMapping("/{userId}")
+        public ResponseEntity<UserDto> getUserDetails(@PathVariable Long userId) {
+        UserDto userDto = userService.getUserDetails(userId);
+        return ResponseEntity.ok(userDto);
+    }
+
+    @PutMapping("/{userId}/biography")
+    public ResponseEntity<UserDto> updateBiography(
             @PathVariable Long userId,
-            @RequestBody UserUpdateDto updateDto) {
-        UserDto updatedUser = userService.updateUserProfile(userId, updateDto);
+            @RequestBody UserBioUpdateDto userBioUpdateDto) {
+        UserDto updatedUser = userService.updateBiography(userId, userBioUpdateDto);
         return ResponseEntity.ok(updatedUser);
     }
 
-    @PostMapping("/{userId}/profile-image")
-    public ResponseEntity<String> uploadProfileImage(
+    @PutMapping("/{userId}/password")
+    public ResponseEntity<Void> changePassword(
             @PathVariable Long userId,
-            @RequestParam("image") MultipartFile image) throws IOException, java.io.IOException {
-        String imageUrl = userService.updateProfileImage(userId, image);
-        return ResponseEntity.ok(imageUrl);
+            @RequestBody ChangePasswordDto changePasswordDto) {
+        userService.changePassword(userId, changePasswordDto.getOldPassword(), changePasswordDto.getNewPassword());
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{userId}/profile-icon")
+    public ResponseEntity<UserDto> updateProfileIcon(
+            @PathVariable Long userId,
+            @RequestBody ProfileImageUpdateDto profileImageUpateDto) {
+        UserDto updatedUser = userService.updateProfileIcon(userId, profileImageUpateDto);
+        return ResponseEntity.ok(updatedUser);
     }
 
     @DeleteMapping("/{userId}")
