@@ -11,6 +11,8 @@ import axios from 'axios'
 import { useState } from 'react'
 import Link from 'next/link'
 import { FaHome } from 'react-icons/fa'
+import { useToast } from "@/components/ui/use-toast"
+import { useRouter } from 'next/router'
 
 const passwordSchema = z.string()
     .min(8, 'Password must be at least 8 characters')
@@ -34,7 +36,9 @@ const createAccountSchema = z.object({
 type RegistrationForm = z.infer<typeof createAccountSchema>
 
 export default function Register() {
-    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
+    const { toast } = useToast()
+    const router = useRouter()
 
     const form = useForm<RegistrationForm>({
         resolver: zodResolver(createAccountSchema),
@@ -60,15 +64,27 @@ export default function Register() {
             console.log(response.data)
             setRegistrationStatus('success')
             setErrorMessage(null)
+            toast({
+                title: "Success",
+                description: "Registration successful! Redirecting to marketplace...",
+                variant: "default",
+            })
+            setTimeout(() => {
+                router.push('/marketplace')
+            }, 2000)
         } catch (error) {
             console.log(error)
             setRegistrationStatus('error')
             if (axios.isAxiosError(error) && error.response) {
                 setErrorMessage(error.response.data)
+            } else {
+                setErrorMessage('An unexpected error occurred')
             }
-            else {
-                setErrorMessage('An unexpected error occured')
-            }
+            toast({
+                title: "Error",
+                description: "Registration failed. Please try again.",
+                variant: "destructive",
+            })
         }
     }
 
