@@ -9,10 +9,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.beaver_bargains.dto.ChangePasswordDto;
-import com.example.beaver_bargains.dto.ProfileImageUpdateDto;
 import com.example.beaver_bargains.dto.UserBioUpdateDto;
 import com.example.beaver_bargains.dto.UserDto;
 import com.example.beaver_bargains.service.UserService;
@@ -26,7 +27,7 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/{userId}")
-        public ResponseEntity<UserDto> getUserDetails(@PathVariable Long userId) {
+    public ResponseEntity<UserDto> getUserDetails(@PathVariable Long userId) {
         UserDto userDto = userService.getUserDetails(userId);
         return ResponseEntity.ok(userDto);
     }
@@ -47,11 +48,17 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/{userId}/profile-icon")
-    public ResponseEntity<UserDto> updateProfileIcon(
+    @PutMapping("/{userId}/profile-image")
+    public ResponseEntity<UserDto> updateProfileImage(
             @PathVariable Long userId,
-            @RequestBody ProfileImageUpdateDto profileImageUpateDto) {
-        UserDto updatedUser = userService.updateProfileIcon(userId, profileImageUpateDto);
+            @RequestParam("image") MultipartFile file) {
+        UserDto updatedUser = userService.updateProfileImage(userId, file);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    @DeleteMapping("/{userId}/profile-image")
+    public ResponseEntity<UserDto> removeProfileImage(@PathVariable Long userId) {
+        UserDto updatedUser = userService.removeProfileImage(userId);
         return ResponseEntity.ok(updatedUser);
     }
 

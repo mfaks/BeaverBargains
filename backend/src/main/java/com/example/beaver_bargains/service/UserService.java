@@ -1,5 +1,11 @@
 package com.example.beaver_bargains.service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -7,8 +13,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import com.example.beaver_bargains.dto.ProfileImageUpdateDto;
 import com.example.beaver_bargains.dto.UserBioUpdateDto;
 import com.example.beaver_bargains.dto.UserDto;
 import com.example.beaver_bargains.dto.UserLoginDto;
@@ -31,7 +37,6 @@ public class UserService implements UserDetailsService {
         if (userRepository.existsByEmail(registrationDto.getEmail())) {
             throw new EmailAlreadyExistsException("Email already associated with a registered account");
         }
-    
         User user = new User();
         user.setFirstName(registrationDto.getFirstName());
         user.setLastName(registrationDto.getLastName());
@@ -81,16 +86,56 @@ public class UserService implements UserDetailsService {
         userRepository.save(user);
     }
 
-    public UserDto updateProfileIcon(Long userId, ProfileImageUpdateDto profileIconUpdateDto) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
-        user.setProfileImageUrl(profileIconUpdateDto.getProfileImageUrl());
-        user = userRepository.save(user);
-        return null;
+    public UserDto updateProfileImage(Long userId, MultipartFile file) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
+        
+        try {
+            String profileImageUrl = saveProfileImage(file);
+            user.setProfileImageUrl(profileImageUrl);
+            user = userRepository.save(user);
+            return new UserDto(user);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to process the image file", e);
+        }
+    }
+
+    private String saveProfileImage(MultipartFile file) throws IOException {
+        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        String uploadDir = "uploads/profile-images/";
+        Path uploadPath = Paths.get(uploadDir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+        Path filePath = uploadPath.resolve(fileName);
+        Files.copy(file.getInputStream(), filePath);
+        return "http://localhost:8080/uploads/profile-images/" + fileName;
     }
 
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         userRepository.delete(user);
+    }
+
+    public UserDto removeProfileImage(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
+        user.setProfileImageUrl(null);
+        user = userRepository.save(user);
+        if (user.getProfileImageUrl() != null) {
+            deleteProfileImageFile(user.getProfileImageUrl());
+        }
+        return new UserDto(user);
+    }
+    
+    private void deleteProfileImageFile(String imageUrl) {
+        try {
+            String fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+            Path filePath = Paths.get("uploads/profile-images/", fileName);
+            Files.deleteIfExists(filePath);
+        } catch (IOException e) {
+            System.err.println("Failed to delete profile image file: " + e.getMessage());
+        }
     }
 }
