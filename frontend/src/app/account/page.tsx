@@ -11,6 +11,7 @@ import NavBar from "../NavBar"
 import Footer from "../Footer"
 import { FaFacebookMessenger, FaBox, FaStar, FaList } from "react-icons/fa"
 import { useAuth } from '../AuthContext'
+import UnauthorizedModal from '../UnauthorizedModal'
 import axios from 'axios'
 import { useToast } from "@/components/ui/use-toast"
 import ImageUploadAndCropper from '../ImageUploadAndCropper'
@@ -48,7 +49,29 @@ export default function Account() {
   const [croppedImage, setCroppedImage] = useState<File | null>(null)
   const router = useRouter()
   const { isAuthenticated, user, updateUserProfileImage } = useAuth()
+  const [showUnauthorizedModal, setShowUnauthorizedModal] = useState(false)
+
   const { toast } = useToast()
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setShowUnauthorizedModal(true)
+      const timer = setTimeout(() => {
+        router.push('/login')
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [isAuthenticated, router])
+
+  if (!isAuthenticated) {
+    return (
+      <UnauthorizedModal 
+        isOpen={showUnauthorizedModal} 
+        onClose={() => setShowUnauthorizedModal(false)}
+        message="You must be logged in to view this page. Redirecting to login..."
+      />
+    )
+  }
 
   useEffect(() => {
     const fetchUserDetails = async () => {
