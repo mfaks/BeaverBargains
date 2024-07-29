@@ -8,15 +8,26 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import axios from 'axios'
-import HomeButton from '../HomeButton'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { FaHome } from 'react-icons/fa'
+import { useToast } from "@/components/ui/use-toast"
+import { useRouter } from 'next/navigation'
+
+const passwordSchema = z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(20, 'Password must be no more than 20 characters')
+    .regex(/[A-Z]/, 'Password must include at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must include at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must include at least one digit')
+    .regex(/[@$!%*?&#]/, 'Password must include at least one special character')
 
 const createAccountSchema = z.object({
     firstName: z.string().min(3, 'First name must be at least 3 characters'),
     lastName: z.string().min(3, 'Last name must be at least 3 characters'),
     email: z.string().email('Invalid email format').min(5, 'Email must be at least 5 characters'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
-    confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
+    password: passwordSchema,
+    confirmPassword: passwordSchema
 }).refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
@@ -25,6 +36,10 @@ const createAccountSchema = z.object({
 type RegistrationForm = z.infer<typeof createAccountSchema>
 
 export default function Register() {
+    const [errorMessage, setErrorMessage] = useState<string | null>(null)
+    const { toast } = useToast()
+    const router = useRouter()
+
     const form = useForm<RegistrationForm>({
         resolver: zodResolver(createAccountSchema),
         defaultValues: {
@@ -37,7 +52,19 @@ export default function Register() {
     })
 
     const [registrationStatus, setRegistrationStatus] = useState<'idle' | 'success' | 'error'>('idle')
-    
+
+    useEffect(() => {
+        const handleRegistrationSuccess = () => {
+            setTimeout(() => {
+                router.push('/marketplace')
+            }, 2000)
+        }
+
+        if (registrationStatus === 'success') {
+            handleRegistrationSuccess()
+        }
+    }, [registrationStatus, router])
+
     const onSubmit: SubmitHandler<RegistrationForm> = async (values) => {
         try {
             const response = await axios.post('http://localhost:8080/api/users/register', {
@@ -48,10 +75,25 @@ export default function Register() {
             })
             console.log(response.data)
             setRegistrationStatus('success')
-        }
-        catch (error) {
+            setErrorMessage(null)
+            toast({
+                title: "Success",
+                description: "Registration successful! Redirecting to marketplace...",
+                variant: "default",
+            })
+        } catch (error) {
             console.log(error)
             setRegistrationStatus('error')
+            if (axios.isAxiosError(error) && error.response) {
+                setErrorMessage(error.response.data)
+            } else {
+                setErrorMessage('An unexpected error occurred')
+            }
+            toast({
+                title: "Error",
+                description: "Registration failed. Please try again.",
+                variant: "destructive",
+            })
         }
     }
 
@@ -132,6 +174,11 @@ export default function Register() {
                                     </FormItem>
                                 )}
                             />
+                            {errorMessage && (
+                                <div className="text-red-500 text-sm mb-4 flex justify-center items-center text-center">
+                                    {errorMessage}
+                                </div>
+                            )}
                             <Button type="submit" className="w-full bg-orange-400 text-white hover:bg-orange-500 focus:bg-orange-500">
                                 Create Account
                             </Button>
@@ -139,7 +186,22 @@ export default function Register() {
                     </Form>
                 </CardContent>
             </Card>
-            <HomeButton />
+            <Card className="w-full max-w-md p-6">
+                <div className="w-full max-w-md text-center space-y-2">
+                    <p className="text-sm text-gray-600">
+                        Already have an account?
+                        <Link href="/login" className="text-orange-400 underline ml-1 hover:underline">
+                            Log In
+                        </Link>
+                    </p>
+                    <Button className="w-full bg-gray-100 text-orange-400 hover:bg-gray-200">
+                        <Link href="/" className="flex items-center justify-center space-x-1 w-full">
+                            <FaHome className="text-lg" />
+                            <span className="text-sm">Back to Home</span>
+                        </Link>
+                    </Button>
+                </div>
+            </Card>
         </div>
     )
 }

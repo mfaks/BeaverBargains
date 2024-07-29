@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Navbar from '../NavBar'
 import Footer from '../Footer'
 import FileInput from "@/components/ui/FileInput"
@@ -13,6 +13,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { TrashIcon } from 'lucide-react'
 import { Tag, TagInput } from 'emblor'
+import { useAuth } from '../AuthContext'
+import UnauthorizedModal from '../UnauthorizedModal'
 
 const formSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -33,6 +35,21 @@ const formSchema = z.object({
 })
 
 export default function Sell() {
+    const [imageVisible, setImageVisible] = useState(true)
+    const { isAuthenticated } = useAuth()
+    const [errorMessage, setErrorMessage] = useState("")
+    const [modalOpen, setModalOpen] = useState(false)
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            setErrorMessage("You must be logged in to access the sell page. Redirecting to login.")
+            setModalOpen(true)
+            setTimeout(() => {
+                window.location.href = '/login'
+            }, 2000)
+        }
+    }, [isAuthenticated])
+
     const form = useForm({
         resolver: zodResolver(formSchema),
         defaultValues: {
@@ -74,7 +91,13 @@ export default function Sell() {
         //send data to the market and associate it with the user
     }
 
-    const [imageVisible, setImageVisible] = useState(true)
+    if (!isAuthenticated) {
+        return (
+            <div className="flex flex-col min-h-screen bg-[#f0f0f0] text-[#1a1a1a] items-center justify-center">
+                <UnauthorizedModal isOpen={modalOpen} onClose={() => setModalOpen(false)} message={errorMessage} />
+            </div>
+        )
+    }
 
     return (
         <div className="flex flex-col min-h-[100dvh] bg-[#f0f0f0] text-[#1a1a1a]">

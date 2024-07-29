@@ -56,12 +56,17 @@ const items = [
     },
 ]
 
-export default function Buy() {
+export default function Marketplace() {
     return (
         <div className="flex flex-col min-h-[100dvh] bg-[white] text-[#black]">
             <Navbar />
             <main className="flex-1 container mx-auto px-4 md:px-6 py-12">
-                <h1 className="text-3xl font-bold text-orange-500 mb-6">Items for Sale</h1>
+                <div className="flex justify-center mb-6">
+                    <h1 className="text-3xl font-bold text-orange-500 border-b-2 border-orange-500 pb-1">
+                        Welcome to the Marketplace
+                    </h1>                
+                </div>
+                
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {items.map(item => (
                         <Card key={item.id} className="bg-white shadow rounded-lg">
