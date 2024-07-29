@@ -434,12 +434,12 @@ export default function Account() {
                     <CardDescription>View your messages with buyers and sellers.</CardDescription>
                   </CardContent>
                   <CardFooter className="text-center">
-                    <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white">
+                    <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+                      onClick={() => router.push('/messages')}>
                       View Messages
                     </Button>
                   </CardFooter>
                 </Card>
-
                 <Card className="bg-gray-50 shadow-sm">
                   <CardHeader className="flex items-center justify-center p-4">
                     <FaStar className="text-3xl text-orange-500" />
@@ -449,12 +449,12 @@ export default function Account() {
                     <CardDescription>View items you've added to your watch list.</CardDescription>
                   </CardContent>
                   <CardFooter className="text-center">
-                    <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white">
+                    <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+                      onClick={() => router.push('/watchlist')}>
                       View Watch List
                     </Button>
                   </CardFooter>
                 </Card>
-
                 <Card className="bg-gray-50 shadow-sm">
                   <CardHeader className="flex items-center justify-center p-4">
                     <FaList className="text-3xl text-orange-500" />
@@ -464,12 +464,12 @@ export default function Account() {
                     <CardDescription>Manage the items you are listing for sale.</CardDescription>
                   </CardContent>
                   <CardFooter className="text-center">
-                    <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white">
+                    <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+                      onClick={() => router.push('/listings')}>
                       View Listed Items
                     </Button>
                   </CardFooter>
                 </Card>
-
                 <Card className="bg-gray-50 shadow-sm">
                   <CardHeader className="flex items-center justify-center p-4">
                     <FaBox className="text-3xl text-orange-500" />
@@ -479,7 +479,8 @@ export default function Account() {
                     <CardDescription>View the status of your orders.</CardDescription>
                   </CardContent>
                   <CardFooter className="text-center">
-                    <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white">
+                    <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+                      onClick={() => router.push('/orders')}>
                       Manage Orders
                     </Button>
                   </CardFooter>
