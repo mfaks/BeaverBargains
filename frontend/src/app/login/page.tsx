@@ -77,7 +77,7 @@ export default function Login() {
       }
 
     return (
-        <>
+        <div>
             <div className="flex flex-col items-center justify-center min-h-screen bg-orange-50 space-y-4">
                 <Card className="w-full max-w-md">
                     <CardHeader className="space-y-1">
@@ -152,6 +152,6 @@ export default function Login() {
                     </DialogHeader>
                 </DialogContent>
             </Dialog>
-        </>
+        </div>
     )
 }
