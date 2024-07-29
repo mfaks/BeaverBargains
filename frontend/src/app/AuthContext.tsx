@@ -16,6 +16,7 @@ interface AuthContextType {
   user: User | null
   login: (userData: User, token: string) => void
   logout: () => void
+  updateUserProfileImage: (newImageUrl: string) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -52,8 +53,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.removeItem('token')
   }
 
+  const updateUserProfileImage = (newImageUrl: string) => {
+    if (user) {
+      const updatedUser = { ...user, profileImage: newImageUrl }
+      setUser(updatedUser)
+      localStorage.setItem('user', JSON.stringify(updatedUser))
+    }
+  } 
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, login, logout, updateUserProfileImage }}>
       {children}
     </AuthContext.Provider>
   )
