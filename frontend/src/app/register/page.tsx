@@ -8,11 +8,11 @@ import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import axios from 'axios'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { FaHome } from 'react-icons/fa'
 import { useToast } from "@/components/ui/use-toast"
-import { useRouter } from 'next/router'
+import { useRouter } from 'next/navigation'
 
 const passwordSchema = z.string()
     .min(8, 'Password must be at least 8 characters')
@@ -53,6 +53,18 @@ export default function Register() {
 
     const [registrationStatus, setRegistrationStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
+    useEffect(() => {
+        const handleRegistrationSuccess = () => {
+            setTimeout(() => {
+                router.push('/marketplace')
+            }, 2000)
+        }
+
+        if (registrationStatus === 'success') {
+            handleRegistrationSuccess()
+        }
+    }, [registrationStatus, router])
+
     const onSubmit: SubmitHandler<RegistrationForm> = async (values) => {
         try {
             const response = await axios.post('http://localhost:8080/api/users/register', {
@@ -69,9 +81,6 @@ export default function Register() {
                 description: "Registration successful! Redirecting to marketplace...",
                 variant: "default",
             })
-            setTimeout(() => {
-                router.push('/marketplace')
-            }, 2000)
         } catch (error) {
             console.log(error)
             setRegistrationStatus('error')
