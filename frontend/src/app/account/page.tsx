@@ -11,6 +11,7 @@ import NavBar from "../NavBar"
 import Footer from "../Footer"
 import { FaFacebookMessenger, FaBox, FaStar, FaList } from "react-icons/fa"
 import { useAuth } from '../AuthContext'
+import UnauthorizedModal from '../UnauthorizedModal'
 import axios from 'axios'
 import { useToast } from "@/components/ui/use-toast"
 import ImageUploadAndCropper from '../ImageUploadAndCropper'
@@ -48,7 +49,29 @@ export default function Account() {
   const [croppedImage, setCroppedImage] = useState<File | null>(null)
   const router = useRouter()
   const { isAuthenticated, user, updateUserProfileImage } = useAuth()
+  const [showUnauthorizedModal, setShowUnauthorizedModal] = useState(false)
+
   const { toast } = useToast()
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setShowUnauthorizedModal(true)
+      const timer = setTimeout(() => {
+        router.push('/login')
+      }, 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [isAuthenticated, router])
+
+  if (!isAuthenticated) {
+    return (
+      <UnauthorizedModal 
+        isOpen={showUnauthorizedModal} 
+        onClose={() => setShowUnauthorizedModal(false)}
+        message="You must be logged in to view this page. Redirecting to login..."
+      />
+    )
+  }
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -434,12 +457,12 @@ export default function Account() {
                     <CardDescription>View your messages with buyers and sellers.</CardDescription>
                   </CardContent>
                   <CardFooter className="text-center">
-                    <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white">
+                    <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+                      onClick={() => router.push('/messages')}>
                       View Messages
                     </Button>
                   </CardFooter>
                 </Card>
-
                 <Card className="bg-gray-50 shadow-sm">
                   <CardHeader className="flex items-center justify-center p-4">
                     <FaStar className="text-3xl text-orange-500" />
@@ -449,12 +472,12 @@ export default function Account() {
                     <CardDescription>View items you've added to your watch list.</CardDescription>
                   </CardContent>
                   <CardFooter className="text-center">
-                    <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white">
+                    <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+                      onClick={() => router.push('/watchlist')}>
                       View Watch List
                     </Button>
                   </CardFooter>
                 </Card>
-
                 <Card className="bg-gray-50 shadow-sm">
                   <CardHeader className="flex items-center justify-center p-4">
                     <FaList className="text-3xl text-orange-500" />
@@ -464,12 +487,12 @@ export default function Account() {
                     <CardDescription>Manage the items you are listing for sale.</CardDescription>
                   </CardContent>
                   <CardFooter className="text-center">
-                    <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white">
+                    <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+                      onClick={() => router.push('/listings')}>
                       View Listed Items
                     </Button>
                   </CardFooter>
                 </Card>
-
                 <Card className="bg-gray-50 shadow-sm">
                   <CardHeader className="flex items-center justify-center p-4">
                     <FaBox className="text-3xl text-orange-500" />
@@ -479,7 +502,8 @@ export default function Account() {
                     <CardDescription>View the status of your orders.</CardDescription>
                   </CardContent>
                   <CardFooter className="text-center">
-                    <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white">
+                    <Button variant="outline" className="w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+                      onClick={() => router.push('/orders')}>
                       Manage Orders
                     </Button>
                   </CardFooter>

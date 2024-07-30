@@ -27,10 +27,13 @@ services:
       DB_URL: ${DB_URL}
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      FILE_UPLOAD_DIR: /app/uploads
     ports:
       - "8080:8080"
     depends_on:
       - db
+    volumes:
+      - uploads_volume:/app/uploads
     networks:
       - app-network
 
@@ -47,6 +50,7 @@ services:
 
 volumes:
   pgdata:
+  uploads_volume:
 
 networks:
   app-network:
