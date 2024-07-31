@@ -1,6 +1,7 @@
 package com.example.beaver_bargains.entity;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -19,7 +20,7 @@ public class Item {
     private String title;
     private String description;
     private BigDecimal price;
-
+    private LocalDateTime listingDate;
     private String imageUrl;
 
     @ManyToOne
@@ -56,6 +57,14 @@ public class Item {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public LocalDateTime getListingDate() {
+        return listingDate;
+    }
+
+    public void setListingDate(LocalDateTime listingDate) {
+        this.listingDate = listingDate;
     }
 
     public String getImageUrl() {

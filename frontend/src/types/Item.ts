@@ -4,7 +4,7 @@ export interface Item {
     price: number
     imageUrl: string
     description: string
-    createdAt: string
+    listingDate: string
     seller: {
         firstName: string
         lastName: string

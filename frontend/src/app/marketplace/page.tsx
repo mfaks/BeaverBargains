@@ -34,6 +34,15 @@ export default function Marketplace() {
     const router = useRouter()
     const { toast } = useToast()
 
+    const BASE_URL = 'http://localhost:8080'
+
+    const getFullImageUrl = (imageUrl: string) => {
+        if (imageUrl.startsWith('http')) {
+            return imageUrl
+        }
+        return `${BASE_URL}/uploads/${imageUrl}`
+    }
+
     useEffect(() => {
         if (!isAuthenticated) {
             setErrorMessage("You must be logged in to access the marketplace. Redirecting to login.")
@@ -54,6 +63,7 @@ export default function Marketplace() {
                     'Authorization': `Bearer ${token}`
                 }
             });
+            console.log(response.data)
             setItems(response.data);
         } catch (error) {
             console.error('Error fetching items:', error);
@@ -124,9 +134,9 @@ export default function Marketplace() {
                 <div className="flex justify-center mb-6">
                     <h1 className="text-3xl font-bold text-orange-500 border-b-2 border-orange-500 pb-1">
                         Welcome to the Marketplace
-                    </h1>                
+                    </h1>
                 </div>
-                
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {items.map(item => (
                         <Card key={item.id} className="bg-white shadow rounded-lg relative">
@@ -143,7 +153,10 @@ export default function Marketplace() {
                                 </CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <img src={item.imageUrl} alt={item.title} className="w-full h-auto rounded-lg mb-4" />
+                                <img src={getFullImageUrl(item.imageUrl)} alt={item.title} className="w-full h-auto rounded-lg mb-4" />
+                            </CardContent>
+                            <CardContent>
+                                <p>Listed: {new Date(item.listingDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })}</p>
                             </CardContent>
                             <CardFooter className="flex justify-between">
                                 <Popover>
@@ -152,10 +165,9 @@ export default function Marketplace() {
                                     </PopoverTrigger>
                                     <PopoverContent>
                                         <p>{item.description}</p>
-                                        <p>Listing Date: {new Date(item.createdAt).toLocaleDateString()}</p>
                                     </PopoverContent>
                                 </Popover>
-                                <Button className="bg-orange-500 text-white rounded-md px-4 py-2 ml-2">Add to Cart</Button>
+                                <Button className="bg-orange-500 text-white rounded-md px-4 py-2 ml-2">Message Seller</Button>
                             </CardFooter>
                         </Card>
                     ))}

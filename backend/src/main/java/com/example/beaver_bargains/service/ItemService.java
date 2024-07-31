@@ -1,6 +1,7 @@
 package com.example.beaver_bargains.service;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,7 @@ public class ItemService {
         item.setTitle(itemDto.getTitle());
         item.setDescription(itemDto.getDescription());
         item.setPrice(itemDto.getPrice());
+        item.setListingDate(LocalDateTime.now());
         item.setImageUrl(imageUrl);
         item.setSeller(seller);
 
