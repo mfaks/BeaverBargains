@@ -50,7 +50,6 @@ export default function Login() {
         try {
           const response = await axios.post('http://localhost:8080/api/users/login', values)
           const token = response.data.token
-          console.log(token)
           localStorage.setItem('token', token);
           login({ 
             id: response.data.id,
