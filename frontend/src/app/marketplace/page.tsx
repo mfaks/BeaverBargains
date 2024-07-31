@@ -1,4 +1,7 @@
-import React from 'react'
+"use client"
+
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 import Navbar from '../NavBar'
 import Footer from '../Footer'
 import { Button } from "@/components/ui/button"
@@ -15,48 +18,61 @@ import {
     PopoverTrigger,
     PopoverContent,
 } from "@/components/ui/popover"
-
-// dummy data
-const items = [
-    {
-        id: 1,
-        title: "Used Textbook",
-        description: "A gently used textbook for your courses.",
-        price: "$25",
-        imageUrl: "https://placekitten.com/200/300",
-        sellerName: "Mary",
-        listingDate: "2/2/2024",
-    },
-    {
-        id: 2,
-        title: "Bicycle",
-        description: "A mountain bike in excellent condition.",
-        price: "$150",
-        imageUrl: "https://placekitten.com/200/300",
-        sellerName: "John",
-        listingDate: "3/4/2024"
-    },
-    {
-        id: 3,
-        title: "Laptop",
-        description: "A MacBook Air, lightly used.",
-        price: "$500",
-        imageUrl: "https://placekitten.com/200/300",
-        sellerName: "Alice",
-        listingDate: "5/5/2024"
-    },
-    {
-        id: 4,
-        title: "Game Console",
-        description: "PlayStation 4 with controllers and games.",
-        price: "$200",
-        imageUrl: "https://placekitten.com/200/300",
-        sellerName: "Bob",
-        listingDate: "9/4/2024"
-    },
-]
+import { useAuth } from '../AuthContext'
+import UnauthorizedModal from '../UnauthorizedModal'
+import { useRouter } from "next/navigation"
+import { useToast } from "@/components/ui/use-toast"
+import { Item } from '@/types/Item'
 
 export default function Marketplace() {
+    const [items, setItems] = useState<Item[]>([]);
+    const [errorMessage, setErrorMessage] = useState("")
+    const [modalOpen, setModalOpen] = useState(false)
+    const { isAuthenticated, token } = useAuth()
+    const router = useRouter()
+    const { toast } = useToast()
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            setErrorMessage("You must be logged in to access the marketplace. Redirecting to login.")
+            setModalOpen(true)
+            setTimeout(() => {
+                router.push('/login')
+            }, 2000)
+        } else {
+            fetchItems();
+        }
+    }, [isAuthenticated, router]);
+
+    const fetchItems = async () => {
+        try {
+            const response = await axios.get<Item[]>('http://localhost:8080/api/items', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            setItems(response.data);
+        } catch (error) {
+            console.error('Error fetching items:', error);
+            toast({
+                title: "Error",
+                description: "Failed to fetch items. Please try again.",
+                variant: "destructive",
+                duration: 5000,
+            })
+        }
+    };
+
+    if (!isAuthenticated) {
+        return (
+            <UnauthorizedModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                message={errorMessage}
+            />
+        )
+    }
+
     return (
         <div className="flex flex-col min-h-[100dvh] bg-[white] text-[#black]">
             <Navbar />
@@ -72,7 +88,9 @@ export default function Marketplace() {
                         <Card key={item.id} className="bg-white shadow rounded-lg">
                             <CardHeader>
                                 <CardTitle>{item.title}</CardTitle>
-                                <CardDescription>{item.price} - Sold by {item.sellerName}</CardDescription>
+                                <CardDescription>
+                                    ${item.price.toFixed(2)} - Sold by {item.seller.firstName} {item.seller.lastName}
+                                </CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <img src={item.imageUrl} alt={item.title} className="w-full h-auto rounded-lg mb-4" />
@@ -84,7 +102,7 @@ export default function Marketplace() {
                                     </PopoverTrigger>
                                     <PopoverContent>
                                         <p>{item.description}</p>
-                                        <p>Listing Date: {item.listingDate}</p>
+                                        <p>Listing Date: {new Date(item.createdAt).toLocaleDateString()}</p>
                                     </PopoverContent>
                                 </Popover>
                                 <Button className="bg-orange-500 text-white rounded-md px-4 py-2 ml-2">Add to Cart</Button>

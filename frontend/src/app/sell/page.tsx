@@ -16,7 +16,7 @@ import { useAuth } from '../AuthContext'
 import UnauthorizedModal from '../UnauthorizedModal'
 import axios from 'axios'
 import { useToast } from "@/components/ui/use-toast"
-import { useRouter } from "next/router"
+import { useRouter } from "next/navigation"
 
 const formSchema = z.object({
     title: z.string().min(1, "Title is required"),

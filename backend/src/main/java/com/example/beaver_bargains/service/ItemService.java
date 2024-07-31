@@ -54,19 +54,6 @@ public class ItemService {
         return itemRepository.findBySeller(user);
     }
 
-    public void deleteItem(Long itemId, String userEmail) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item not found"));
-        
-        User user = userService.getUserByEmail(userEmail);
-        if (user == null || !item.getSeller().equals(user)) {
-            throw new RuntimeException("Unauthorized to delete this item");
-        }
-
-        itemRepository.delete(item);
-        fileStorageService.deleteFile(item.getImageUrl());
-    }
-
     public Item updateItem(Long itemId, ItemDto itemDto, MultipartFile image, String userEmail) throws IOException {
         Item existingItem = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
@@ -89,4 +76,16 @@ public class ItemService {
         return itemRepository.save(existingItem);
     }
 
+    public void deleteItem(Long itemId, String userEmail) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Item not found"));
+        
+        User user = userService.getUserByEmail(userEmail);
+        if (user == null || !item.getSeller().equals(user)) {
+            throw new RuntimeException("Unauthorized to delete this item");
+        }
+
+        itemRepository.delete(item);
+        fileStorageService.deleteFile(item.getImageUrl());
+    }
 }
