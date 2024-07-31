@@ -23,9 +23,11 @@ import UnauthorizedModal from '../UnauthorizedModal'
 import { useRouter } from "next/navigation"
 import { useToast } from "@/components/ui/use-toast"
 import { Item } from '@/types/Item'
+import Star from '@/components/ui/star'
 
 export default function Marketplace() {
     const [items, setItems] = useState<Item[]>([]);
+    const [favorites, setFavorites] = useState<number[]>([]);
     const [errorMessage, setErrorMessage] = useState("")
     const [modalOpen, setModalOpen] = useState(false)
     const { isAuthenticated, token } = useAuth()
@@ -41,6 +43,7 @@ export default function Marketplace() {
             }, 2000)
         } else {
             fetchItems();
+            fetchFavorites();
         }
     }, [isAuthenticated, router]);
 
@@ -57,6 +60,47 @@ export default function Marketplace() {
             toast({
                 title: "Error",
                 description: "Failed to fetch items. Please try again.",
+                variant: "destructive",
+                duration: 5000,
+            })
+        }
+    };
+
+    const fetchFavorites = async () => {
+        try {
+            const response = await axios.get<number[]>('http://localhost:8080/api/favorites', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            setFavorites(response.data);
+        } catch (error) {
+            console.error('Error fetching favorites:', error);
+        }
+    };
+
+    const toggleFavorite = async (itemId: number) => {
+        try {
+            if (favorites.includes(itemId)) {
+                await axios.delete(`http://localhost:8080/api/favorites/${itemId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                setFavorites(favorites.filter(id => id !== itemId));
+            } else {
+                await axios.post('http://localhost:8080/api/favorites', { itemId }, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                setFavorites([...favorites, itemId]);
+            }
+        } catch (error) {
+            console.error('Error toggling favorite:', error);
+            toast({
+                title: "Error",
+                description: "Failed to update favorite. Please try again.",
                 variant: "destructive",
                 duration: 5000,
             })
@@ -85,7 +129,13 @@ export default function Marketplace() {
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {items.map(item => (
-                        <Card key={item.id} className="bg-white shadow rounded-lg">
+                        <Card key={item.id} className="bg-white shadow rounded-lg relative">
+                            <div className="absolute top-2 right-2 z-10">
+                                <Star
+                                    filled={favorites.includes(item.id)}
+                                    onClick={() => toggleFavorite(item.id)}
+                                />
+                            </div>
                             <CardHeader>
                                 <CardTitle>{item.title}</CardTitle>
                                 <CardDescription>
