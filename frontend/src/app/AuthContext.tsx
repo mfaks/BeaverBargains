@@ -1,30 +1,11 @@
 "use client"
 
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react'
+import { User } from '../types/User'
+import type { AuthContext } from '../types/AuthContext'
+import { AuthProviderProps } from '../types/AuthProviderProps'
 
-interface User {
-  id: string | number
-  firstName: string
-  lastName: string
-  email: string
-  bio: string
-  profileImage?: string
-}
-
-interface AuthContextType {
-  isAuthenticated: boolean
-  user: User | null
-  token: string | null
-  login: (userData: User, token: string) => void
-  logout: () => void
-  updateUserProfileImage: (newImageUrl: string) => void
-}
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
-
-interface AuthProviderProps {
-  children: ReactNode
-}
+const AuthContext = createContext<AuthContext | undefined>(undefined)
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -57,7 +38,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.removeItem('user')
     localStorage.removeItem('token')
   }
-
 
   const updateUserProfileImage = (newImageUrl: string) => {
     if (user) {
