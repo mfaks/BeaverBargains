@@ -5,6 +5,7 @@ export interface Item {
     imageUrl: string
     description: string
     listingDate: string
+    isFavorited: boolean
     seller: {
         firstName: string
         lastName: string
