@@ -1,35 +1,25 @@
 "use client"
 
+import { useState } from 'react'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import axios from 'axios'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { FaHome } from 'react-icons/fa'
+import { useAuth } from '../AuthContext'
 import { Button } from '@/components/ui/button'
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
-import Link from 'next/link'
-import { FaHome } from 'react-icons/fa'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '../AuthContext'
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription} from '@/components/ui/dialog'
+import { LoginForm } from '../../types/LoginForm'
 
 const loginSchema = z.object({
     email: z.string().email('Invalid email format'),
-    password: z.string(),
+    password: z.string()
 })
-
-interface LoginForm {
-    email: string
-    password: string
-}
 
 export default function Login() {
     const router = useRouter()
@@ -42,7 +32,7 @@ export default function Login() {
         resolver: zodResolver(loginSchema),
         defaultValues: {
             email: '',
-            password: '',
+            password: ''
         },
     })
 
@@ -98,7 +88,7 @@ export default function Login() {
                                         <FormItem>
                                             <FormLabel>Email</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="m@example.com" {...field} className="w-full" />
+                                                <Input placeholder="abc@example.com" {...field} className="w-full" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
