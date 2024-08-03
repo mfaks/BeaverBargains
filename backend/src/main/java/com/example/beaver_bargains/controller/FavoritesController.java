@@ -23,19 +23,19 @@ public class FavoritesController {
     @Autowired
     private FavoriteService favoriteService;
 
-    @GetMapping
-    public ResponseEntity<List<Long>> getFavorites(Authentication authentication) {
-        String userEmail = authentication.getName();
-        List<Long> favorites = favoriteService.getFavoriteItemIds(userEmail);
-        return ResponseEntity.ok(favorites);
-    }
-
     @PostMapping
     public ResponseEntity<?> addFavorite(@RequestBody Map<String, Long> body, Authentication authentication) {
         String userEmail = authentication.getName();
         Long itemId = body.get("itemId");
         favoriteService.addFavorite(userEmail, itemId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping
+    public ResponseEntity<List<Long>> getFavorites(Authentication authentication) {
+        String userEmail = authentication.getName();
+        List<Long> favorites = favoriteService.getFavoriteItemIds(userEmail);
+        return ResponseEntity.ok(favorites);
     }
 
     @DeleteMapping("/{itemId}")
