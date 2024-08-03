@@ -1,18 +1,10 @@
 import React, { useState, useRef, forwardRef } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop'
+import ReactCrop, { PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
-import { Button } from "@/components/ui/button"
-
-interface ImageUploadAndCropperProps {
-  onImageCropped: (image: File | null) => void
-  onClose: () => void
-  currentImage: string | null
-}
-
-interface CustomCrop extends Crop {
-  aspect?: number
-}
+import { Button } from '@/components/ui/button'
+import { ImageUploadAndCropperProps } from '@/types/ImageUploadAndCropperProps'
+import { CustomCrop } from '@/types/CustomCrop'
 
 const ImageUploadAndCropper = forwardRef<HTMLDivElement, ImageUploadAndCropperProps>(({ onImageCropped, onClose, currentImage }, ref) => {
   const [image, setImage] = useState<string | null>(null)
@@ -45,7 +37,6 @@ const ImageUploadAndCropper = forwardRef<HTMLDivElement, ImageUploadAndCropperPr
     onImageCropped(null)
     clearFileInput()
   }
-
 
   const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const { width, height } = e.currentTarget
@@ -125,24 +116,24 @@ const ImageUploadAndCropper = forwardRef<HTMLDivElement, ImageUploadAndCropperPr
   return (
     <div>
       <input
-        type="file"
-        accept="image/*"
+        type='file'
+        accept='image/*'
         onChange={handleImageChange}
         ref={fileInputRef}
         style={{ display: 'none' }}
       />
-      <div className="flex space-x-2">
+      <div className='flex space-x-2'>
         <Button
-          variant="outline"
-          className="text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+          variant='outline'
+          className='text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white'
           onClick={() => fileInputRef.current?.click()}
         >
           Choose File
         </Button>
         {currentImage && (
           <Button
-            variant="outline"
-            className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
+            variant='outline'
+            className='text-red-500 border-red-500 hover:bg-red-500 hover:text-white'
             onClick={removeProfilePicture}
           >
             Remove Profile Picture
@@ -166,17 +157,17 @@ const ImageUploadAndCropper = forwardRef<HTMLDivElement, ImageUploadAndCropperPr
               >
                 <img src={image} ref={imageRef} onLoad={onImageLoad} />
               </ReactCrop>
-              <div className="flex justify-between mt-4">
+              <div className='flex justify-between mt-4'>
                 <Button
-                  variant="outline"
-                  className="bg-orange-500 text-white hover:bg-orange-600"
+                  variant='outline'
+                  className='bg-orange-500 text-white hover:bg-orange-600'
                   onClick={handleCrop}
                 >
                   Save & Upload
                 </Button>
                 <Button
-                  variant="outline"
-                  className="text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
+                  variant='outline'
+                  className='text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white'
                   onClick={() => setDialogOpen(false)}
                 >
                   Cancel
