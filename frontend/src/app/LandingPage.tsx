@@ -1,6 +1,6 @@
 import Link from "next/link"
-import Navbar from "./NavBar"
-import Footer from "./Footer"
+import Navbar from "@/components/ui/Navbar"
+import Footer from "@/components/ui/Footer"
 import { Button } from "@/components/ui/button"
 
 export default function LandingPage() {
