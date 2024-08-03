@@ -194,50 +194,46 @@ export default function Favorites() {
     }
 
     return (
-        <div className="flex flex-col min-h-[100dvh] bg-orange-50 text-[#black]">
+        <div className="flex flex-col min-h-screen bg-orange-50">
             <Navbar />
-            <main className="flex-1 container mx-auto px-4 md:px-6 py-12 flex">
-                {loading ? (
-                    <div className="w-full">
+            <div className="flex flex-1 overflow-hidden mb-10">
+                {!loading && filteredItems.length > 0 && (
+                    <aside className="w-64 bg-orange-50 flex-shrink-0">
+                        <FilterSidebar
+                            sortOptions={[
+                                { label: 'Price: Low to High', value: 'price_asc' },
+                                { label: 'Price: High to Low', value: 'price_desc' },
+                                { label: 'Newest First', value: 'date_desc' }
+                            ]}
+                            priceFilter={true}
+                            dateFilter={true}
+                            minPrice={minPrice}
+                            maxPrice={maxPrice}
+                            onSort={handleSort}
+                            onPriceFilter={handlePriceFilter}
+                            onCustomFilter={(filterName, values) => {
+                                if (filterName === 'keywords') {
+                                    handleCategoryFilter(values)
+                                }
+                            }}
+                            onSearch={handleSearch}
+                        />
+                    </aside>
+                )}
+                <main className="flex-1 overflow-y-auto pl-0 pr-6 py-6">
+                    <div className="max-w-4xl mx-auto">
                         <div className="flex justify-center mb-6">
                             <h1 className="text-3xl font-bold text-orange-500 border-b-2 border-orange-500 pb-1">
                                 Your Current Favorites
                             </h1>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                            {[...Array(6)].map((_, index) => (
-                                <SkeletonCard key={index} />
-                            ))}
-                        </div>
-                    </div>
-                ) : filteredItems.length > 0 ? (
-                    <>
-                        <div className="w-1/4 pr-6">
-                            <FilterSidebar
-                                sortOptions={[
-                                    { label: 'Price: Low to High', value: 'price_asc' },
-                                    { label: 'Price: High to Low', value: 'price_desc' },
-                                    { label: 'Newest First', value: 'date_desc' }
-                                ]}
-                                priceFilter={true}
-                                minPrice={minPrice}
-                                maxPrice={maxPrice}
-                                onSort={handleSort}
-                                onPriceFilter={handlePriceFilter}
-                                onCustomFilter={(filterName, values) => {
-                                    if (filterName === 'keywords') {
-                                        handleCategoryFilter(values)
-                                    }
-                                }}
-                                onSearch={handleSearch}
-                            />
-                        </div>
-                        <div className="w-3/4">
-                            <div className="flex justify-center mb-6">
-                                <h1 className="text-3xl font-bold text-orange-500 border-b-2 border-orange-500 pb-1">
-                                    Your Current Favorites
-                                </h1>
+                        {loading ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                {[...Array(6)].map((_, index) => (
+                                    <SkeletonCard key={index} />
+                                ))}
                             </div>
+                        ) : filteredItems.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                                 {filteredItems.map(item => (
                                     <FavoriteItemCard
@@ -248,20 +244,18 @@ export default function Favorites() {
                                     />
                                 ))}
                             </div>
-                        </div>
-                    </>
-                ) : (
-                    <div className="w-full">
-                        <EmptyStateCard
-                            title="No favorites yet"
-                            description="You haven't added any items to your favorites. Browse the marketplace to add some!"
-                            actionText="Browse Marketplace"
-                            onAction={() => router.push('/marketplace')}
-                            icon={<FaHeart className="text-orange-500" />}
-                        />
+                        ) : (
+                            <EmptyStateCard
+                                title="No favorites yet"
+                                description="You haven't added any items to your favorites. Browse the marketplace to add some!"
+                                actionText="Browse Marketplace"
+                                onAction={() => router.push('/marketplace')}
+                                icon={<FaHeart className="text-orange-500" />}
+                            />
+                        )}
                     </div>
-                )}
-            </main>
+                </main>
+            </div>
             <Footer />
         </div>
     )

@@ -82,6 +82,14 @@ export default function Listings() {
             setLoading(false)
         }
     }
+    
+    const toggleSelectItem = (itemId: number) => {
+        setSelectedItems(prev =>
+            prev.includes(itemId)
+                ? prev.filter(id => id !== itemId)
+                : [...prev, itemId]
+        )
+    }
 
     const handleItemUpdate = (updatedItem: Item) => {
         const updatedItems = items.map(item =>
@@ -117,27 +125,14 @@ export default function Listings() {
         setFilteredItems(filtered)
     }
 
-    const handleCategoryFilter = (categories: string[]) => {
-        if (categories.length === 0) {
-            setFilteredItems(items)
-        } else {
-            const filtered = items.filter(item =>
-                categories.some(category =>
-                    item.title.toLowerCase().includes(category.toLowerCase()) ||
-                    item.description.toLowerCase().includes(category.toLowerCase())
-                )
-            )
-            setFilteredItems(filtered)
-        }
+    const handleDateFilter = (startDate: Date, endDate: Date) => {
+        const filtered = items.filter(item => {
+            const itemDate = new Date(item.listingDate)
+            return itemDate >= startDate && itemDate <= endDate
+        })
+        setFilteredItems(filtered)
     }
 
-    const toggleSelectItem = (itemId: number) => {
-        setSelectedItems(prev =>
-            prev.includes(itemId)
-                ? prev.filter(id => id !== itemId)
-                : [...prev, itemId]
-        )
-    }
 
     const handleSearch = (term: string) => {
         setSearchTerm(term)
@@ -157,11 +152,11 @@ export default function Listings() {
     }
 
     return (
-        <div className='flex flex-col min-h-[100dvh] bg-orange-50 text-[#black]'>
+        <div className="flex flex-col min-h-screen bg-orange-50">
             <Navbar />
-            <div className='flex flex-1'>
+            <div className="flex flex-1 overflow-hidden mb-10">
                 {!loading && filteredItems.length > 0 && (
-                    <aside className='w-64 bg-white shadow-md flex-shrink-0'>
+                    <aside className="w-64 bg-orange-50 flex-shrink-0">
                         <FilterSidebar
                             sortOptions={[
                                 { label: 'Price: Low to High', value: 'price_asc' },
@@ -169,34 +164,31 @@ export default function Listings() {
                                 { label: 'Newest First', value: 'date_desc' }
                             ]}
                             priceFilter={true}
+                            dateFilter={true}
                             minPrice={minPrice}
                             maxPrice={maxPrice}
                             onSort={handleSort}
                             onPriceFilter={handlePriceFilter}
-                            onCustomFilter={(filterName, values) => {
-                                if (filterName === 'keywords') {
-                                    handleCategoryFilter(values)
-                                }
-                            }}
+                            onDateFilter={handleDateFilter}
                             onSearch={handleSearch}
                         />
                     </aside>
                 )}
-                <main className={`flex-1 px-4 md:px-6 py-12 flex justify-center ${!loading && filteredItems.length === 0 ? 'w-full' : ''}`}>
-                    <div className={`${!loading && filteredItems.length > 0 ? 'w-[1024px]' : 'w-full'}`}>
-                        <div className='flex justify-center mb-6'>
-                            <h1 className='text-3xl font-bold text-orange-500 border-b-2 border-orange-500 pb-1'>
+                <main className="flex-1 overflow-y-auto pl-0 pr-6 py-6">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="flex justify-center mb-6">
+                            <h1 className="text-3xl font-bold text-orange-500 border-b-2 border-orange-500 pb-1">
                                 Your Active Listings
                             </h1>
                         </div>
                         {loading ? (
-                            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                                 {[...Array(6)].map((_, index) => (
                                     <SkeletonCard key={index} />
                                 ))}
                             </div>
                         ) : filteredItems.length > 0 ? (
-                            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6'>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                                 {filteredItems.map(item => (
                                     <ListingItemCard
                                         key={item.id}
@@ -211,11 +203,11 @@ export default function Listings() {
                             </div>
                         ) : (
                             <EmptyStateCard
-                                title='No listings yet'
-                                description='You haven not listed any items yet. Start selling to see your listings here!'
-                                actionText='Create Listing'
+                                title="No listings yet"
+                                description="You haven't listed any items yet. Start selling to see your listings here!"
+                                actionText="Create Listing"
                                 onAction={() => router.push('/sell')}
-                                icon={<FaClipboardList className='text-orange-500' />}
+                                icon={<FaClipboardList className="text-orange-500" />}
                             />
                         )}
                     </div>

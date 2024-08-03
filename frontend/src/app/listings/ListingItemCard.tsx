@@ -110,40 +110,40 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
 
     return (
         <div>
-            <Card className='w-full max-w-sm rounded-lg overflow-hidden shadow-lg' onDoubleClick={handleDoubleClick}>
-                <div className='relative'>
+<Card className="w-full max-w-sm rounded-lg overflow-hidden shadow-lg" onDoubleClick={handleDoubleClick}>
+                <div className="relative h-56">
                     <img 
                         src={getFullImageUrl(item.imageUrl)} 
                         alt={item.title} 
-                        className='w-full h-64 object-cover'
+                        className="w-full h-full object-cover"
                     />
-                    <div className='absolute top-4 right-4'>
+                    <div className="absolute top-2 right-2">
                         <Checkbox
                             checked={isSelected}
                             onCheckedChange={onToggleSelect}
                         />
                     </div>
                 </div>
-                <div className='p-6 bg-gradient-to-b from-gray-50 to-gray-100'>
-                    <div className='flex items-center justify-between mb-4'>
-                        <h3 className='text-xl font-semibold text-gray-800'>{item.title}</h3>
-                        <span className='text-2xl font-bold text-orange-600'>${item.price.toFixed(2)}</span>
+                <div className="p-4 bg-gradient-to-b from-gray-50 to-gray-100 h-[calc(100%-14rem)]">
+                    <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-lg font-semibold text-gray-800 truncate">{item.title}</h3>
+                        <span className="text-xl font-bold text-orange-600">${item.price.toFixed(2)}</span>
                     </div>
-                    <p className='text-sm text-gray-600 mb-4'>
+                    <p className="text-xs text-gray-600 mb-2 line-clamp-2">
                         {item.description}
                     </p>
-                    <div className='flex items-center justify-between text-sm text-gray-500 mb-6'>
-                        <div className='flex items-center gap-2'>
+                    <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                        <div className="flex items-center gap-1">
                             <Image 
                                 src='/icons/calendar-icon.svg'
                                 alt='Calendar'
-                                width={16}
-                                height={16}
+                                width={12}
+                                height={12}
                             />
-                            <span>{new Date(item.listingDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                            <span>{new Date(item.listingDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                         </div>
                     </div>
-                    <Button className='w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-full transition-colors flex items-center justify-center'>
+                    <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-1 px-3 rounded-full transition-colors flex items-center justify-center text-sm">
                         Edit Listing
                     </Button>
                 </div>
