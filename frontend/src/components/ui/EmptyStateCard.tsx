@@ -1,7 +1,7 @@
 import React from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { EmptyStateCardProps } from '../types/EmptyStateCardProps'
+import { EmptyStateCardProps } from '../../types/EmptyStateCardProps'
 
 const EmptyStateCard: React.FC<EmptyStateCardProps> = ({
   title,
