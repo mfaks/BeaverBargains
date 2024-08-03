@@ -1,9 +1,9 @@
-import NavBar from '../NavBar'
-import Footer from '../Footer'
+import NavBar from '@/components/ui/Navbar'
+import Footer from '@/components/ui/Footer'
 
 export default function Messages() {
     return (
-        <div className="flex flex-col min-h-[100dvh] bg-[white] text-[#black]">
+        <div className="flex flex-col min-h-[100dvh] bg-orange-50 text-[#black]">
             <NavBar />
             <main className="flex-1 container mx-auto px-4 md:px-6 py-12">
                 <div className="flex justify-center mb-6">
