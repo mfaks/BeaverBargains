@@ -1,15 +1,15 @@
 "use client"
 
 import React, { useEffect, useState, useRef } from 'react'
-import Navbar from '../NavBar'
-import Footer from '../Footer'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '../AuthContext'
-import UnauthorizedModal from '../UnauthorizedModal'
+import { useAuth } from '../auth/AuthContext'
+import Navbar from '@/components/ui/Navbar'
+import Footer from '@/components/ui/Footer'
+import UnauthorizedModal from '@/components/ui/UnauthorizedModal'
 import { Trash2Icon } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -45,12 +45,22 @@ export default function Sell() {
     const fileInputRef = useRef<HTMLInputElement>(null)
     const router = useRouter()
 
+    if (!isAuthenticated) {
+        return (
+            <UnauthorizedModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                message={errorMessage}
+            />
+        )
+    }
+
     useEffect(() => {
         if (!isAuthenticated) {
             setErrorMessage('You must be logged in to access the sell page. Redirecting to login.')
             setModalOpen(true)
             setTimeout(() => {
-                router.push('/login')
+                router.push(`/login`)
             }, 2000)
         }
     }, [isAuthenticated])
@@ -99,7 +109,7 @@ export default function Sell() {
                 formData.append('image', values.image)
             }
 
-            const response = await axios.post('http://localhost:8080/api/items', formData, {
+            const response = await axios.post(`http://localhost:8080/api/items`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'Authorization': `Bearer ${token}`
@@ -136,16 +146,6 @@ export default function Sell() {
                 duration: 5000,
             })
         }
-    }
-
-    if (!isAuthenticated) {
-        return (
-            <UnauthorizedModal
-                isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                message={errorMessage}
-            />
-        )
     }
 
     return (
