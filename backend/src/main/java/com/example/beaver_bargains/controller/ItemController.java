@@ -37,8 +37,9 @@ public class ItemController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Item>> getAllItems() {
-        List<Item> items = itemService.getAllItems();
+    public ResponseEntity<List<Item>> getAllItems(Authentication authentication) {
+        String userEmail = authentication.getName();
+        List<Item> items = itemService.getAllItemsExceptUser(userEmail);
         return ResponseEntity.ok(items);
     }
 
@@ -68,10 +69,11 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Item>> searchItems(@RequestParam(required = false) String query) {
+    public ResponseEntity<List<Item>> searchItems(@RequestParam(required = false) String query, Authentication authentication) {
+        String userEmail = authentication.getName();
         List<Item> items = (query != null && !query.trim().isEmpty()) 
             ? itemService.searchItems(query)
-            : itemService.getAllItems();
+            : itemService.getAllItemsExceptUser(userEmail);
         return ResponseEntity.ok(items);
     }
 }
