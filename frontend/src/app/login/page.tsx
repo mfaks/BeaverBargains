@@ -1,20 +1,20 @@
 "use client"
 
 import { useState } from 'react'
-import { useForm, SubmitHandler } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useForm, SubmitHandler } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { FaHome } from 'react-icons/fa'
-import { useAuth } from '../AuthContext'
+import { useAuth } from '../auth/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription} from '@/components/ui/dialog'
-import { LoginForm } from '../../types/LoginForm'
+import { LoginForm } from '@/types/LoginForm'
 
 const loginSchema = z.object({
     email: z.string().email('Invalid email format'),
@@ -38,7 +38,7 @@ export default function Login() {
 
     const onSubmit: SubmitHandler<LoginForm> = async (values) => {
         try {
-            const response = await axios.post('http://localhost:8080/api/users/login', values)
+            const response = await axios.post(`http://localhost:8080/api/users/login`, values)
             const token = response.data.token
             localStorage.setItem('token', token);
             login({
