@@ -1,9 +1,8 @@
 "use client"
 
-import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useState } from 'react'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { FaGithub } from 'react-icons/fa'
-import { Button } from '@/components/ui/button'
 
 export default function Footer() {
     const [isContactDialogOpen, setIsContactDialogOpen] = useState(false)
@@ -11,20 +10,20 @@ export default function Footer() {
 
     return (
         <div>
-            <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full items-center px-4 md:px-6 border-t bg-[black] text-[white] sticky bottom-0 z-50">
-                <p className="text-xs text-[white]">&copy; 2024 BeaverBargains.</p>
-                <nav className="sm:ml-auto flex gap-4 sm:gap-6 items-center">
+            <footer className='fixed bottom-0 left-0 right-0 flex flex-col gap-2 sm:flex-row py-2 w-full items-center px-4 md:px-6 border-t bg-[black] text-[white]'>
+                <p className='text-xs text-[white]'>&copy; 2024 BeaverBargains.</p>
+                <nav className='sm:ml-auto flex gap-4 sm:gap-6 items-center'>
                     <span
-                        className="text-xs hover:underline underline-offset-4 text-orange-500 cursor-pointer"
+                        className='text-xs hover:underline underline-offset-4 text-orange-500 cursor-pointer'
                         onClick={() => setIsFaqDialogOpen(true)}>
                         FAQs
                     </span>
                     <span
-                        className="text-xs hover:underline underline-offset-4 text-orange-500 cursor-pointer"
+                        className='text-xs hover:underline underline-offset-4 text-orange-500 cursor-pointer'
                         onClick={() => setIsContactDialogOpen(true)}>
                         Contact Us
                     </span>
-                    <a href="https://github.com/mfaks/BeaverBargains" target="_blank" rel="noopener noreferrer" className="text-orange-500 text-xl">
+                    <a href='https://github.com/mfaks/BeaverBargains' target='_blank' rel='noopener noreferrer' className='text-orange-500 text-xl'>
                         <FaGithub />
                     </a>
                 </nav>
@@ -50,7 +49,7 @@ export default function Footer() {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
-                        <a href="mailto:faksm@oregonstate.edu" className="inline-flex items-center justify-center rounded-md border border-transparent bg-orange-400 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        <a href='mailto:faksm@oregonstate.edu' className='inline-flex items-center justify-center rounded-md border border-transparent bg-orange-400 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'>
                             Draft Email
                         </a>
                     </DialogFooter>

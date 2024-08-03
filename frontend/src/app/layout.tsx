@@ -1,13 +1,13 @@
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import { AuthProviderWrapper } from './AuthProviderWrapper'
-import { Toaster } from "@/components/ui/toaster"
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { AuthProviderWrapper } from './auth/AuthProviderWrapper'
+import { Toaster } from '@/components/ui/toaster'
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: "BeaverBargains - The Marketplace for Beavs",
+  title: 'BeaverBargains - The Marketplace for Beavs',
   icons: {
     icon: '/beaver.svg',
   },
@@ -19,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang='en'>
       <body className={inter.className}>
         <AuthProviderWrapper>
           {children}

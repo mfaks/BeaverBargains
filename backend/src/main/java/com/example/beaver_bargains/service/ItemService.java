@@ -1,7 +1,11 @@
 package com.example.beaver_bargains.service;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,6 +15,13 @@ import com.example.beaver_bargains.dto.ItemDto;
 import com.example.beaver_bargains.entity.Item;
 import com.example.beaver_bargains.entity.User;
 import com.example.beaver_bargains.repository.ItemRepository;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 @Service
 public class ItemService {
@@ -24,6 +35,9 @@ public class ItemService {
     @Autowired
     private FileStorageService fileStorageService;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
     public Item createItem(ItemDto itemDto, MultipartFile image, String userEmail) throws IOException {
         User seller = userService.getUserByEmail(userEmail);
         if (seller == null) {
@@ -36,6 +50,7 @@ public class ItemService {
         item.setTitle(itemDto.getTitle());
         item.setDescription(itemDto.getDescription());
         item.setPrice(itemDto.getPrice());
+        item.setListingDate(LocalDateTime.now());
         item.setImageUrl(imageUrl);
         item.setSeller(seller);
 
@@ -54,23 +69,10 @@ public class ItemService {
         return itemRepository.findBySeller(user);
     }
 
-    public void deleteItem(Long itemId, String userEmail) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item not found"));
-        
-        User user = userService.getUserByEmail(userEmail);
-        if (user == null || !item.getSeller().equals(user)) {
-            throw new RuntimeException("Unauthorized to delete this item");
-        }
-
-        itemRepository.delete(item);
-        fileStorageService.deleteFile(item.getImageUrl());
-    }
-
     public Item updateItem(Long itemId, ItemDto itemDto, MultipartFile image, String userEmail) throws IOException {
         Item existingItem = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
-        
+
         User user = userService.getUserByEmail(userEmail);
         if (user == null || !existingItem.getSeller().equals(user)) {
             throw new RuntimeException("Unauthorized to update this item");
@@ -89,4 +91,57 @@ public class ItemService {
         return itemRepository.save(existingItem);
     }
 
+    public void deleteItem(Long itemId, String userEmail) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Item not found"));
+
+        User user = userService.getUserByEmail(userEmail);
+        if (user == null || !item.getSeller().equals(user)) {
+            throw new RuntimeException("Unauthorized to delete this item");
+        }
+
+        itemRepository.delete(item);
+        fileStorageService.deleteFile(item.getImageUrl());
+    }
+
+    public List<Item> searchItems(String query) {
+
+        if (query == null || query.trim().isEmpty()) {
+            return getAllItems();
+        }
+        
+        String[] keywords = query.toLowerCase().split("\\s+");
+
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Item> criteriaQuery = criteriaBuilder.createQuery(Item.class);
+        Root<Item> root = criteriaQuery.from(Item.class);
+
+        List<Predicate> predicates = new ArrayList<>();
+
+        for (String keyword : keywords) {
+            Predicate titleMatch = criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + keyword + "%");
+            Predicate descMatch = criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), "%" + keyword + "%");
+            predicates.add(criteriaBuilder.or(titleMatch, descMatch));
+        }
+
+        criteriaQuery.where(criteriaBuilder.and(predicates.toArray(new Predicate[0])));
+        criteriaQuery.orderBy(criteriaBuilder.desc(root.get("listingDate")));
+
+        List<Item> results = entityManager.createQuery(criteriaQuery).getResultList();
+
+        return results.stream()
+                .map(item -> {
+                    int score = 0;
+                    for (String keyword : keywords) {
+                        if (item.getTitle().toLowerCase().contains(keyword)){
+                            score += 2;
+                        }
+                        if (item.getDescription().toLowerCase().contains(keyword)){
+                            score += 1;
+                        }
+                    }
+                    return new AbstractMap.SimpleEntry<>(item, score);
+                })
+                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue())).map(AbstractMap.SimpleEntry::getKey).collect(Collectors.toList());
+    }
 }

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -64,5 +65,13 @@ public class ItemController {
         String userEmail = authentication.getName();
         itemService.deleteItem(itemId, userEmail);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<Item>> searchItems(@RequestParam(required = false) String query) {
+        List<Item> items = (query != null && !query.trim().isEmpty()) 
+            ? itemService.searchItems(query)
+            : itemService.getAllItems();
+        return ResponseEntity.ok(items);
     }
 }

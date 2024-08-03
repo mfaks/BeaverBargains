@@ -1,35 +1,25 @@
 "use client"
 
+import { useState } from 'react'
+import axios from 'axios'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useForm, SubmitHandler } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import axios from 'axios'
+import { FaHome } from 'react-icons/fa'
+import { useAuth } from '../auth/AuthContext'
 import { Button } from '@/components/ui/button'
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
-import Link from 'next/link'
-import { FaHome } from 'react-icons/fa'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '../AuthContext'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription} from '@/components/ui/dialog'
+import { LoginForm } from '@/types/LoginForm'
 
 const loginSchema = z.object({
     email: z.string().email('Invalid email format'),
-    password: z.string(),
+    password: z.string()
 })
-
-interface LoginForm {
-    email: string
-    password: string
-}
 
 export default function Login() {
     const router = useRouter()
@@ -42,48 +32,47 @@ export default function Login() {
         resolver: zodResolver(loginSchema),
         defaultValues: {
             email: '',
-            password: '',
+            password: ''
         },
     })
 
     const onSubmit: SubmitHandler<LoginForm> = async (values) => {
         try {
-          const response = await axios.post('http://localhost:8080/api/users/login', values)
-          const token = response.data.token
-          console.log(token)
-          localStorage.setItem('token', token);
-          login({ 
-            id: response.data.id,
-            firstName: response.data.firstName, 
-            lastName: response.data.lastName,
-            email: values.email, 
-            bio: response.data.bio,
-            profileImage: response.data.profileImage
+            const response = await axios.post(`http://localhost:8080/api/users/login`, values)
+            const token = response.data.token
+            localStorage.setItem('token', token);
+            login({
+                id: response.data.id,
+                firstName: response.data.firstName,
+                lastName: response.data.lastName,
+                email: values.email,
+                bio: response.data.bio,
+                profileImage: response.data.profileImage
             }, token)
-          setUserFirstName(response.data.firstName)
-          setIsLoginSuccessful(true)
-          setTimeout(() => {
-            setIsLoginSuccessful(false)
-            router.push('/marketplace')
-          }, 2000)
+            setUserFirstName(response.data.firstName)
+            setIsLoginSuccessful(true)
+            setTimeout(() => {
+                setIsLoginSuccessful(false)
+                router.push('/marketplace')
+            }, 2000)
         } catch (error) {
-          console.error('There was a problem with the login request:', error)
-          if (axios.isAxiosError(error) && error.response) {
-            setLoginError(error.response.data || 'An error occurred during login')
-          } else {
-            setLoginError('An unexpected error occurred')
-          }
+            console.error('There was a problem with the login request:', error)
+            if (axios.isAxiosError(error) && error.response) {
+                setLoginError(error.response.data || 'An error occurred during login')
+            } else {
+                setLoginError('An unexpected error occurred')
+            }
         }
-      }
+    }
 
     return (
         <div>
             <div className="flex flex-col items-center justify-center min-h-screen bg-orange-50 space-y-4">
                 <Card className="w-full max-w-md">
                     <CardHeader className="space-y-1">
-                        <CardTitle className="text-2xl font-bold text-center text-orange-500">Log In</CardTitle>
+                        <CardTitle className="text-2xl font-bold text-center text-orange-500">Welcome Back</CardTitle>
                         <CardDescription className="text-center">
-                            Enter your email and password to access your account
+                            Enter your email and password to sign in to your account.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -99,7 +88,7 @@ export default function Login() {
                                         <FormItem>
                                             <FormLabel>Email</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Enter your email" {...field} className="w-full" />
+                                                <Input placeholder="abc@example.com" {...field} className="w-full" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -112,14 +101,14 @@ export default function Login() {
                                         <FormItem>
                                             <FormLabel>Password</FormLabel>
                                             <FormControl>
-                                                <Input type="password" placeholder="Enter your password" {...field} className="w-full" />
+                                                <Input type="password" placeholder="" {...field} className="w-full" />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
                                     )}
                                 />
                                 <Button type="submit" className="w-full bg-orange-400 text-white hover:bg-orange-500 focus:bg-orange-500">
-                                    Log In
+                                    Login
                                 </Button>
                             </form>
                         </Form>
