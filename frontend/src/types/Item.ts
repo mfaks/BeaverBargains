@@ -7,6 +7,7 @@ export interface Item {
     listingDate: string
     isFavorited: boolean
     seller: {
+        id: number
         firstName: string
         lastName: string
         email: string

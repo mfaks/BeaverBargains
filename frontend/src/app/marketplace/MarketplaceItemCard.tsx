@@ -2,12 +2,17 @@
 
 import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
+import axios from 'axios'
+import { useRouter } from 'next/navigation'
+import { useAuth } from '../auth/AuthContext'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { MarketplaceItemCardProps } from '@/types/MarketplaceItemCardProps'
 
 const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggleFavorite, getFullImageUrl }) => {
     const [isFavorited, setIsFavorited] = useState(item.isFavorited)
+    const router = useRouter()
+    const { user, token } = useAuth()
 
     useEffect(() => {
         setIsFavorited(item.isFavorited)
@@ -16,6 +21,24 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
     const handleFavoriteToggle = () => {
         setIsFavorited(!isFavorited)
         onToggleFavorite(item.id)
+    }
+
+    const handleMessageClick = async () => {
+        try {
+            const response = await axios.post(
+                'http://localhost:8080/api/messages/start-conversation',
+                { otherUserId: item.seller.id },
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            )
+
+            if (response.data && response.data.id) {
+                router.push(`/messages?conversation=${response.data.id}&otherUserId=${item.seller.id}`)
+            } else {
+                console.error('Invalid response from server:', response)
+            }
+        } catch (error) {
+            console.error('Error starting conversation:', error)
+        }
     }
 
     return (
@@ -29,13 +52,13 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
                 <button
                     onClick={handleFavoriteToggle}
                     className={`absolute top-2 right-2 p-1 rounded-full transition-colors ${isFavorited ? 'bg-orange-500' : 'bg-white/70 hover:bg-orange-500'
-                        } group`} 
+                        } group`}
                 >
                     <Image
                         src="/icons/heart-icon.svg"
                         alt="Favorite"
                         width={16}
-                        height={16} 
+                        height={16}
                         className={`${isFavorited ? 'filter invert' : 'group-hover:filter group-hover:invert'}`}
                     />
                 </button>
@@ -54,7 +77,7 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
                             src="/icons/calendar-icon.svg"
                             alt="Calendar"
                             width={12}
-                            height={12} 
+                            height={12}
                         />
                         <span>{new Date(item.listingDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                     </div>
@@ -68,12 +91,14 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
                         <span>{item.seller.firstName} {item.seller.lastName}</span>
                     </div>
                 </div>
-                <Button className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-1 px-3 rounded-full transition-colors flex items-center justify-center text-sm">
+                <Button
+                    onClick={handleMessageClick}
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-1 px-3 rounded-full transition-colors flex items-center justify-center text-sm">
                     <Image
                         src="/icons/user-icon.svg"
                         alt="Message"
                         width={12}
-                        height={12} 
+                        height={12}
                         className="mr-1 invert"
                     />
                     Message {item.seller.firstName}

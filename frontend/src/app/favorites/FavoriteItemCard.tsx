@@ -1,13 +1,18 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
+import axios from 'axios'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../auth/AuthContext';
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { FavoriteItemCardProps } from '@/types/FavoriteItemCard'
 
 const FavoriteItemCard: React.FC<FavoriteItemCardProps> = ({ item, onToggleFavorite, getFullImageUrl }) => {
     const [isFavorited, setIsFavorited] = useState(item.isFavorited)
+    const router = useRouter();
+    const { token } = useAuth();
 
     useEffect(() => {
         setIsFavorited(item.isFavorited)
@@ -18,21 +23,38 @@ const FavoriteItemCard: React.FC<FavoriteItemCardProps> = ({ item, onToggleFavor
         onToggleFavorite(item.id)
     }
 
+    const handleMessageClick = async () => {
+        try {
+            const response = await axios.post(
+                'http://localhost:8080/api/messages/start-conversation',
+                { otherUserId: item.seller.id },
+                { headers: { 'Authorization': `Bearer ${token}` } }
+            );
+            
+            if (response.data && response.data.id) {
+                router.push(`/messages?conversation=${response.data.id}&otherUserId=${item.seller.id}`);
+            } else {
+                console.error('Invalid response from server:', response);
+            }
+        } catch (error) {
+            console.error('Error starting conversation:', error);
+        }
+    };
+
     return (
         <Card className='w-full max-w-sm rounded-lg overflow-hidden shadow-lg'>
             <div className='relative h-56'>
-                <img 
-                    src={getFullImageUrl(item.imageUrl)} 
-                    alt={item.title} 
+                <img
+                    src={getFullImageUrl(item.imageUrl)}
+                    alt={item.title}
                     className='w-full h-full object-cover'
                 />
-                <button 
+                <button
                     onClick={handleFavoriteToggle}
-                    className={`absolute top-2 right-2 p-1 rounded-full transition-colors ${
-                        isFavorited ? 'bg-orange-500' : 'bg-white/70 hover:bg-orange-500'
-                    } group`}
+                    className={`absolute top-2 right-2 p-1 rounded-full transition-colors ${isFavorited ? 'bg-orange-500' : 'bg-white/70 hover:bg-orange-500'
+                        } group`}
                 >
-                    <Image 
+                    <Image
                         src='/icons/heart-icon.svg'
                         alt='Favorite'
                         width={16}
@@ -51,7 +73,7 @@ const FavoriteItemCard: React.FC<FavoriteItemCardProps> = ({ item, onToggleFavor
                 </p>
                 <div className='flex items-center justify-between text-xs text-gray-500 mb-3'>
                     <div className='flex items-center gap-1'>
-                        <Image 
+                        <Image
                             src='/icons/calendar-icon.svg'
                             alt='Calendar'
                             width={12}
@@ -60,7 +82,7 @@ const FavoriteItemCard: React.FC<FavoriteItemCardProps> = ({ item, onToggleFavor
                         <span>{new Date(item.listingDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
                     </div>
                     <div className='flex items-center gap-1'>
-                        <Image 
+                        <Image
                             src='/icons/user-icon.svg'
                             alt='User'
                             width={12}
@@ -69,8 +91,10 @@ const FavoriteItemCard: React.FC<FavoriteItemCardProps> = ({ item, onToggleFavor
                         <span>{item.seller.firstName} {item.seller.lastName}</span>
                     </div>
                 </div>
-                <Button className='w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-1 px-3 rounded-full transition-colors flex items-center justify-center text-sm'>
-                    <Image 
+                <Button
+                    onClick={handleMessageClick}
+                    className='w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-1 px-3 rounded-full transition-colors flex items-center justify-center text-sm'>
+                    <Image
                         src='/icons/user-icon.svg'
                         alt='Message'
                         width={12}
