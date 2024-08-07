@@ -25,4 +25,16 @@ public class UserDto {
         this.bio = user.getBio();
         this.profileImageUrl = user.getProfileImageUrl();
     }
+
+    public User toUser() {
+        User user = new User();
+        user.setId(this.id);
+        user.setFirstName(this.firstName);
+        user.setLastName(this.lastName);
+        user.setEmail(this.email);
+        user.setBio(this.bio);
+        user.setProfileImageUrl(this.profileImageUrl);
+        return user;
+    }
+
 }
