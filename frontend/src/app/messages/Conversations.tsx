@@ -2,70 +2,53 @@
 
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '../auth/AuthContext'
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Conversation } from '@/types/Conversation'
+import { User } from '@/types/User'
+import { ConversationsProps } from '@/types/ConversatoinProps'
+import UnauthorizedModal from '@/components/ui/UnauthorizedModal'
 
-interface User {
-    id: number
-    firstName: string
-    lastName: string
-    profileImageUrl?: string
-}
-
-interface Conversation {
-    id: number
-    user1: User
-    user2: User
-    lastMessageTimestamp: string
-    lastMessageContent: string
-    lastMessageSenderId: number
-    lastMessageSenderFirstName: string
-}
-
-interface ConversationsProps {
-    userId: number
-    conversations: Conversation[]
-    setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>
-    onSelectConversation: (conversationId: string | number, otherUserId: number) => void
-    selectedConversationId: string | number | null
-}
-
-const Conversations: React.FC<ConversationsProps> = ({
-    userId,
-    conversations,
-    setConversations,
-    onSelectConversation,
-    selectedConversationId
-}) => {
+const Conversations: React.FC<ConversationsProps> = ({ userId, conversations, setConversations, onSelectConversation, selectedConversationId }) => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const { token } = useAuth()
+    const { isAuthenticated, token } = useAuth()
+    const [modalOpen, setModalOpen] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
+    const router = useRouter()
 
     useEffect(() => {
-        const fetchConversations = async () => {
-            setLoading(true)
-            setError(null)
-            try {
-                const response = await axios.get<Conversation[]>(
-                    `http://localhost:8080/api/messages`,
-                    {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    }
-                )
-                setConversations(response.data)
-                console.log(response.data)
-            } catch (error) {
-                console.error('Error fetching conversations:', error)
-                setError('Failed to load conversations. Please try again.')
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        if (token) {
+        if (!isAuthenticated) {
+            setErrorMessage("You must be logged in to access messages. Redirecting to login.")
+            setModalOpen(true)
+            setTimeout(() => {
+                router.push('/login')
+            }, 2000)
+        } else if (token) {
             fetchConversations()
         }
-    }, [token, setConversations])
+    }, [isAuthenticated, token, router])
+
+    const fetchConversations = async () => {
+        setLoading(true)
+        setError(null)
+        try {
+            const response = await axios.get<Conversation[]>(
+                `http://localhost:8080/api/messages`,
+                {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }
+            )
+            setConversations(response.data)
+            console.log(response.data)
+        } catch (error) {
+            console.error('Error fetching conversations:', error)
+            setError('Failed to load conversations. Please try again.')
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const findOrCreateConversation = async (otherUserId: number) => {
         const existingConversation = conversations.find(
@@ -116,17 +99,27 @@ const Conversations: React.FC<ConversationsProps> = ({
         })
     }
 
+    if (!isAuthenticated) {
+        return (
+            <UnauthorizedModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                message={errorMessage}
+            />
+        )
+    }
+
     if (loading) {
-        return <div className="w-1/5 border-r p-4">Loading conversations...</div>
+        return <div className='w-1/5 border-r p-4'>Loading conversations...</div>
     }
 
     if (error) {
-        return <div className="w-1/5 border-r p-4 text-red-500">{error}</div>
+        return <div className='w-1/5 border-r p-4 text-red-500'>{error}</div>
     }
 
     return (
-        <div className="w-1/5 border-r overflow-y-auto">
-            <h2 className="text-xl font-semibold p-4 text-center border-b">My Messages</h2>
+        <div className='w-1/5 border-r overflow-y-auto'>
+            <h2 className='text-xl font-semibold p-4 text-center border-b'>My Messages</h2>
             {conversations.map((conversation) => {
                 const otherUser = getOtherUser(conversation)
                 const lastMessageSender = getLastMessageSender(conversation)
@@ -142,17 +135,17 @@ const Conversations: React.FC<ConversationsProps> = ({
                             onSelectConversation(conversationId, otherUser.id)
                         }}
                     >
-                        <div className="flex items-center">
-                            <Avatar className="w-10 h-10 mr-3">
+                        <div className='flex items-center'>
+                            <Avatar className='w-10 h-10 mr-3'>
                                 <AvatarImage
-                                    src={otherUser.profileImageUrl}
+                                    src={otherUser.profileImage}
                                     alt={`${otherUser.firstName} ${otherUser.lastName}`}
                                 />
                                 <AvatarFallback>
                                     {getInitials(otherUser.firstName, otherUser.lastName)}
                                 </AvatarFallback>
                             </Avatar>
-                            <div className="flex-grow overflow-hidden">
+                            <div className='flex-grow overflow-hidden'>
                                 <h3 className='font-semibold'>
                                     {`${otherUser.firstName} ${otherUser.lastName}`}
                                 </h3>

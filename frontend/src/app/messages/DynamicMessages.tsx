@@ -1,57 +1,54 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '../auth/AuthContext'
-import axios from 'axios'
 import Conversations from './Conversations'
 import MessageThread from './MessageThread'
-
-interface User {
-    id: number;
-    firstName: string;
-    lastName: string;
-    profileImageUrl?: string;
-}
-
-interface Conversation {
-    id: number;
-    user1: User;
-    user2: User;
-    lastMessageTimestamp: string;
-    lastMessageContent: string;
-    lastMessageSenderId: number;
-    lastMessageSenderFirstName: string;
-}
+import { Conversation } from '@/types/Conversation'
+import UnauthorizedModal from '@/components/ui/UnauthorizedModal'
 
 const DynamicMessages: React.FC = () => {
-    const { user, token } = useAuth()
+    const { isAuthenticated, user } = useAuth()
     const searchParams = useSearchParams()
     const [selectedConversation, setSelectedConversation] = useState<{ id: string | number | null, otherUserId: number } | null>(null)
     const [conversations, setConversations] = useState<Conversation[]>([])
+    const [modalOpen, setModalOpen] = useState(false)
+    const [errorMessage, setErrorMessage] = useState('')
+    const router = useRouter()
+
+    if (!isAuthenticated || !user) {
+        return (
+            <UnauthorizedModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                message={errorMessage}
+            />
+        )
+    }
 
     useEffect(() => {
-        const conversationId = searchParams.get('conversation')
-        const otherUserId = searchParams.get('otherUserId')
-
-        if (otherUserId) {
-            setSelectedConversation({ id: conversationId, otherUserId: parseInt(otherUserId) })
+        if (!isAuthenticated) {
+            setErrorMessage('You must be logged in to access messages. Redirecting to login.')
+            setModalOpen(true)
+            setTimeout(() => {
+                router.push('/login')
+            }, 2000)
+        } else {
+            const conversationId = searchParams.get('conversation')
+            const otherUserId = searchParams.get('otherUserId')
+            if (otherUserId) {
+                setSelectedConversation({ id: conversationId, otherUserId: parseInt(otherUserId) })
+            }
         }
-    }, [searchParams])
+    }, [isAuthenticated, router, searchParams])
 
     const handleConversationSelect = (conversationId: string | number | null, otherUserId: number) => {
         setSelectedConversation({ id: conversationId, otherUserId })
-        // Update the URL
         window.history.pushState({}, '', `/messages?conversation=${conversationId || ''}&otherUserId=${otherUserId}`)
     }
 
-    const updateLastMessage = (
-        conversationId: number,
-        content: string,
-        senderId: number,
-        timestamp: string,
-        senderFirstName: string
-    ) => {
+    const updateLastMessage = (conversationId: number, content: string, senderId: number, timestamp: string, senderFirstName: string) => {
         setConversations(prevConversations =>
             prevConversations.map(conv =>
                 conv.id === conversationId
@@ -65,10 +62,6 @@ const DynamicMessages: React.FC = () => {
                     : conv
             )
         )
-    }
-
-    if (!user) {
-        return <div>No user logged in</div>
     }
 
     return (

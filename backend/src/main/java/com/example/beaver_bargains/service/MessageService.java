@@ -32,7 +32,7 @@ public class MessageService {
         UserDto receiverDto = userService.getUserDetails(receiverId);
         User receiver = receiverDto.toUser();
 
-        Optional<Conversation> existingConversation = conversationRepository.findConversationBetweenUsers(sender, receiver, receiver, sender);
+        Optional<Conversation> existingConversation = conversationRepository.findByUser1AndUser2OrUser1AndUser2(sender, receiver, receiver, sender);
 
         return existingConversation.orElseGet(() -> {
             Conversation newConversation = new Conversation();
@@ -45,7 +45,7 @@ public class MessageService {
 
     public List<Conversation> getUserConversations(String userEmail) {
         User user = userService.getUserByEmail(userEmail);
-        return conversationRepository.findByUserInConversation(user, user);
+        return conversationRepository.findByUser1OrUser2(user, user);
     }
 
     public Message sendMessage(String senderEmail, Long conversationId, String content) {
@@ -64,7 +64,6 @@ public class MessageService {
     
         return messageRepository.save(message);
     }
-    
     public List<Message> getConversationMessages(Long conversationId) {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
