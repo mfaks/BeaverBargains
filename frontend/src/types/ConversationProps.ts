@@ -1,6 +1,6 @@
 import { Conversation } from './Conversation'
 
-export interface ConversationsProps {
+export interface ConversationProps {
     userId: number
     conversations: Conversation[]
     setConversations: React.Dispatch<React.SetStateAction<Conversation[]>>
