@@ -47,7 +47,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(updatedUser)
       localStorage.setItem('user', JSON.stringify(updatedUser))
     }
-  }
+  } 
 
   const contextValue: AuthContext = { isAuthenticated, user, token, loading, login, logout, updateUserProfileImage }
 
