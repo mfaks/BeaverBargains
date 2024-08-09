@@ -33,6 +33,9 @@ public class Message {
 
     @Column(nullable = false)
     private Instant timestamp;
+    
+    @Column(name = "is_read", nullable = false)
+    private boolean isRead = false;
 
     public Message() {}
 
@@ -90,5 +93,13 @@ public class Message {
 
     public void setTimestamp(Instant timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public boolean getIsRead() {
+        return isRead;
+    }
+
+    public void setIsRead(boolean isRead) {
+        this.isRead = isRead;
     }
 }

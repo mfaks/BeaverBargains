@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
@@ -21,11 +21,11 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const router = useRouter()
     const [modalOpen, setModalOpen] = useState(false)
-    const [errorMessage, setErrorMessage] = useState("")
+    const [errorMessage, setErrorMessage] = useState('')
 
     useEffect(() => {
         if (!isAuthenticated) {
-            setErrorMessage("You must be logged in to view messages. Redirecting to login.")
+            setErrorMessage('You must be logged in to view messages. Redirecting to login.')
             setModalOpen(true)
             setTimeout(() => {
                 router.push('/login')
@@ -41,7 +41,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
 
     const fetchMessages = async (newPage: number) => {
         if (!isAuthenticated) {
-            setErrorMessage("You must be logged in to fetch messages. Redirecting to login.")
+            setErrorMessage('You must be logged in to fetch messages. Redirecting to login.')
             setModalOpen(true)
             setTimeout(() => {
                 router.push('/login')
@@ -62,7 +62,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
                 currentConversationId = response.data.id
                 setConversationId(currentConversationId)
             }
-    
+
             const response = await axios.get<Message[]>(
                 `http://localhost:8080/api/messages/conversations/${currentConversationId}`,
                 {
@@ -70,16 +70,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
                 }
             )
             
-            console.log('Raw message data:', response.data)
-            
             const processedMessages = response.data.map((message, index) => {
-                console.log(`Processing message ${index}:`, message)
-                console.log(message.sender)
-                console.log(message.receiver)
-                console.log(otherUserId)
-                if (!message.sender || !message.receiver) {
-                    console.error(`Message ${index} has null sender or receiver:`, message)
-                }
                 return {
                     ...message,
                     senderId: message.sender?.id ?? null,
@@ -92,9 +83,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
                 }
                 return true
             })
-            
-            console.log('Processed messages:', processedMessages)
-            
+
             setMessages(processedMessages)
             setHasMore(false)
             setPage(0)
@@ -105,10 +94,10 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
             setLoading(false)
         }
     }
-    
+
     const sendMessage = async () => {
         if (!isAuthenticated) {
-            setErrorMessage("You must be logged in to send messages. Redirecting to login.")
+            setErrorMessage('You must be logged in to send messages. Redirecting to login.')
             setModalOpen(true)
             setTimeout(() => {
                 router.push('/login')
@@ -117,7 +106,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
         }
 
         if (!newMessage.trim()) return
-    
+
         try {
             let currentConversationId = conversationId
             if (!currentConversationId) {
@@ -129,20 +118,20 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
                 currentConversationId = conversationResponse.data.id
                 setConversationId(currentConversationId)
             }
-    
+
             const response = await axios.post<Message>(
                 `http://localhost:8080/api/messages/conversations/${currentConversationId}/messages`,
                 { content: newMessage },
                 { headers: { 'Authorization': `Bearer ${token}` } }
             )
-    
+
             setMessages(prevMessages => [...prevMessages, response.data])
             setNewMessage('')
-            
+
             updateLastMessage(
-                response.data.conversation.id, 
-                response.data.content, 
-                response.data.sender.id, 
+                response.data.conversation.id,
+                response.data.content,
+                response.data.sender.id,
                 response.data.timestamp,
                 response.data.sender.firstName
             )
@@ -176,6 +165,8 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
         return <div className='w-2/3 p-4 text-red-500'>{error}</div>
     }
 
+
+
     const formatTimestamp = (timestamp: string) => {
         const date = new Date(timestamp)
         return date.toLocaleString('en-US', {
@@ -207,8 +198,8 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
                             <div
                                 key={message.id}
                                 className={`mb-2 p-2 rounded-lg max-w-[70%] ${isCurrentUser
-                                        ? 'bg-blue-500 text-white ml-auto'
-                                        : 'bg-gray-200 text-black mr-auto'
+                                    ? 'bg-blue-500 text-white ml-auto'
+                                    : 'bg-gray-200 text-black mr-auto'
                                     }`}
                             >
                                 <p>{message.content}</p>

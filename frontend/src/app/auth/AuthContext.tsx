@@ -11,6 +11,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user')
@@ -21,6 +22,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(userData)
       setToken(storedToken)
     }
+    setLoading(false)
   }, [])
 
   const login = (userData: User, newToken: string) => {
@@ -45,10 +47,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(updatedUser)
       localStorage.setItem('user', JSON.stringify(updatedUser))
     }
-  } 
+  }
+
+  const contextValue: AuthContext = { isAuthenticated, user, token, loading, login, logout, updateUserProfileImage }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, token, login, logout, updateUserProfileImage }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   )

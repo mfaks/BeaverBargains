@@ -55,31 +55,36 @@ public class UserService implements UserDetailsService {
         }
     }
 
+    public Long getUserId(String email) {
+        User user = getUserByEmail(email);
+        return user.getId();
+    }
+
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
         return new CustomUserDetails(user);
     }
-    
+
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
 
-    public boolean userExists(String email) {        
+    public boolean userExists(String email) {
         return userRepository.findByEmail(email).isPresent();
     }
 
     public UserDto getUserDetails(Long userId) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return new UserDto(user);
     }
 
     public UserDto updateBiography(Long userId, UserBioUpdateDto userBioUpdateDto) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         user.setBio(userBioUpdateDto.getBio());
         user = userRepository.save(user);
         return new UserDto(user);
@@ -93,8 +98,8 @@ public class UserService implements UserDetailsService {
 
     public UserDto updateProfileImage(Long userId, MultipartFile file) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
-        
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
+
         try {
             String profileImageUrl = saveProfileImage(file);
             user.setProfileImageUrl(profileImageUrl);
@@ -119,13 +124,13 @@ public class UserService implements UserDetailsService {
 
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         userRepository.delete(user);
     }
 
     public UserDto removeProfileImage(Long userId) {
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
         user.setProfileImageUrl(null);
         user = userRepository.save(user);
         if (user.getProfileImageUrl() != null) {
@@ -133,7 +138,7 @@ public class UserService implements UserDetailsService {
         }
         return new UserDto(user);
     }
-    
+
     private void deleteProfileImageFile(String imageUrl) {
         try {
             String fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);

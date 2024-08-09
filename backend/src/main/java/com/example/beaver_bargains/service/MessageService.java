@@ -64,6 +64,7 @@ public class MessageService {
     
         return messageRepository.save(message);
     }
+
     public List<Message> getConversationMessages(Long conversationId) {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));

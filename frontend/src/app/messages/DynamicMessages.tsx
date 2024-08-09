@@ -1,8 +1,9 @@
-"use client"
+'use client'
 
 import React, { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '../auth/AuthContext'
+import { useUnreadMessages } from './UnreadMessagesContext'
 import Conversations from './Conversations'
 import MessageThread from './MessageThread'
 import { Conversation } from '@/types/Conversation'
@@ -10,22 +11,13 @@ import UnauthorizedModal from '@/components/ui/UnauthorizedModal'
 
 const DynamicMessages: React.FC = () => {
     const { isAuthenticated, user } = useAuth()
+    const { fetchUnreadCount } = useUnreadMessages()
     const searchParams = useSearchParams()
     const [selectedConversation, setSelectedConversation] = useState<{ id: string | number | null, otherUserId: number } | null>(null)
     const [conversations, setConversations] = useState<Conversation[]>([])
     const [modalOpen, setModalOpen] = useState(false)
     const [errorMessage, setErrorMessage] = useState('')
     const router = useRouter()
-
-    if (!isAuthenticated || !user) {
-        return (
-            <UnauthorizedModal
-                isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                message={errorMessage}
-            />
-        )
-    }
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -57,10 +49,25 @@ const DynamicMessages: React.FC = () => {
                         lastMessageContent: content,
                         lastMessageSenderId: senderId,
                         lastMessageTimestamp: timestamp,
-                        lastMessageSenderFirstName: senderFirstName
+                        lastMessageSenderFirstName: senderFirstName,
+                        unreadCount: conv.unreadCount
                     }
                     : conv
             )
+        )
+    }
+
+    const handleConversationRead = () => {
+        fetchUnreadCount()
+    }
+
+    if (!isAuthenticated || !user) {
+        return (
+            <UnauthorizedModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                message={errorMessage}
+            />
         )
     }
 
@@ -72,7 +79,9 @@ const DynamicMessages: React.FC = () => {
                 setConversations={setConversations}
                 onSelectConversation={handleConversationSelect}
                 selectedConversationId={selectedConversation?.id ?? null}
+                onConversationRead={handleConversationRead}
             />
+
             {selectedConversation ? (
                 <MessageThread
                     userId={user.id}
