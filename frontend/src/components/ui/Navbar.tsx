@@ -7,17 +7,22 @@ import BeaverIcon from '@/components/ui/BeaverIcon'
 import { Button } from '@/components/ui/button'
 import { FaSearch, FaUserCircle } from 'react-icons/fa'
 import { useAuth } from '../../app/auth/AuthContext'
+import { useUnreadMessages } from '../../app/messages/UnreadMessagesContext'
 import { Input } from '@/components/ui/input'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 
 export default function NavBar() {
-  const { isAuthenticated, user, logout } = useAuth()
+  const { isAuthenticated, user, logout, token } = useAuth()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [avatarUrl, setAvatarUrl] = useState(user?.profileImage)
   const [searchTerm, setSearchTerm] = useState('')
+  const { unreadCount, fetchUnreadCount } = useUnreadMessages()
+  const { clearUnreadCount } = useUnreadMessages()
   const router = useRouter()
+
 
   useEffect(() => {
     if (user && user.profileImage) {
@@ -25,8 +30,15 @@ export default function NavBar() {
     }
   }, [user])
 
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      fetchUnreadCount()
+    }
+  }, [isAuthenticated, token])
+
   const handleLogout = async () => {
     logout()
+    clearUnreadCount()
     setIsDialogOpen(true)
     setTimeout(() => {
       setIsDialogOpen(false)
@@ -73,9 +85,19 @@ export default function NavBar() {
             Marketplace
           </Link>
           {isAuthenticated && (
-            <Link href='/sell' className='text-sm font-medium hover:underline underline-offset-4 text-orange-500' prefetch={false}>
-              Sell
-            </Link>
+            <>
+              <Link href='/sell' className='text-sm font-medium hover:underline underline-offset-4 text-orange-500' prefetch={false}>
+                Sell
+              </Link>
+              <Link href='/messages' className='text-sm font-medium hover:underline underline-offset-4 text-orange-500 relative' prefetch={false}>
+                Messages
+                {unreadCount > 0 && (
+                  <Badge variant="destructive" className="absolute -top-2 -right-2 px-2 py-1 text-xs">
+                    {unreadCount}
+                  </Badge>
+                )}
+              </Link>
+            </>
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

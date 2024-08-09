@@ -69,6 +69,14 @@ public class ItemService {
         return itemRepository.findBySeller(user);
     }
 
+    public List<Item> getAllItemsExceptUser(String userEmail) {
+        User user = userService.getUserByEmail(userEmail);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        return itemRepository.findBySellerNot(user);
+    }
+
     public Item updateItem(Long itemId, ItemDto itemDto, MultipartFile image, String userEmail) throws IOException {
         Item existingItem = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
