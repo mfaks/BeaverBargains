@@ -94,13 +94,15 @@ export default function Listings() {
         setFilteredItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item))
     }
 
-
-    const handleMarkAsSold = async (itemId: number) => {
+    const handleMarkAsSold = async (itemId: number, buyerId: number) => {
         try {
-            const response = await axios.put<Item>(`http://localhost:8080/api/items/${itemId}/mark-as-sold`, null, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            })
-            
+            const response = await axios.put<Item>(
+                `http://localhost:8080/api/items/${itemId}/mark-as-sold?buyerId=${buyerId}`,
+                null,
+                {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }
+            )
             const updatedItem = response.data
             setActiveItems(prev => prev.filter(item => item.id !== itemId))
             setSoldItems(prev => [...prev, updatedItem])
@@ -280,7 +282,7 @@ export default function Listings() {
                                                 token={token}
                                                 onItemUpdate={handleItemUpdate}
                                                 onMarkAsSold={handleMarkAsSold}
-                                                isSold={true}
+                                                isSold={item.status === 'SOLD'}
                                             />
                                         ))}
                                     </div>

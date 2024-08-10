@@ -186,16 +186,22 @@ public class ItemService {
                 .collect(Collectors.toList());
     }
 
-    public Item markItemAsSold(Long itemId, String userEmail) {
+    public Item markItemAsSold(Long itemId, Long buyerId, String sellerEmail) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
-        User user = userService.getUserByEmail(userEmail);
-        if (user == null || !item.getSeller().equals(user)) {
+        User seller = userService.getUserByEmail(sellerEmail);
+        if (seller == null || !item.getSeller().equals(seller)) {
             throw new RuntimeException("User not authorized to update this item");
         }
 
+        User buyer = userService.getUserById(buyerId);
+        if (buyer == null) {
+            throw new RuntimeException("Buyer not found");
+        }
+
         item.setStatus(ItemStatus.SOLD);
+        item.setBuyer(buyer);
         return itemRepository.save(item);
     }
 

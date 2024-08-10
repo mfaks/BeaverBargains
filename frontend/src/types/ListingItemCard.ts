@@ -2,11 +2,11 @@ import { Item } from './Item'
 
 export interface ListingItemCardProps {
     item: Item
-    getFullImageUrl: (imageUrl: string) => string
+    getFullImageUrl: (url: string) => string
     isSelected: boolean
     onToggleSelect: () => void
     token: string | null
-    onItemUpdate: (updatedItem: Item) => void
-    onMarkAsSold: (itemId: number) => Promise<void>
+    onItemUpdate: (item: Item) => void
+    onMarkAsSold: (itemId: number, buyerId: number) => Promise<void>
     isSold: boolean
 }

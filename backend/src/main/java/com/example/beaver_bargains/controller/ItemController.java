@@ -100,9 +100,9 @@ public class ItemController {
     }
 
     @PutMapping("/{itemId}/mark-as-sold")
-    public ResponseEntity<Item> markItemAsSold(@PathVariable Long itemId, Authentication authentication) {
-        String userEmail = authentication.getName();
-        Item updatedItem = itemService.markItemAsSold(itemId, userEmail);
+    public ResponseEntity<Item> markItemAsSold( @PathVariable Long itemId, @RequestParam Long buyerId, Authentication authentication) {
+        String sellerEmail = authentication.getName();
+        Item updatedItem = itemService.markItemAsSold(itemId, buyerId, sellerEmail);
         return ResponseEntity.ok(updatedItem);
     }
 

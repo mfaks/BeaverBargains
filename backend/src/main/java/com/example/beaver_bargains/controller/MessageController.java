@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.beaver_bargains.dto.ConversationDto;
 import com.example.beaver_bargains.dto.MessageDto;
+import com.example.beaver_bargains.dto.UserDto;
 import com.example.beaver_bargains.entity.Conversation;
 import com.example.beaver_bargains.entity.Message;
 import com.example.beaver_bargains.service.MessageService;
@@ -46,6 +47,13 @@ public class MessageController {
         String userEmail = authentication.getName();
         List<Conversation> conversations = messageService.getUserConversations(userEmail);
         return ResponseEntity.ok(conversations);
+    }
+
+    @GetMapping("/conversation-users")
+    public ResponseEntity<List<UserDto>> getConversationUsers(Authentication authentication) {
+        String userEmail = authentication.getName();
+        List<UserDto> conversationUsers = messageService.getConversationUsers(userEmail);
+        return ResponseEntity.ok(conversationUsers);
     }
 
     @PostMapping("/conversations/{conversationId}/messages")
@@ -81,7 +89,8 @@ public class MessageController {
     }
 
     @PostMapping("/conversations/{conversationId}/read")
-    public ResponseEntity<Void> markConversationAsRead(@PathVariable Long conversationId, Authentication authentication) {
+    public ResponseEntity<Void> markConversationAsRead(@PathVariable Long conversationId,
+            Authentication authentication) {
         String userEmail = authentication.getName();
         notificationService.markConversationAsRead(conversationId, userEmail);
         return ResponseEntity.ok().build();

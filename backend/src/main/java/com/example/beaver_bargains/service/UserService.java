@@ -148,4 +148,9 @@ public class UserService implements UserDetailsService {
             System.err.println("Failed to delete profile image file: " + e.getMessage());
         }
     }
+
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+    }
 }

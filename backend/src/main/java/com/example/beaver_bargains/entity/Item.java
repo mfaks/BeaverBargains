@@ -31,6 +31,10 @@ public class Item {
     @JoinColumn(name = "user_id")
     private User seller;
 
+    @ManyToOne
+    @JoinColumn(name = "buyer_id")
+    private User buyer;
+
     public Long getId() {
         return id;
     }
@@ -79,6 +83,22 @@ public class Item {
         this.imageUrl = imageUrl;
     }
 
+    public boolean isActive() {
+        return this.status == ItemStatus.ACTIVE;
+    }
+
+    public boolean isSold() {
+        return this.status == ItemStatus.SOLD;
+    }
+
+    public User getBuyer() {
+        return buyer;
+    }
+
+    public void setBuyer(User buyer) {
+        this.buyer = buyer;
+    }
+
     public User getSeller() {
         return seller;
     }
@@ -93,14 +113,6 @@ public class Item {
 
     public void setStatus(ItemStatus status) {
         this.status = status;
-    }
-
-    public boolean isActive() {
-        return this.status == ItemStatus.ACTIVE;
-    }
-
-    public boolean isSold() {
-        return this.status == ItemStatus.SOLD;
     }
 
 }
