@@ -13,4 +13,5 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     List<Item> findBySellerNot(User seller);
     List<Item> findByStatus(ItemStatus status);
     List<Item> findByStatusAndSellerNot(ItemStatus status, User seller);
+    List<Item> findByBuyerAndStatus(User buyer, ItemStatus status);
 }

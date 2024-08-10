@@ -23,6 +23,7 @@ public class Item {
     private String description;
     private BigDecimal price;
     private LocalDateTime listingDate;
+    private LocalDateTime purchaseDate;
     private String imageUrl;
     @Enumerated(EnumType.STRING)
     private ItemStatus status = ItemStatus.ACTIVE;
@@ -73,6 +74,14 @@ public class Item {
 
     public void setListingDate(LocalDateTime listingDate) {
         this.listingDate = listingDate;
+    }
+
+    public LocalDateTime getPurchaseDate() {
+        return purchaseDate;
+    }
+
+    public void setPurchaseDate(LocalDateTime purchaseDate) {
+        this.purchaseDate = purchaseDate;
     }
 
     public String getImageUrl() {

@@ -186,7 +186,7 @@ public class ItemService {
                 .collect(Collectors.toList());
     }
 
-    public Item markItemAsSold(Long itemId, Long buyerId, String sellerEmail) {
+    public Item markItemAsSold(Long itemId, Long buyerId, LocalDateTime purchaseDate, String sellerEmail) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
 
@@ -202,6 +202,7 @@ public class ItemService {
 
         item.setStatus(ItemStatus.SOLD);
         item.setBuyer(buyer);
+        item.setPurchaseDate(purchaseDate);
         return itemRepository.save(item);
     }
 
@@ -220,5 +221,13 @@ public class ItemService {
 
         item.setStatus(ItemStatus.ACTIVE);
         return itemRepository.save(item);
+    }
+
+    public List<Item> getPurchasedItemsByUser(String userEmail) {
+        User user = userService.getUserByEmail(userEmail);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        return itemRepository.findByBuyerAndStatus(user, ItemStatus.SOLD);
     }
 }

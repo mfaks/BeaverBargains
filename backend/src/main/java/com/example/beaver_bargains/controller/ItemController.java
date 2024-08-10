@@ -1,6 +1,7 @@
 package com.example.beaver_bargains.controller;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,16 +101,24 @@ public class ItemController {
     }
 
     @PutMapping("/{itemId}/mark-as-sold")
-    public ResponseEntity<Item> markItemAsSold( @PathVariable Long itemId, @RequestParam Long buyerId, Authentication authentication) {
+    public ResponseEntity<Item> markItemAsSold(@PathVariable Long itemId, @RequestParam Long buyerId, @RequestParam String purchaseDate, Authentication authentication) {
         String sellerEmail = authentication.getName();
-        Item updatedItem = itemService.markItemAsSold(itemId, buyerId, sellerEmail);
+        LocalDateTime parsedPurchaseDate = LocalDateTime.parse(purchaseDate);
+        Item updatedItem = itemService.markItemAsSold(itemId, buyerId, parsedPurchaseDate, sellerEmail);
         return ResponseEntity.ok(updatedItem);
     }
-
     @PutMapping("/{itemId}/reactivate")
     public ResponseEntity<Item> reactivateItem(@PathVariable Long itemId, Authentication authentication) {
         String userEmail = authentication.getName();
         Item reactivatedItem = itemService.reactivateItem(itemId, userEmail);
         return ResponseEntity.ok(reactivatedItem);
     }
+
+    @GetMapping("/user/purchased")
+    public ResponseEntity<List<Item>> getPurchasedItemsByUser(Authentication authentication) {
+        String userEmail = authentication.getName();
+        List<Item> purchasedItems = itemService.getPurchasedItemsByUser(userEmail);
+        return ResponseEntity.ok(purchasedItems);
+    }
+
 }
