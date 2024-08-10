@@ -54,29 +54,33 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
     const fetchItems = async (query = '') => {
         setLoading(true)
         try {
-            const itemsResponse = await axios.get<Item[]>(`http://localhost:8080/api/items/search${query ? `?query=${query}` : ''}`, {
+            let url = 'http://localhost:8080/api/items/marketplace'
+            if (query) {
+                url = `http://localhost:8080/api/items/search?query=${query}`
+            }
+            const itemsResponse = await axios.get<Item[]>(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
             const favoritesResponse = await axios.get<number[]>('http://localhost:8080/api/favorites', {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
-
+    
             const items = itemsResponse.data.map(item => ({
                 ...item,
                 isFavorited: favoritesResponse.data.includes(item.id)
             }))
-
+    
             setItems(items)
             setFilteredItems(items)
-
+    
             if (items.length > 0) {
                 const prices = items.map(item => item.price)
                 setMinPrice(Math.min(...prices))
                 setMaxPrice(Math.max(...prices))
             }
-
+    
             setLoading(false)
-
+    
             if (query && items.length === 0) {
                 toast({
                     title: "No Results",

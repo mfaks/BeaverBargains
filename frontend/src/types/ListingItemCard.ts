@@ -5,6 +5,8 @@ export interface ListingItemCardProps {
     getFullImageUrl: (imageUrl: string) => string
     isSelected: boolean
     onToggleSelect: () => void
-    token: string
+    token: string | null
     onItemUpdate: (updatedItem: Item) => void
+    onMarkAsSold: (itemId: number) => Promise<void>
+    isSold: boolean
 }

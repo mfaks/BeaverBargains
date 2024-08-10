@@ -6,6 +6,7 @@ export interface Item {
     description: string
     listingDate: string
     isFavorited: boolean
+    status: 'ACTIVE' | 'SOLD'
     seller: {
         id: number
         firstName: string
