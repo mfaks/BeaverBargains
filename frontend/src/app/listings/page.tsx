@@ -8,15 +8,16 @@ import FilterSidebar from '../FilterSidebar'
 import ListingItemCard from './ListingItemCard'
 import Navbar from '@/components/ui/Navbar'
 import Footer from '@/components/ui/Footer'
-import UnauthorizedModal from '@/components/ui/UnauthorizedModal'
 import { useToast } from '@/components/ui/use-toast'
 import EmptyStateCard from '@/components/ui/EmptyStateCard'
 import { SkeletonCard } from '@/components/ui/SkeletonCard'
 import { FaClipboardList } from 'react-icons/fa'
 import { Item } from '@/types/Item'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function Listings() {
-    const [items, setItems] = useState<Item[]>([])
+    const [activeItems, setActiveItems] = useState<Item[]>([])
+    const [soldItems, setSoldItems] = useState<Item[]>([])
     const [filteredItems, setFilteredItems] = useState<Item[]>([])
     const [selectedItems, setSelectedItems] = useState<number[]>([])
     const [errorMessage, setErrorMessage] = useState('')
@@ -25,19 +26,10 @@ export default function Listings() {
     const [maxPrice, setMaxPrice] = useState<number>(Infinity)
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
+    const [activeTab, setActiveTab] = useState('active')
     const { isAuthenticated, token } = useAuth()
     const router = useRouter()
     const { toast } = useToast()
-
-    if (!isAuthenticated || !token) {
-        return (
-            <UnauthorizedModal
-                isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                message={errorMessage}
-            />
-        )
-    }
 
     useEffect(() => {
         if (!isAuthenticated || !token) {
@@ -54,19 +46,19 @@ export default function Listings() {
     const fetchItems = async () => {
         setLoading(true)
         try {
-            const response = await axios.get<Item[]>(`http://localhost:8080/api/items/user`, {
+            const activeResponse = await axios.get<Item[]>(`http://localhost:8080/api/items/user/active`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            const soldResponse = await axios.get<Item[]>(`http://localhost:8080/api/items/user/sold`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
 
-            const sortedItems = response.data.sort((a, b) =>
-                new Date(b.listingDate).getTime() - new Date(a.listingDate).getTime()
-            )
+            setActiveItems(activeResponse.data)
+            setSoldItems(soldResponse.data)
+            setFilteredItems(activeResponse.data)
 
-            setItems(sortedItems)
-            setFilteredItems(sortedItems)
-
-            if (sortedItems.length > 0) {
-                const prices = sortedItems.map(item => item.price)
+            if (activeResponse.data.length > 0) {
+                const prices = activeResponse.data.map(item => item.price)
                 setMinPrice(Math.min(...prices))
                 setMaxPrice(Math.max(...prices))
             }
@@ -82,7 +74,7 @@ export default function Listings() {
             setLoading(false)
         }
     }
-    
+
     const toggleSelectItem = (itemId: number) => {
         setSelectedItems(prev =>
             prev.includes(itemId)
@@ -92,11 +84,44 @@ export default function Listings() {
     }
 
     const handleItemUpdate = (updatedItem: Item) => {
-        const updatedItems = items.map(item =>
-            item.id === updatedItem.id ? updatedItem : item
-        )
-        setItems(updatedItems)
-        setFilteredItems(updatedItems)
+        if (updatedItem.status === 'ACTIVE') {
+            setActiveItems(prev => [...prev, updatedItem])
+            setSoldItems(prev => prev.filter(item => item.id !== updatedItem.id))
+        } else if (updatedItem.status === 'SOLD') {
+            setActiveItems(prev => prev.filter(item => item.id !== updatedItem.id))
+            setSoldItems(prev => [...prev, updatedItem])
+        }
+        setFilteredItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item))
+    }
+
+    const handleMarkAsSold = async (itemId: number, buyerId: number, purchaseDate: string) => {
+        try {
+            const response = await axios.put<Item>(
+                `http://localhost:8080/api/items/${itemId}/mark-as-sold`,
+                { buyerId, purchaseDate },
+                {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }
+            )
+            const updatedItem = response.data
+            setActiveItems(prev => prev.filter(item => item.id !== itemId))
+            setSoldItems(prev => [...prev, updatedItem])
+            setFilteredItems(prev => prev.filter(item => item.id !== itemId))
+
+            toast({
+                title: 'Success',
+                description: 'Item marked as sold successfully.',
+                duration: 3000,
+            })
+        } catch (error) {
+            console.error('Error marking item as sold:', error)
+            toast({
+                title: 'Error',
+                description: 'Failed to mark item as sold. Please try again.',
+                variant: 'destructive',
+                duration: 5000,
+            })
+        }
     }
 
     const handleSort = (sortBy: string) => {
@@ -121,21 +146,23 @@ export default function Listings() {
     }
 
     const handlePriceFilter = (minPrice: number, maxPrice: number) => {
-        const filtered = items.filter(item => item.price >= minPrice && item.price <= maxPrice)
-        setFilteredItems(filtered)
+        const filtered = activeTab === 'active' ? activeItems : soldItems
+        const filteredByPrice = filtered.filter(item => item.price >= minPrice && item.price <= maxPrice)
+        setFilteredItems(filteredByPrice)
     }
 
     const handleDateFilter = (startDate: Date, endDate: Date) => {
-        const filtered = items.filter(item => {
+        const filtered = activeTab === 'active' ? activeItems : soldItems
+        const filteredByDate = filtered.filter(item => {
             const itemDate = new Date(item.listingDate)
             return itemDate >= startDate && itemDate <= endDate
         })
-        setFilteredItems(filtered)
+        setFilteredItems(filteredByDate)
     }
-
 
     const handleSearch = (term: string) => {
         setSearchTerm(term)
+        const items = activeTab === 'active' ? activeItems : soldItems
         const filtered = items.filter(item =>
             item.description.toLowerCase().includes(term.toLowerCase()) ||
             item.title.toLowerCase().includes(term.toLowerCase())
@@ -161,7 +188,8 @@ export default function Listings() {
                             sortOptions={[
                                 { label: 'Price: Low to High', value: 'price_asc' },
                                 { label: 'Price: High to Low', value: 'price_desc' },
-                                { label: 'Newest First', value: 'date_desc' }
+                                { label: 'Newest First', value: 'date_desc' },
+                                { label: 'Oldest First', value: 'date_asc' }
                             ]}
                             priceFilter={true}
                             dateFilter={true}
@@ -178,38 +206,100 @@ export default function Listings() {
                     <div className="max-w-4xl mx-auto">
                         <div className="flex justify-center mb-6">
                             <h1 className="text-3xl font-bold text-orange-500 border-b-2 border-orange-500 pb-1">
-                                Your Active Listings
+                                Your Listings
                             </h1>
                         </div>
-                        {loading ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                                {[...Array(6)].map((_, index) => (
-                                    <SkeletonCard key={index} />
-                                ))}
-                            </div>
-                        ) : filteredItems.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                                {filteredItems.map(item => (
-                                    <ListingItemCard
-                                        key={item.id}
-                                        item={item}
-                                        getFullImageUrl={getFullImageUrl}
-                                        isSelected={selectedItems.includes(item.id)}
-                                        onToggleSelect={() => toggleSelectItem(item.id)}
-                                        token={token}
-                                        onItemUpdate={handleItemUpdate}
+                        <Tabs defaultValue="active" className="w-full mb-6">
+                            <TabsList>
+                                <TabsTrigger
+                                    value="active"
+                                    onClick={() => {
+                                        setActiveTab('active')
+                                        setFilteredItems(activeItems)
+                                    }}
+                                >
+                                    Active Listings
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="sold"
+                                    onClick={() => {
+                                        setActiveTab('sold')
+                                        setFilteredItems(soldItems)
+                                    }}
+                                >
+                                    Sold Items
+                                </TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="active">
+                                {loading ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                        {[...Array(6)].map((_, index) => (
+                                            <SkeletonCard key={index} />
+                                        ))}
+                                    </div>
+                                ) : activeItems.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                        {filteredItems.map(item => (
+                                            <ListingItemCard
+                                                key={item.id}
+                                                item={item}
+                                                getFullImageUrl={getFullImageUrl}
+                                                isSelected={selectedItems.includes(item.id)}
+                                                onToggleSelect={() => toggleSelectItem(item.id)}
+                                                token={token}
+                                                onItemUpdate={handleItemUpdate}
+                                                onMarkAsSold={handleMarkAsSold}
+                                                isSold={item.status === 'SOLD'}
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <EmptyStateCard
+                                        title="No active listings"
+                                        description="You don't have any active listings. Start selling to see your listings here!"
+                                        actionText="Create Listing"
+                                        onAction={() => router.push('/sell')}
+                                        icon={<FaClipboardList className="text-orange-500" />}
                                     />
-                                ))}
-                            </div>
-                        ) : (
-                            <EmptyStateCard
-                                title="No listings yet"
-                                description="You haven't listed any items yet. Start selling to see your listings here!"
-                                actionText="Create Listing"
-                                onAction={() => router.push('/sell')}
-                                icon={<FaClipboardList className="text-orange-500" />}
-                            />
-                        )}
+                                )}
+                            </TabsContent>
+                            <TabsContent value="sold">
+                                {loading ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                        {[...Array(6)].map((_, index) => (
+                                            <SkeletonCard key={index} />
+                                        ))}
+                                    </div>
+                                ) : soldItems.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                        {filteredItems.map(item => (
+                                            <ListingItemCard
+                                                key={item.id}
+                                                item={item}
+                                                getFullImageUrl={getFullImageUrl}
+                                                isSelected={selectedItems.includes(item.id)}
+                                                onToggleSelect={() => toggleSelectItem(item.id)}
+                                                token={token}
+                                                onItemUpdate={handleItemUpdate}
+                                                onMarkAsSold={handleMarkAsSold}
+                                                isSold={item.status === 'SOLD'}
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <EmptyStateCard
+                                        title="No sold items"
+                                        description="You haven't sold any items yet. Keep listing and promoting your items!"
+                                        actionText="View Active Listings"
+                                        onAction={() => {
+                                            setActiveTab('active')
+                                            setFilteredItems(activeItems)
+                                        }}
+                                        icon={<FaClipboardList className="text-orange-500" />}
+                                    />
+                                )}
+                            </TabsContent>
+                        </Tabs>
                     </div>
                 </main>
             </div>

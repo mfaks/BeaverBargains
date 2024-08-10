@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.beaver_bargains.dto.ItemDto;
 import com.example.beaver_bargains.entity.Item;
+import com.example.beaver_bargains.entity.ItemStatus;
 import com.example.beaver_bargains.entity.User;
 import com.example.beaver_bargains.repository.ItemRepository;
 
@@ -53,6 +54,7 @@ public class ItemService {
         item.setListingDate(LocalDateTime.now());
         item.setImageUrl(imageUrl);
         item.setSeller(seller);
+        item.setStatus(ItemStatus.ACTIVE);
 
         return itemRepository.save(item);
     }
@@ -117,7 +119,7 @@ public class ItemService {
         if (query == null || query.trim().isEmpty()) {
             return getAllItems();
         }
-        
+
         String[] keywords = query.toLowerCase().split("\\s+");
 
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
@@ -128,7 +130,8 @@ public class ItemService {
 
         for (String keyword : keywords) {
             Predicate titleMatch = criteriaBuilder.like(criteriaBuilder.lower(root.get("title")), "%" + keyword + "%");
-            Predicate descMatch = criteriaBuilder.like(criteriaBuilder.lower(root.get("description")), "%" + keyword + "%");
+            Predicate descMatch = criteriaBuilder.like(criteriaBuilder.lower(root.get("description")),
+                    "%" + keyword + "%");
             predicates.add(criteriaBuilder.or(titleMatch, descMatch));
         }
 
@@ -141,15 +144,90 @@ public class ItemService {
                 .map(item -> {
                     int score = 0;
                     for (String keyword : keywords) {
-                        if (item.getTitle().toLowerCase().contains(keyword)){
+                        if (item.getTitle().toLowerCase().contains(keyword)) {
                             score += 2;
                         }
-                        if (item.getDescription().toLowerCase().contains(keyword)){
+                        if (item.getDescription().toLowerCase().contains(keyword)) {
                             score += 1;
                         }
                     }
                     return new AbstractMap.SimpleEntry<>(item, score);
                 })
-                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue())).map(AbstractMap.SimpleEntry::getKey).collect(Collectors.toList());
+                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue())).map(AbstractMap.SimpleEntry::getKey)
+                .collect(Collectors.toList());
+    }
+
+    public List<Item> getAllActiveItems() {
+        return itemRepository.findByStatus(ItemStatus.ACTIVE);
+    }
+
+    public List<Item> getAllActiveItemsExceptUser(String userEmail) {
+        User currentUser = userService.getUserByEmail(userEmail);
+        return itemRepository.findByStatusAndSellerNot(ItemStatus.ACTIVE, currentUser);
+    }
+
+    public List<Item> getActiveItemsByUser(String userEmail) {
+        User user = userService.getUserByEmail(userEmail);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        return itemRepository.findBySeller(user).stream()
+                .filter(Item::isActive)
+                .collect(Collectors.toList());
+    }
+
+    public List<Item> getSoldItemsByUser(String userEmail) {
+        User user = userService.getUserByEmail(userEmail);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        return itemRepository.findBySeller(user).stream()
+                .filter(Item::isSold)
+                .collect(Collectors.toList());
+    }
+
+    public Item markItemAsSold(Long itemId, Long buyerId, LocalDateTime purchaseDate, String sellerEmail) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Item not found"));
+
+        User seller = userService.getUserByEmail(sellerEmail);
+        if (seller == null || !item.getSeller().equals(seller)) {
+            throw new RuntimeException("User not authorized to update this item");
+        }
+
+        User buyer = userService.getUserById(buyerId);
+        if (buyer == null) {
+            throw new RuntimeException("Buyer not found");
+        }
+
+        item.setStatus(ItemStatus.SOLD);
+        item.setBuyer(buyer);
+        item.setPurchaseDate(purchaseDate);
+        return itemRepository.save(item);
+    }
+
+    public Item reactivateItem(Long itemId, String userEmail) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Item not found"));
+
+        User user = userService.getUserByEmail(userEmail);
+        if (user == null || !item.getSeller().equals(user)) {
+            throw new RuntimeException("Unauthorized to reactivate this item");
+        }
+
+        if (item.getStatus() != ItemStatus.SOLD) {
+            throw new RuntimeException("Only sold items can be reactivated");
+        }
+
+        item.setStatus(ItemStatus.ACTIVE);
+        return itemRepository.save(item);
+    }
+
+    public List<Item> getPurchasedItemsByUser(String userEmail) {
+        User user = userService.getUserByEmail(userEmail);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        return itemRepository.findByBuyerAndStatus(user, ItemStatus.SOLD);
     }
 }
