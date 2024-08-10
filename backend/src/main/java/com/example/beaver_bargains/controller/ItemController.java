@@ -69,11 +69,47 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Item>> searchItems(@RequestParam(required = false) String query, Authentication authentication) {
+    public ResponseEntity<List<Item>> searchItems(@RequestParam(required = false) String query,
+            Authentication authentication) {
         String userEmail = authentication.getName();
-        List<Item> items = (query != null && !query.trim().isEmpty()) 
-            ? itemService.searchItems(query)
-            : itemService.getAllItemsExceptUser(userEmail);
+        List<Item> items = (query != null && !query.trim().isEmpty())
+                ? itemService.searchItems(query)
+                : itemService.getAllItemsExceptUser(userEmail);
         return ResponseEntity.ok(items);
+    }
+
+    @GetMapping("/marketplace")
+    public ResponseEntity<List<Item>> getAllActiveItems(Authentication authentication) {
+        String userEmail = authentication.getName();
+        List<Item> items = itemService.getAllActiveItemsExceptUser(userEmail);
+        return ResponseEntity.ok(items);
+    }
+
+    @GetMapping("/user/active")
+    public ResponseEntity<List<Item>> getActiveItemsByUser(Authentication authentication) {
+        String userEmail = authentication.getName();
+        List<Item> items = itemService.getActiveItemsByUser(userEmail);
+        return ResponseEntity.ok(items);
+    }
+
+    @GetMapping("/user/sold")
+    public ResponseEntity<List<Item>> getSoldItemsByUser(Authentication authentication) {
+        String userEmail = authentication.getName();
+        List<Item> items = itemService.getSoldItemsByUser(userEmail);
+        return ResponseEntity.ok(items);
+    }
+
+    @PutMapping("/{itemId}/mark-as-sold")
+    public ResponseEntity<Item> markItemAsSold(@PathVariable Long itemId, Authentication authentication) {
+        String userEmail = authentication.getName();
+        Item updatedItem = itemService.markItemAsSold(itemId, userEmail);
+        return ResponseEntity.ok(updatedItem);
+    }
+
+    @PutMapping("/{itemId}/reactivate")
+    public ResponseEntity<Item> reactivateItem(@PathVariable Long itemId, Authentication authentication) {
+        String userEmail = authentication.getName();
+        Item reactivatedItem = itemService.reactivateItem(itemId, userEmail);
+        return ResponseEntity.ok(reactivatedItem);
     }
 }

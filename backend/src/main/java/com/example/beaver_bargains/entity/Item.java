@@ -4,6 +4,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,16 +14,18 @@ import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Item {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     private String title;
     private String description;
     private BigDecimal price;
     private LocalDateTime listingDate;
     private String imageUrl;
+    @Enumerated(EnumType.STRING)
+    private ItemStatus status = ItemStatus.ACTIVE;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -82,4 +86,21 @@ public class Item {
     public void setSeller(User seller) {
         this.seller = seller;
     }
+
+    public ItemStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(ItemStatus status) {
+        this.status = status;
+    }
+
+    public boolean isActive() {
+        return this.status == ItemStatus.ACTIVE;
+    }
+
+    public boolean isSold() {
+        return this.status == ItemStatus.SOLD;
+    }
+
 }
