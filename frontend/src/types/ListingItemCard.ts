@@ -7,6 +7,6 @@ export interface ListingItemCardProps {
     onToggleSelect: () => void
     token: string | null
     onItemUpdate: (item: Item) => void
-    onMarkAsSold: (itemId: number, buyerId: number) => Promise<void>
+    onMarkAsSold: (itemId: number, buyerId: number, purchaseDate: string) => Promise<void>
     isSold: boolean
 }

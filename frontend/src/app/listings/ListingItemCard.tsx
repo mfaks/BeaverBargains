@@ -138,27 +138,31 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                 description: 'Please select a buyer before marking the item as sold.',
                 variant: 'destructive',
                 duration: 5000,
-            })
-            return
+            });
+            return;
         }
         try {
-            await onMarkAsSold(item.id, parseInt(selectedBuyerId))
-            setIsMarkAsSoldModalOpen(false)
+            const currentDate = new Date().toISOString();
+            await onMarkAsSold(item.id, parseInt(selectedBuyerId), currentDate);
+            setIsMarkAsSoldModalOpen(false);
             toast({
                 title: 'Success',
                 description: 'Item marked as sold successfully.',
                 duration: 3000,
-            })
+            });
         } catch (error) {
-            console.error('Error marking item as sold:', error)
+            console.error('Error marking item as sold:', error);
             toast({
                 title: 'Error',
                 description: 'Failed to mark item as sold. Please try again.',
                 variant: 'destructive',
                 duration: 5000,
-            })
+            });
         }
-    }
+    };
+
+
+
     const handleReactivate = async () => {
         try {
             const response = await axios.put(`http://localhost:8080/api/items/${item.id}/reactivate`, null, {

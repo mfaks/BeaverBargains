@@ -94,11 +94,11 @@ export default function Listings() {
         setFilteredItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item))
     }
 
-    const handleMarkAsSold = async (itemId: number, buyerId: number) => {
+    const handleMarkAsSold = async (itemId: number, buyerId: number, purchaseDate: string) => {
         try {
             const response = await axios.put<Item>(
-                `http://localhost:8080/api/items/${itemId}/mark-as-sold?buyerId=${buyerId}`,
-                null,
+                `http://localhost:8080/api/items/${itemId}/mark-as-sold`,
+                { buyerId, purchaseDate },
                 {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }
