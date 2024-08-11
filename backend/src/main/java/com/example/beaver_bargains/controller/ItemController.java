@@ -3,6 +3,7 @@ package com.example.beaver_bargains.controller;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -30,10 +31,9 @@ public class ItemController {
     private ItemService itemService;
 
     @PostMapping
-    public ResponseEntity<Item> createItem(@RequestPart("item") ItemDto itemDto,
-            @RequestPart("image") MultipartFile image, Authentication authentication) throws IOException {
+    public ResponseEntity<Item> createItem(@RequestPart("item") ItemDto itemDto, @RequestPart("images") List<MultipartFile> images, Authentication authentication) throws IOException {
         String userEmail = authentication.getName();
-        Item createdItem = itemService.createItem(itemDto, image, userEmail);
+        Item createdItem = itemService.createItem(itemDto, images, userEmail);
         return ResponseEntity.ok(createdItem);
     }
 
@@ -52,13 +52,9 @@ public class ItemController {
     }
 
     @PutMapping("/{itemId}")
-    public ResponseEntity<Item> updateItem(
-            @PathVariable Long itemId,
-            @RequestPart("item") ItemDto itemDto,
-            @RequestPart(value = "image", required = false) MultipartFile image,
-            Authentication authentication) throws IOException {
+    public ResponseEntity<Item> updateItem(@PathVariable Long itemId, @RequestPart("item") ItemDto itemDto, @RequestPart(value = "images", required = false) List<MultipartFile> images, Authentication authentication) throws IOException {
         String userEmail = authentication.getName();
-        Item updatedItem = itemService.updateItem(itemId, itemDto, image, userEmail);
+        Item updatedItem = itemService.updateItem(itemId, itemDto, images, userEmail);
         return ResponseEntity.ok(updatedItem);
     }
 
@@ -70,13 +66,17 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Item>> searchItems(@RequestParam(required = false) String query,
-            Authentication authentication) {
+    public ResponseEntity<List<Item>> searchItems(@RequestParam(required = false) String query, @RequestParam(required = false) List<String> tags, Authentication authentication) {
         String userEmail = authentication.getName();
-        List<Item> items = (query != null && !query.trim().isEmpty())
-                ? itemService.searchItems(query)
-                : itemService.getAllItemsExceptUser(userEmail);
+        List<Item> items = itemService.searchItems(query, tags, userEmail);
         return ResponseEntity.ok(items);
+    }
+
+    @GetMapping("/tags")
+    public ResponseEntity<Set<String>> getAllTags(Authentication authentication) {
+        String userEmail = authentication.getName();
+        Set<String> tags = itemService.getAllTags(userEmail);
+        return ResponseEntity.ok(tags);
     }
 
     @GetMapping("/marketplace")
@@ -107,6 +107,7 @@ public class ItemController {
         Item updatedItem = itemService.markItemAsSold(itemId, buyerId, parsedPurchaseDate, sellerEmail);
         return ResponseEntity.ok(updatedItem);
     }
+
     @PutMapping("/{itemId}/reactivate")
     public ResponseEntity<Item> reactivateItem(@PathVariable Long itemId, Authentication authentication) {
         String userEmail = authentication.getName();
@@ -120,5 +121,4 @@ public class ItemController {
         List<Item> purchasedItems = itemService.getPurchasedItemsByUser(userEmail);
         return ResponseEntity.ok(purchasedItems);
     }
-
 }
