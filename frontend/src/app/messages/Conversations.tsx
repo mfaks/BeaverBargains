@@ -12,7 +12,7 @@ import { ConversationWithUnread } from '@/types/ConversationsWithUnread'
 import { UpdatedConversationsProps } from '@/types/UpdatedConversationProps'
 
 const Conversations: React.FC<UpdatedConversationsProps> = ({ userId, conversations, setConversations, onSelectConversation, selectedConversationId, onConversationRead }) => {
-    
+
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const { isAuthenticated, token } = useAuth()
@@ -132,6 +132,17 @@ const Conversations: React.FC<UpdatedConversationsProps> = ({ userId, conversati
         return <div className='w-1/5 border-r p-4 text-red-500'>{error}</div>
     }
 
+    const BASE_URL = 'http://localhost:8080'
+    const getFullImageUrl = (imageUrl: string | undefined): string => {
+        if (!imageUrl){
+            return ''
+        }
+        if (imageUrl.startsWith('http')) {
+            return imageUrl
+        }
+        return `${BASE_URL}/uploads/${imageUrl}`
+    }
+
     return (
         <div className='w-1/5 border-r overflow-y-auto'>
             <h2 className='text-xl font-semibold p-4 text-center border-b'>My Messages</h2>
@@ -142,11 +153,9 @@ const Conversations: React.FC<UpdatedConversationsProps> = ({ userId, conversati
                 return (
                     <div
                         key={conversation.id}
-                        className={`px-4 py-3 hover:bg-gray-100 cursor-pointer border-b ${
-                            selectedConversationId === conversation.id ? 'bg-orange-100' : ''
-                        } ${
-                            conversation.unreadCount > 0 ? 'bg-orange-50' : ''
-                        }`}
+                        className={`px-4 py-3 hover:bg-gray-100 cursor-pointer border-b ${selectedConversationId === conversation.id ? 'bg-orange-100' : ''
+                            } ${conversation.unreadCount > 0 ? 'bg-orange-50' : ''
+                            }`}
                         onClick={() => handleConversationClick(conversation.id, otherUser.id)}
                     >
                         <div className='flex items-center'>
@@ -155,7 +164,7 @@ const Conversations: React.FC<UpdatedConversationsProps> = ({ userId, conversati
                             )}
                             <Avatar className='w-10 h-10 mr-3'>
                                 <AvatarImage
-                                    src={otherUser.profileImage}
+                                    src={getFullImageUrl(otherUser.profileImageUrl)}
                                     alt={`${otherUser.firstName} ${otherUser.lastName}`}
                                 />
                                 <AvatarFallback>
@@ -163,13 +172,12 @@ const Conversations: React.FC<UpdatedConversationsProps> = ({ userId, conversati
                                 </AvatarFallback>
                             </Avatar>
                             <div className='flex-grow overflow-hidden'>
-                                <h3 className={`font-semibold ${
-                                    conversation.unreadCount > 0 ? 'text-orange-600' : ''
-                                }`}>
+                                <h3 className={`font-semibold ${conversation.unreadCount > 0 ? 'text-orange-600' : ''
+                                    }`}>
                                     {`${otherUser.firstName} ${otherUser.lastName}`}
                                 </h3>
                                 <p className='text-sm text-gray-600 truncate'>
-                                    {conversation.lastMessageTimestamp 
+                                    {conversation.lastMessageTimestamp
                                         ? `Last message sent by ${lastMessageSender}`
                                         : 'No messages yet'}
                                 </p>

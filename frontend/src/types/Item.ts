@@ -2,8 +2,9 @@ export interface Item {
     id: number
     title: string
     price: number
-    imageUrl: string
     description: string
+    imageUrls: string[]
+    tags: string[]
     listingDate: string
     purchaseDate: string
     isFavorited: boolean

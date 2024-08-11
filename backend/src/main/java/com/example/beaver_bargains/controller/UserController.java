@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.beaver_bargains.dto.ChangePasswordDto;
-import com.example.beaver_bargains.dto.UserBioUpdateDto;
 import com.example.beaver_bargains.dto.UserDto;
+import com.example.beaver_bargains.dto.UserUpdateDto;
 import com.example.beaver_bargains.service.UserService;
 
 @RestController
@@ -31,25 +31,19 @@ public class UserController {
     }
 
     @PutMapping("/{userId}/biography")
-    public ResponseEntity<UserDto> updateBiography(
-            @PathVariable Long userId,
-            @RequestBody UserBioUpdateDto userBioUpdateDto) {
-        UserDto updatedUser = userService.updateBiography(userId, userBioUpdateDto);
+    public ResponseEntity<UserDto> updateBiography(@PathVariable Long userId, @RequestBody UserUpdateDto userUpdateDto) {
+        UserDto updatedUser = userService.updateBiography(userId, userUpdateDto);
         return ResponseEntity.ok(updatedUser);
     }
 
     @PutMapping("/{userId}/password")
-    public ResponseEntity<Void> changePassword(
-            @PathVariable Long userId,
-            @RequestBody ChangePasswordDto changePasswordDto) {
+    public ResponseEntity<Void> changePassword(@PathVariable Long userId, @RequestBody ChangePasswordDto changePasswordDto) {
         userService.changePassword(userId, changePasswordDto.getOldPassword(), changePasswordDto.getNewPassword());
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{userId}/profile-image")
-    public ResponseEntity<UserDto> updateProfileImage(
-            @PathVariable Long userId,
-            @RequestParam("image") MultipartFile file) {
+    public ResponseEntity<UserDto> updateProfileImage(@PathVariable Long userId, @RequestParam("image") MultipartFile file) {
         UserDto updatedUser = userService.updateProfileImage(userId, file);
         return ResponseEntity.ok(updatedUser);
     }

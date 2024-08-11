@@ -7,5 +7,5 @@ export interface AuthContext {
     loading: boolean
     login: (userData: User, token: string) => void
     logout: () => void
-    updateUserProfileImage: (newImageUrl: string) => void
+    updateUserProfileImageUrl: (newImageUrl: string) => void
 }

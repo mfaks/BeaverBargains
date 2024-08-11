@@ -7,6 +7,17 @@ import { AuthProviderProps } from '../../types/AuthProviderProps'
 
 const AuthContext = createContext<AuthContext | undefined>(undefined)
 
+const BASE_URL = 'http://localhost:8080'
+const getFullImageUrl = (imageUrl: string | undefined): string => {
+  if (!imageUrl) {
+    return ''
+  }
+  if (imageUrl.startsWith('http')) {
+    return imageUrl
+  }
+  return `${BASE_URL}/uploads/${imageUrl}`
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [user, setUser] = useState<User | null>(null)
@@ -18,6 +29,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const storedToken = localStorage.getItem('token')
     if (storedUser && storedToken) {
       const userData = JSON.parse(storedUser)
+      if (userData.profileImageUrl) {
+        userData.profileImageUrl = getFullImageUrl(userData.profileImageUrl)
+      }
       setIsAuthenticated(true)
       setUser(userData)
       setToken(storedToken)
@@ -26,6 +40,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [])
 
   const login = (userData: User, newToken: string) => {
+    if (userData.profileImageUrl) {
+      userData.profileImageUrl = getFullImageUrl(userData.profileImageUrl)
+    }
     setIsAuthenticated(true)
     setUser(userData)
     setToken(newToken)
@@ -41,15 +58,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     localStorage.removeItem('token')
   }
 
-  const updateUserProfileImage = (newImageUrl: string) => {
+  const updateUserProfileImageUrl = (newImageUrl: string) => {
     if (user) {
-      const updatedUser = { ...user, profileImage: newImageUrl }
+      const fullImageUrl = getFullImageUrl(newImageUrl)
+      const updatedUser = { ...user, profileImageUrl: fullImageUrl }
       setUser(updatedUser)
       localStorage.setItem('user', JSON.stringify(updatedUser))
     }
-  } 
+  }
 
-  const contextValue: AuthContext = { isAuthenticated, user, token, loading, login, logout, updateUserProfileImage }
+  const contextValue: AuthContext = { isAuthenticated, user, token, loading, login, logout, updateUserProfileImageUrl }
 
   return (
     <AuthContext.Provider value={contextValue}>

@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/use-toast'
 import FileInput from '@/components/ui/FileInput'
 import { Card } from '@/components/ui/card'
-import { Trash2Icon } from 'lucide-react'
+import { Trash2Icon, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { Item } from '@/types/Item'
 import { ListingItemCardProps } from '@/types/ListingItemCard'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -22,12 +22,20 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
     const [isMarkAsSoldModalOpen, setIsMarkAsSoldModalOpen] = useState(false)
     const [editedItem, setEditedItem] = useState<Item>(item)
     const [priceInput, setPriceInput] = useState(item.price.toFixed(2))
-    const [newImage, setNewImage] = useState<File | null>(null)
-    const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null)
+    const [newImages, setNewImages] = useState<File[]>([])
+    const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>(item.imageUrls)
     const [selectedBuyerId, setSelectedBuyerId] = useState<string>('')
     const [buyers, setBuyers] = useState<{ id: number; firstName: string; lastName: string; email: string }[]>([])
     const fileInputRef = useRef<HTMLInputElement>(null)
     const { toast } = useToast()
+    const [currentImageIndex, setCurrentImageIndex] = useState(0)
+    const [newTag, setNewTag] = useState('')
+
+    useEffect(() => {
+        setEditedItem(item)
+        setImagePreviewUrls(item.imageUrls)
+        setPriceInput(item.price.toFixed(2))
+    }, [item])
 
     useEffect(() => {
         if (isMarkAsSoldModalOpen) {
@@ -52,6 +60,7 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
             })
         }
     }
+
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target
         setEditedItem(prev => ({ ...prev, [name]: value }))
@@ -76,19 +85,17 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
     }
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (file) {
-            setNewImage(file)
-            setImagePreviewUrl(URL.createObjectURL(file))
+        const files = Array.from(e.target.files || [])
+        if (files.length > 0) {
+            setNewImages(prevImages => [...prevImages, ...files])
+            const newPreviewUrls = files.map(file => URL.createObjectURL(file))
+            setImagePreviewUrls(prevUrls => [...prevUrls, ...newPreviewUrls])
         }
     }
 
-    const handleRemoveImage = () => {
-        setNewImage(null)
-        setImagePreviewUrl(null)
-        if (fileInputRef.current) {
-            fileInputRef.current.value = ''
-        }
+    const handleRemoveImage = (index: number) => {
+        setImagePreviewUrls(prevUrls => prevUrls.filter((_, i) => i !== index))
+        setNewImages(prevImages => prevImages.filter((_, i) => i !== index))
     }
 
     const handleSave = async () => {
@@ -98,14 +105,15 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
             formData.append('item', new Blob([JSON.stringify({
                 title: editedItem.title,
                 description: editedItem.description,
-                price: editedItem.price
+                price: editedItem.price,
+                tags: editedItem.tags
             })], {
                 type: 'application/json'
             }))
 
-            if (newImage) {
-                formData.append('image', newImage)
-            }
+            newImages.forEach((image, index) => {
+                formData.append(`images`, image)
+            })
 
             const response = await axios.put(`http://localhost:8080/api/items/${item.id}`, formData, {
                 headers: {
@@ -156,12 +164,27 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                 title: 'Error',
                 description: 'Failed to mark item as sold. Please try again.',
                 variant: 'destructive',
-                duration: 5000,
+                duration: 5000
             });
         }
     };
 
+    const handleAddTag = () => {
+        if (newTag && !editedItem.tags.includes(newTag)) {
+            setEditedItem(prev => ({
+                ...prev,
+                tags: [...prev.tags, newTag]
+            }))
+            setNewTag('')
+        }
+    }
 
+    const handleRemoveTag = (tagToRemove: string) => {
+        setEditedItem(prev => ({
+            ...prev,
+            tags: prev.tags.filter(tag => tag !== tagToRemove)
+        }))
+    }
 
     const handleReactivate = async () => {
         try {
@@ -198,15 +221,51 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
         }
     }
 
+    const nextImage = () => {
+        setCurrentImageIndex((prevIndex) => (prevIndex + 1) % item.imageUrls.length)
+    }
+
+    const prevImage = () => {
+        setCurrentImageIndex((prevIndex) => (prevIndex - 1 + item.imageUrls.length) % item.imageUrls.length)
+    }
+
+    const [fullImageUrls, setFullImageUrls] = useState<string[]>([])
+
+    useEffect(() => {
+        setCurrentImageIndex(0)
+        setFullImageUrls(item.imageUrls.map(getFullImageUrl))
+    }, [item.imageUrls, getFullImageUrl])
+
+
     return (
         <div>
             <Card className="w-full max-w-sm rounded-lg overflow-hidden shadow-lg" onDoubleClick={handleDoubleClick}>
                 <div className="relative h-56">
-                    <img 
-                        src={getFullImageUrl(item.imageUrl)} 
-                        alt={item.title} 
+                    <img
+                        src={fullImageUrls[currentImageIndex] || '/placeholder-image.jpg'}
+                        alt={`${item.title} - Image ${currentImageIndex + 1}`}
                         className="w-full h-full object-cover"
                     />
+                    {item.imageUrls.length > 1 && (
+                        <>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/70 hover:bg-orange-500 hover:text-white rounded-full p-1"
+                                onClick={prevImage}
+                            >
+                                <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/70 hover:bg-orange-500 hover:text-white rounded-full p-1"
+                                onClick={nextImage}
+                            >
+                                <ChevronRight className="h-4 w-4" />
+                            </Button>
+                        </>
+                    )}
                     <div className="absolute top-2 right-2">
                         <Checkbox
                             checked={isSelected}
@@ -229,7 +288,7 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                     </p>
                     <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
                         <div className="flex items-center gap-1">
-                            <Image 
+                            <Image
                                 src='/icons/calendar-icon.svg'
                                 alt='Calendar'
                                 width={12}
@@ -293,29 +352,57 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                             />
                         </div>
                         <div className='grid grid-cols-4 items-center gap-4'>
-                            <label htmlFor='image' className='text-right'>Image</label>
+                            <label htmlFor='tags' className='text-right'>Tags</label>
+                            <div className='col-span-3'>
+                                <div className='flex flex-wrap gap-2 mb-2'>
+                                    {editedItem.tags.map((tag, index) => (
+                                        <span key={index} className='bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full flex items-center'>
+                                            {tag}
+                                            <button onClick={() => handleRemoveTag(tag)} className='ml-1 text-orange-600 hover:text-orange-800'>
+                                                <X size={12} />
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                                <div className='flex gap-2'>
+                                    <Input
+                                        id='newTag'
+                                        value={newTag}
+                                        onChange={(e) => setNewTag(e.target.value)}
+                                        placeholder='Add a new tag'
+                                        className='flex-grow'
+                                    />
+                                    <Button onClick={handleAddTag} type='button'>Add Tag</Button>
+                                </div>
+                            </div>
+                        </div>
+                        <div className='grid grid-cols-4 items-center gap-4'>
+                            <label htmlFor='image' className='text-right'>Images</label>
                             <div className='col-span-3'>
                                 <FileInput
                                     id='image'
                                     accept='image/*'
                                     onChange={handleImageChange}
                                     ref={fileInputRef}
+                                    multiple
                                 />
-                                {(imagePreviewUrl || item.imageUrl) && (
-                                    <div className='mt-4 relative group'>
-                                        <img
-                                            src={imagePreviewUrl || getFullImageUrl(item.imageUrl)}
-                                            alt='Preview'
-                                            className='max-w-xs h-auto rounded-md'
-                                        />
-                                        <div
-                                            className='absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer rounded-md'
-                                            onClick={handleRemoveImage}
-                                        >
-                                            <Trash2Icon className='h-16 w-16 text-white' />
+                                <div className='mt-4 flex flex-wrap gap-2'>
+                                    {imagePreviewUrls.map((url, index) => (
+                                        <div key={index} className='relative group'>
+                                            <img
+                                                src={fullImageUrls[0] || '/placeholder-image.jpg'}
+                                                alt={`Preview ${index + 1}`}
+                                                className='w-24 h-24 object-cover rounded-md'
+                                            />
+                                            <div
+                                                className='absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer rounded-md'
+                                                onClick={() => handleRemoveImage(index)}
+                                            >
+                                                <Trash2Icon className='h-6 w-6 text-white' />
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
