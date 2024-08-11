@@ -8,8 +8,7 @@ import { useAuth } from '../auth/AuthContext'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { MarketplaceItemCardProps } from '@/types/MarketplaceItemCardProps'
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
 
@@ -84,9 +83,9 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
     }
 
     return (
-        <>
+        <div>
             <Card
-                className="w-full max-w-sm rounded-lg overflow-hidden shadow-lg cursor-pointer"
+                className="w-full max-w-sm rounded-lg overflow-hidden shadow-lg cursor-pointer border-2 border-orange-300"
                 onClick={() => setIsFullDetailsOpen(true)}
             >
                 <div className="relative h-56">
@@ -97,15 +96,14 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
                     />
                     <button
                         onClick={handleFavoriteToggle}
-                        className={`absolute top-2 right-2 p-1 rounded-full transition-colors ${isFavorited ? 'bg-orange-500' : 'bg-white/70 hover:bg-orange-500'
-                            } group`}
+                        className={`absolute top-2 right-2 p-1 rounded-full ${isFavorited ? 'bg-orange-500' : 'bg-white/70'}`}
                     >
                         <Image
                             src="/icons/heart-icon.svg"
                             alt="Favorite"
                             width={16}
                             height={16}
-                            className={`${isFavorited ? 'filter invert' : 'group-hover:filter group-hover:invert'}`}
+                            className={isFavorited ? 'filter invert' : ''}
                         />
                     </button>
                 </div>
@@ -216,7 +214,7 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </>
+        </div>
     )
 }
 

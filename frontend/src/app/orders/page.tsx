@@ -48,14 +48,12 @@ export default function Orders() {
                     setMaxPrice(Math.max(...prices))
                 }
 
-                // Initialize current image indices
                 const initialIndices = response.data.reduce((acc, item) => {
                     acc[item.id] = 0
                     return acc
                 }, {} as { [key: number]: number })
                 setCurrentImageIndices(initialIndices)
 
-                // Collect all unique tags
                 const tags = new Set(response.data.flatMap(item => item.tags))
                 setAllTags(Array.from(tags))
             } catch (error) {

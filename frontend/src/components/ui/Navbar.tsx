@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { User } from '@/types/User'
+import { ShoppingBag } from 'lucide-react'
 
 export default function NavBar() {
   const { isAuthenticated, user, logout, token } = useAuth()
@@ -87,13 +88,14 @@ export default function NavBar() {
     }
   }
 
+
   return (
     <div className="sticky top-0 z-50 w-full">
-      <header className="px-4 lg:px-6 h-16 flex items-center justify-between bg-gradient-to-r from-gray-900 to-black text-white shadow-lg">
+      <header className="px-4 lg:px-6 h-16 flex items-center justify-between bg-black text-orange-500 shadow-lg">
         <div className="flex items-center">
           <Link href="/" className="flex items-center justify-center hover:opacity-80 transition-opacity" prefetch={false}>
             <BeaverIcon className="w-10 h-10" />
-            <span className="text-2xl font-bold text-orange-400 ml-2">BeaverBargains</span>
+            <span className="text-2xl font-bold text-orange-500 ml-2">BeaverBargains</span>
           </Link>
         </div>
         <div className="flex-grow mx-4">
@@ -101,14 +103,14 @@ export default function NavBar() {
             <Input
               type="search"
               placeholder={isAuthenticated ? "Search BeaverBargains" : "Login to search"}
-              className="w-full bg-gray-800 text-white placeholder-gray-400 border-2 border-orange-500 rounded-full pr-12 focus:ring-2 focus:ring-orange-300 focus:border-transparent transition-all duration-300"
+              className="w-full bg-gray-900 text-white placeholder-orange-300 border-2 border-orange-500 rounded-full pr-12 focus:ring-2 focus:ring-orange-300 focus:border-transparent transition-all duration-300"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               disabled={!isAuthenticated}
             />
             <button
               type="submit"
-              className={`absolute right-1 top-1 bottom-1 px-3 flex items-center justify-center ${isAuthenticated ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-500 cursor-not-allowed'} text-white rounded-full transition-colors duration-200`}
+              className={`absolute right-1 top-1 bottom-1 px-3 flex items-center justify-center ${isAuthenticated ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-700 cursor-not-allowed'} text-white rounded-full transition-colors duration-200`}
               disabled={!isAuthenticated}
             >
               <FaSearch />
@@ -126,69 +128,74 @@ export default function NavBar() {
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="p-0 h-auto hover:bg-gray-800 border-2 border-orange-400 rounded-full">
+              <Button variant="ghost" className="p-0 h-auto hover:bg-orange-900 border-2 border-orange-500 rounded-full">
                 <div className="flex items-center space-x-1 p-1">
                   {isAuthenticated && user ? (
-                    <Avatar className="w-8 h-8 border-2 border-orange-400">
+                    <Avatar className="w-8 h-8 border-2 border-orange-500">
                       <AvatarImage src={fullProfileImageUrl} alt={user?.firstName || 'User'} />
-                      <AvatarFallback className="bg-orange-500 text-white text-xs">
+                      <AvatarFallback className="bg-orange-500 text-black text-xs">
                         {user.firstName.charAt(0).toUpperCase()}
                         {user.lastName ? user.lastName.charAt(0).toUpperCase() : ''}
                       </AvatarFallback>
                     </Avatar>
                   ) : (
-                    <FaUserCircle className="text-2xl text-orange-400" />
+                    <FaUserCircle className="text-2xl text-orange-500" />
                   )}
-                  <FaBars className="text-lg text-orange-400" />
+                  <FaBars className="text-lg text-orange-500" />
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 bg-gray-800 text-white border border-orange-400">
-              <DropdownMenuLabel className="text-center text-orange-400">
+            <DropdownMenuContent className="w-56 bg-orange-50 text-orange-900 border border-orange-200 shadow-lg">
+              <DropdownMenuLabel className="text-center text-orange-800 font-semibold">
                 {isAuthenticated && user ? `Welcome ${user.firstName}!` : 'Welcome Guest!'}
               </DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-orange-400" />
+              <DropdownMenuSeparator className="bg-orange-200" />
               {isAuthenticated ? (
                 <div>
-                  <DropdownMenuItem className="hover:bg-gray-700">
-                    <Link href="/messages" className="w-full flex items-center">
+                  <DropdownMenuItem className="hover:bg-orange-100 focus:bg-orange-100">
+                    <Link href="/messages" className="w-full flex items-center text-orange-700">
                       <FaFacebookMessenger className="mr-2" /> Messages
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="hover:bg-gray-700">
-                    <Link href="/favorites" className="w-full flex items-center">
+                  <DropdownMenuItem className="hover:bg-orange-100 focus:bg-orange-100">
+                    <Link href="/favorites" className="w-full flex items-center text-orange-700">
                       <FaHeart className="mr-2" /> Favorites
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="hover:bg-gray-700">
-                    <Link href="/listings" className="w-full flex items-center">
+                  <DropdownMenuItem className="hover:bg-orange-100 focus:bg-orange-100">
+                    <Link href="/listings" className="w-full flex items-center text-orange-700">
                       <FaList className="mr-2" /> My Listings
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="hover:bg-gray-700">
-                    <Link href="/orders" className="w-full flex items-center">
+                  <DropdownMenuItem className="hover:bg-orange-100 focus:bg-orange-100">
+                    <Link href="/orders" className="w-full flex items-center text-orange-700">
                       <FaShoppingCart className="mr-2" /> Order History
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="hover:bg-gray-700">
-                    <Link href="/account" className="w-full flex items-center">
+                  <DropdownMenuItem className="hover:bg-orange-100 focus:bg-orange-100">
+                    <Link href="/marketplace" className="w-full flex items-center text-orange-700">
+                      <ShoppingBag className="mr-2 h-4 w-4" /> Marketplace
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="hover:bg-orange-100 focus:bg-orange-100">
+                    <Link href="/account" className="w-full flex items-center text-orange-700">
                       <FaUser className="mr-2" /> My Account
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-orange-400" />
-                  <DropdownMenuItem onClick={handleLogout} className="hover:bg-gray-700 text-red-400">
+                  <DropdownMenuSeparator className="bg-orange-200" />
+                  <DropdownMenuItem onClick={handleLogout} className="hover:bg-orange-100 focus:bg-orange-100 text-red-600">
                     Sign Out
                   </DropdownMenuItem>
                 </div>
               ) : (
                 <div>
-                  <DropdownMenuItem className="hover:bg-gray-700">
-                    <Link href="/login" className="w-full flex items-center">
+                  <DropdownMenuItem className="hover:bg-orange-100 focus:bg-orange-100">
+                    <Link href="/login" className="w-full flex items-center text-orange-700">
                       <FaSignInAlt className="mr-2" /> Login
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="hover:bg-gray-700">
-                    <Link href="/register" className="w-full flex items-center">
+                  <DropdownMenuItem className="hover:bg-orange-100 focus:bg-orange-100">
+                    <Link href="/register" className="w-full flex items-center text-orange-700">
                       <FaUserPlus className="mr-2" /> Create Account
                     </Link>
                   </DropdownMenuItem>
@@ -199,15 +206,15 @@ export default function NavBar() {
         </nav>
       </header>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-gray-800 text-white">
+        <DialogContent className="bg-black text-orange-500">
           <DialogHeader>
-            <DialogTitle className="text-orange-400">Logout Successful</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-orange-500">Logout Successful</DialogTitle>
+            <DialogDescription className="text-orange-300">
               You have been successfully logged out of your account. Now redirecting you back to login.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => setIsDialogOpen(false)} className="bg-orange-500 hover:bg-orange-600 text-white">Close</Button>
+            <Button onClick={() => setIsDialogOpen(false)} className="bg-orange-500 hover:bg-orange-600 text-black">Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

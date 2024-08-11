@@ -8,25 +8,43 @@ export default function Footer() {
     const [isContactDialogOpen, setIsContactDialogOpen] = useState(false)
     const [isFaqDialogOpen, setIsFaqDialogOpen] = useState(false)
 
+    const scrollToTop = () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        })
+    }
+
     return (
         <div>
-            <footer className='fixed bottom-0 left-0 right-0 flex flex-col gap-2 sm:flex-row py-2 w-full items-center px-4 md:px-6 border-t bg-[black] text-[white]'>
-                <p className='text-xs text-[white]'>&copy; 2024 BeaverBargains.</p>
-                <nav className='sm:ml-auto flex gap-4 sm:gap-6 items-center'>
-                    <span
-                        className='text-xs hover:underline underline-offset-4 text-orange-500 cursor-pointer'
-                        onClick={() => setIsFaqDialogOpen(true)}>
-                        FAQs
-                    </span>
-                    <span
-                        className='text-xs hover:underline underline-offset-4 text-orange-500 cursor-pointer'
-                        onClick={() => setIsContactDialogOpen(true)}>
-                        Contact Us
-                    </span>
-                    <a href='https://github.com/mfaks/BeaverBargains' target='_blank' rel='noopener noreferrer' className='text-orange-500 text-xl'>
-                        <FaGithub />
-                    </a>
-                </nav>
+            <footer className='bg-black text-white py-4'>
+                <div className='container mx-auto px-4 flex flex-col items-center'>
+                    <div className='flex items-center justify-between w-full'>
+                        <p className='text-xs'>&copy; 2024 BeaverBargains</p>
+                        <button
+                            onClick={scrollToTop}
+                            className='text-orange-500 text-sm hover:underline transition-all duration-200'
+                            aria-label="Scroll to top"
+                        >
+                            Back to Top
+                        </button>
+                        <nav className='flex items-center space-x-4'>
+                            <span
+                                className='text-xs hover:underline underline-offset-4 text-orange-500 cursor-pointer'
+                                onClick={() => setIsFaqDialogOpen(true)}>
+                                FAQs
+                            </span>
+                            <span
+                                className='text-xs hover:underline underline-offset-4 text-orange-500 cursor-pointer'
+                                onClick={() => setIsContactDialogOpen(true)}>
+                                Contact Us
+                            </span>
+                            <a href='https://github.com/mfaks/BeaverBargains' target='_blank' rel='noopener noreferrer' className='text-orange-500 text-xl'>
+                                <FaGithub />
+                            </a>
+                        </nav>
+                    </div>
+                </div>
             </footer>
             <Dialog open={isFaqDialogOpen} onOpenChange={setIsFaqDialogOpen}>
                 <DialogContent>
