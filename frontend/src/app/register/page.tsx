@@ -85,7 +85,6 @@ export default function Register() {
         }
     }
 
-
     return (
         <div className="flex items-center justify-center min-h-screen bg-orange-50 p-4">
             <Card className="w-full max-w-md border-2 border-orange-400 animate-slide-in">
@@ -93,6 +92,7 @@ export default function Register() {
                     <div className="flex items-center justify-center space-x-2">
                         <BeaverIcon className="w-8 h-8" />
                         <CardTitle className="text-2xl font-bold text-center text-orange-500">Create Account</CardTitle>
+                        <BeaverIcon className="w-12 h-12" />
                     </div>
                     <CardDescription className="text-center text-sm">
                         Enter your details to create your account.

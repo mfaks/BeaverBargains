@@ -74,6 +74,7 @@ export default function Login() {
                     <div className="flex items-center justify-center space-x-3">
                         <BeaverIcon className="w-12 h-12" />
                         <CardTitle className="text-3xl font-bold text-center text-orange-500">Welcome Back</CardTitle>
+                        <BeaverIcon className="w-12 h-12" />
                     </div>
                     <CardDescription className="text-center text-lg">
                         Enter your email and password to access your account and continue bargain hunting.
