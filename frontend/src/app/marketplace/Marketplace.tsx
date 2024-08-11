@@ -65,11 +65,10 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
         } else {
             fetchItems(searchQuery)
             fetchFavorites()
-            fetchAllTags()
         }
     }, [isAuthenticated, router, searchQuery])
 
-    const fetchItems = async (query = '', tags = selectedTags, tgSearch = tagSearch) => {
+    const fetchItems = async (query = '', tags: string[] = selectedTags, tgSearch = tagSearch) => {
         setLoading(true)
         try {
             let url = 'http://localhost:8080/api/items/search'
@@ -92,6 +91,10 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
 
             setAllItems(items)
             setFilteredItems(items)
+
+            // Extract all unique tags from the items
+            const uniqueTags = new Set(items.flatMap(item => item.tags || []))
+            setAllTags(Array.from(uniqueTags))
 
             if (items.length > 0) {
                 const prices = items.map(item => item.price)
@@ -199,17 +202,6 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
         applyFilters(descriptionSearch, selectedTags, min, max)
     }
 
-    const fetchAllTags = async () => {
-        try {
-            const response = await axios.get<string[]>('http://localhost:8080/api/items/tags', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            })
-            setAllTags(response.data)
-        } catch (error) {
-            console.error('Error fetching tags:', error)
-        }
-    }
-
     const handleTagSearch = (term: string) => {
         setTagSearch(term)
     }
@@ -224,7 +216,8 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
         
         if (descSearch) {
             filtered = filtered.filter(item =>
-                item.description.toLowerCase().includes(descSearch.toLowerCase())
+                item.description.toLowerCase().includes(descSearch.toLowerCase()) ||
+                item.title.toLowerCase().includes(descSearch.toLowerCase())
             )
         }
 
@@ -264,11 +257,6 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
                 />
                 <main className='flex-1 overflow-y-auto pl-0 pr-6 py-6'>
                     <div className='max-w-6xl mx-auto'>
-                        <div className='flex justify-center mb-6'>
-                            <h1 className='text-3xl font-bold text-orange-500 border-b-2 border-orange-500 pb-1'>
-                                {searchQuery ? `Search Results for '${searchQuery}'` : 'Welcome to the Marketplace'}
-                            </h1>
-                        </div>
                         {loading ? (
                             <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
                                 {[...Array(8)].map((_, index) => (
