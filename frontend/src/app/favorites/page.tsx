@@ -28,6 +28,8 @@ export default function Favorites() {
     const [maxPrice, setMaxPrice] = useState<number>(Infinity)
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
+    const [allTags, setAllTags] = useState<string[]>([])
+    const [selectedTags, setSelectedTags] = useState<string[]>([])
 
     if (!isAuthenticated) {
         return (
@@ -69,6 +71,9 @@ export default function Favorites() {
                 isFavorited: true
             }))
 
+            const tags = new Set(favoritedItems.flatMap(item => item.tags || []))
+            setAllTags(Array.from(tags))
+
             setItems(favoritedItems)
             setFilteredItems(favoritedItems)
             setFavorites(favoritesResponse.data)
@@ -89,6 +94,30 @@ export default function Favorites() {
         } finally {
             setLoading(false)
         }
+    }
+
+    const handleDescriptionSearch = (term: string) => {
+        const filtered = items.filter(item =>
+            item.description.toLowerCase().includes(term.toLowerCase()) ||
+            item.title.toLowerCase().includes(term.toLowerCase())
+        )
+        setFilteredItems(filtered)
+    }
+
+    const handleTagSearch = (term: string) => {
+        const filtered = items.filter(item =>
+            item.tags.some(tag => tag.toLowerCase().includes(term.toLowerCase()))
+        )
+        setFilteredItems(filtered)
+    }
+
+
+    const handleTagFilter = (tags: string[]) => {
+        setSelectedTags(tags)
+        const filtered = items.filter(item => 
+            tags.length === 0 || tags.every(tag => item.tags.includes(tag))
+        )
+        setFilteredItems(filtered)
     }
 
     const toggleFavorite = async (itemId: number) => {
@@ -162,29 +191,6 @@ export default function Favorites() {
         setFilteredItems(filtered)
     }
 
-    const handleCategoryFilter = (categories: string[]) => {
-        if (categories.length === 0) {
-            setFilteredItems(items)
-        } else {
-            const filtered = items.filter(item =>
-                categories.some(category =>
-                    item.title.toLowerCase().includes(category.toLowerCase()) ||
-                    item.description.toLowerCase().includes(category.toLowerCase())
-                )
-            )
-            setFilteredItems(filtered)
-        }
-    }
-
-    const handleSearch = (term: string) => {
-        setSearchTerm(term)
-        const filtered = items.filter(item =>
-            item.description.toLowerCase().includes(term.toLowerCase()) ||
-            item.title.toLowerCase().includes(term.toLowerCase())
-        )
-        setFilteredItems(filtered)
-    }
-
     const BASE_URL = `http://localhost:8080`
     const getFullImageUrl = (imageUrl: string) => {
         if (imageUrl.startsWith(`http`)) {
@@ -203,20 +209,18 @@ export default function Favorites() {
                             sortOptions={[
                                 { label: 'Price: Low to High', value: 'price_asc' },
                                 { label: 'Price: High to Low', value: 'price_desc' },
-                                { label: 'Newest First', value: 'date_desc' }
+                                { label: 'Newest First', value: 'date_desc' },
+                                { label: 'Oldest First', value: 'date_asc' }
                             ]}
                             priceFilter={true}
-                            dateFilter={true}
                             minPrice={minPrice}
                             maxPrice={maxPrice}
                             onSort={handleSort}
                             onPriceFilter={handlePriceFilter}
-                            onCustomFilter={(filterName, values) => {
-                                if (filterName === 'keywords') {
-                                    handleCategoryFilter(values)
-                                }
-                            }}
-                            onSearch={handleSearch}
+                            onDescriptionSearch={handleDescriptionSearch}
+                            onTagSearch={handleTagSearch}
+                            onTagFilter={handleTagFilter}
+                            allTags={allTags}
                         />
                     </aside>
                 )}

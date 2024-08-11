@@ -27,16 +27,10 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
     const [minPrice, setMinPrice] = useState<number>(0)
     const [maxPrice, setMaxPrice] = useState<number>(Infinity)
     const [loading, setLoading] = useState(true)
-
-    if (!isAuthenticated) {
-        return (
-            <UnauthorizedModal
-                isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                message={errorMessage}
-            />
-        )
-    }
+    const [descriptionSearch, setDescriptionSearch] = useState('')
+    const [tagSearch, setTagSearch] = useState('')
+    const [allTags, setAllTags] = useState<string[]>([])
+    const [selectedTags, setSelectedTags] = useState<string[]>([])
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -48,43 +42,47 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
         } else {
             fetchItems(searchQuery)
             fetchFavorites()
+            fetchAllTags()
         }
     }, [isAuthenticated, router, searchQuery])
 
-    const fetchItems = async (query = '') => {
+    const fetchItems = async (query = '', tags = selectedTags, descSearch = descriptionSearch, tgSearch = tagSearch) => {
         setLoading(true)
         try {
-            let url = 'http://localhost:8080/api/items/marketplace'
-            if (query) {
-                url = `http://localhost:8080/api/items/search?query=${query}`
-            }
-            const itemsResponse = await axios.get<Item[]>(url, {
+            let url = 'http://localhost:8080/api/items/search'
+            const params = new URLSearchParams()
+            if (query) params.append('query', query)
+            if (descSearch) params.append('descriptionSearch', descSearch)
+            if (tgSearch) params.append('tagSearch', tgSearch)
+            tags.forEach(tag => params.append('tags', tag))
+
+            const response = await axios.get<Item[]>(`${url}?${params.toString()}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
             const favoritesResponse = await axios.get<number[]>('http://localhost:8080/api/favorites', {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
-    
-            const items = itemsResponse.data.map(item => ({
+
+            const items = response.data.map(item => ({
                 ...item,
                 isFavorited: favoritesResponse.data.includes(item.id)
             }))
-    
+
             setItems(items)
             setFilteredItems(items)
-    
+
             if (items.length > 0) {
                 const prices = items.map(item => item.price)
                 setMinPrice(Math.min(...prices))
                 setMaxPrice(Math.max(...prices))
             }
-    
+
             setLoading(false)
-    
-            if (query && items.length === 0) {
+
+            if ((query || tags.length > 0 || descSearch || tgSearch) && items.length === 0) {
                 toast({
                     title: "No Results",
-                    description: `No items matching "${query}" were found.`,
+                    description: `No items matching your criteria were found.`,
                     duration: 5000,
                 })
             }
@@ -100,12 +98,38 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
         }
     }
 
+    const fetchAllTags = async () => {
+        try {
+            const response = await axios.get<string[]>('http://localhost:8080/api/items/tags', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            setAllTags(response.data)
+        } catch (error) {
+            console.error('Error fetching tags:', error)
+        }
+    }
+
+
+    const handleDescriptionSearch = (term: string) => {
+        setDescriptionSearch(term)
+        fetchItems(searchQuery, selectedTags, term, tagSearch)
+    }
+
+    const handleTagSearch = (term: string) => {
+        setTagSearch(term)
+        fetchItems(searchQuery, selectedTags, descriptionSearch, term)
+    }
+
+
+    const handleTagFilter = (tags: string[]) => {
+        setSelectedTags(tags)
+        fetchItems(searchQuery, tags, descriptionSearch, tagSearch)
+    }
+
     const fetchFavorites = async () => {
         try {
-            const response = await axios.get<number[]>(`http://localhost:8080/api/favorites`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+            const response = await axios.get<number[]>('http://localhost:8080/api/favorites', {
+                headers: { 'Authorization': `Bearer ${token}` }
             })
             setFavorites(response.data)
         } catch (error) {
@@ -175,24 +199,27 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
         setFilteredItems(filtered)
     }
 
-    const handleSearch = (term: string) => {
-        router.push(`/marketplace?search=${encodeURIComponent(term.trim())}`)
-    }
-
-    const handleDateFilter = (startDate: Date, endDate: Date) => {
-        const filtered = items.filter(item => {
-            const itemDate = new Date(item.listingDate)
-            return itemDate >= startDate && itemDate <= endDate
-        })
-        setFilteredItems(filtered)
-    }
-
     const BASE_URL = `http://localhost:8080`
-    const getFullImageUrl = (imageUrl: string) => {
-        if (imageUrl.startsWith(`http`)) {
-            return imageUrl
+    const getFullImageUrl = (imageUrls: string | string[]): string[] => {
+        if (Array.isArray(imageUrls)) {
+            return imageUrls.map(url => {
+                if (url.startsWith('http')) {
+                    return url
+                }
+                return `${BASE_URL}/uploads/${url}`
+            })
         }
-        return `${BASE_URL}/uploads/${imageUrl}`
+        return [imageUrls.startsWith('http') ? imageUrls : `${BASE_URL}/uploads/${imageUrls}`]
+    }
+
+    if (!isAuthenticated) {
+        return (
+            <UnauthorizedModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                message={errorMessage}
+            />
+        )
     }
 
     return (
@@ -205,16 +232,18 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
                             sortOptions={[
                                 { label: 'Price: Low to High', value: 'price_asc' },
                                 { label: 'Price: High to Low', value: 'price_desc' },
-                                { label: 'Newest First', value: 'date_desc' }
+                                { label: 'Newest First', value: 'date_desc' },
+                                { label: 'Oldest First', value: 'date_asc' }
                             ]}
                             priceFilter={true}
-                            dateFilter={true}
                             minPrice={minPrice}
                             maxPrice={maxPrice}
                             onSort={handleSort}
                             onPriceFilter={handlePriceFilter}
-                            onDateFilter={handleDateFilter}
-                            onSearch={handleSearch}
+                            onDescriptionSearch={handleDescriptionSearch}
+                            onTagSearch={handleTagSearch}
+                            onTagFilter={handleTagFilter}
+                            allTags={allTags}
                         />
                     </aside>
                 )}
@@ -248,7 +277,10 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
                                 description="There are currently no items in the marketplace matching your criteria."
                                 actionText="Clear Filters"
                                 onAction={() => {
-                                    handleSearch('')
+                                    setDescriptionSearch('')
+                                    setTagSearch('')
+                                    setSelectedTags([])
+                                    fetchItems('', [], '', '')
                                 }}
                                 icon={<FaShoppingBasket className="text-orange-500" />}
                             />

@@ -30,13 +30,16 @@ const formSchema = z.object({
             {
                 message: 'Price must be a valid number with up to 2 decimal places and at least 0.00',
             }
-        )
-        .transform((value) => parseFloat(parseFloat(value).toFixed(2))),
-    image: z.instanceof(File).refine((file) => file instanceof File, { message: 'Image is required' }),
+        ),
+    images: z.array(z.instanceof(File)).min(1, 'At least one image is required').max(5, 'Maximum 5 images allowed'),
+    tags: z.array(z.string()).max(5, 'Maximum 5 tags allowed'),
 })
 
+type FormValues = z.infer<typeof formSchema>;
+
 export default function Sell() {
-    const [imageVisible, setImageVisible] = useState(false)
+    const [images, setImages] = useState<File[]>([])
+    const [tags, setTags] = useState<string[]>([])
     const { isAuthenticated, token } = useAuth()
     const [errorMessage, setErrorMessage] = useState('')
     const [modalOpen, setModalOpen] = useState(false)
@@ -44,16 +47,18 @@ export default function Sell() {
     const [isFormValid, setIsFormValid] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const router = useRouter()
+    const [suggestedTags] = useState(['Free', 'Electronics', 'Furniture', 'Kitchen', 'Books', 'Clothing', 'Sports', 'Toys'])
 
-    if (!isAuthenticated) {
-        return (
-            <UnauthorizedModal
-                isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                message={errorMessage}
-            />
-        )
-    }
+    const form = useForm<FormValues>({
+        resolver: zodResolver(formSchema),
+        defaultValues: {
+            title: '',
+            description: '',
+            price: '0.00',
+            images: [],
+            tags: [],
+        },
+    })
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -63,51 +68,80 @@ export default function Sell() {
                 router.push(`/login`)
             }, 2000)
         }
-    }, [isAuthenticated])
-
-    const form = useForm({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            title: '',
-            description: '',
-            price: '0.00',
-            image: undefined,
-        },
-    })
+    }, [isAuthenticated, router])
 
     useEffect(() => {
-        const subscription = form.watch((value, { name, type }) => {
-            const { title, description, price, image } = value;
-            const isValid = !!(title && description && price && image);
+        const subscription = form.watch((value) => {
+            const { title, description, price, images, tags } = value;
+            const isValid = !!(title && description && price && images && images.length > 0);
             setIsFormValid(isValid);
         });
         return () => subscription.unsubscribe();
     }, [form]);
 
-    type SubmitData = {
-        title: string
-        description: string
-        price: string
-        image?: File
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || [])
+        if (files.length + images.length > 5) {
+            toast({
+                title: 'Error',
+                description: 'Maximum 5 images allowed',
+                variant: 'destructive',
+                duration: 5000,
+            })
+            return
+        }
+        const newImages = [...images, ...files]
+        setImages(newImages)
+        form.setValue('images', newImages)
     }
 
-    const onSubmit: SubmitHandler<SubmitData> = async (values) => {
+    const removeImage = (index: number) => {
+        const newImages = images.filter((_, i) => i !== index)
+        setImages(newImages)
+        form.setValue('images', newImages)
+    }
+
+    const addTag = (tag: string) => {
+        if (tag && !tags.includes(tag) && tags.length < 5) {
+            const newTags = [...tags, tag]
+            setTags(newTags)
+            form.setValue('tags', newTags)
+        }
+    }
+
+    const handleTagInput = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' || e.key === ',') {
+            e.preventDefault()
+            const value = e.currentTarget.value.trim()
+            addTag(value)
+            e.currentTarget.value = ''
+        }
+    }
+
+    const removeTag = (index: number) => {
+        const newTags = tags.filter((_, i) => i !== index)
+        setTags(newTags)
+        form.setValue('tags', newTags)
+    }
+
+    const onSubmit: SubmitHandler<FormValues> = async (values) => {
         try {
             const formData = new FormData()
 
             const item = {
                 title: values.title,
                 description: values.description,
-                price: values.price
+                price: parseFloat(values.price),
+                tags: values.tags
             }
 
             formData.append('item', new Blob([JSON.stringify(item)], {
                 type: 'application/json'
             }))
 
-            if (values.image) {
-                formData.append('image', values.image)
-            }
+            values.images.forEach((image, index) => {
+                formData.append(`images`, image)
+            })
 
             const response = await axios.post(`http://localhost:8080/api/items`, formData, {
                 headers: {
@@ -117,17 +151,9 @@ export default function Sell() {
             })
 
             if (response.status === 200) {
-                form.reset({
-                    title: '',
-                    description: '',
-                    price: '0.00',
-                    image: undefined,
-                })
-                setImageVisible(false)
-                setIsFormValid(false)
-                if (fileInputRef.current) {
-                    fileInputRef.current.value = ''
-                }
+                form.reset()
+                setImages([])
+                setTags([])
                 toast({
                     title: 'Success',
                     description: 'Your item has been successfully listed!',
@@ -136,9 +162,6 @@ export default function Sell() {
             }
         } catch (error) {
             console.error('Error creating item: ', error)
-            if (axios.isAxiosError(error)) {
-                console.error('Axios error:', error.response?.data)
-            }
             toast({
                 title: 'Error',
                 description: 'Failed to list item. Please try again.',
@@ -146,6 +169,16 @@ export default function Sell() {
                 duration: 5000,
             })
         }
+    }
+
+    if (!isAuthenticated) {
+        return (
+            <UnauthorizedModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                message={errorMessage}
+            />
+        )
     }
 
     return (
@@ -228,49 +261,89 @@ export default function Sell() {
                             />
                             <FormField
                                 control={form.control}
-                                name='image'
-                                render={({ field: { value, onChange, ...field } }) => (
+                                name='images'
+                                render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className='text-lg font-semibold'>Upload Image</FormLabel>
+                                        <FormLabel className='text-lg font-semibold'>Upload Images (Max 5)</FormLabel>
                                         <FormControl>
                                             <FileInput
                                                 id='item-image-upload'
                                                 accept='image/*'
-                                                onChange={(e) => {
-                                                    const file = e.target.files?.[0]
-                                                    onChange(file)
-                                                    setImageVisible(!!file)
-                                                }}
-                                                {...field}
+                                                multiple
+                                                onChange={handleImageUpload}
                                                 className='p-2 border rounded-md w-full'
                                                 ref={fileInputRef}
                                             />
                                         </FormControl>
-                                        {value && imageVisible ? (
-                                            <div className='mt-4 flex justify-center'>
-                                                <div className='relative group'>
+                                        <div className='mt-4 flex flex-wrap gap-4'>
+                                            {images.map((image, index) => (
+                                                <div key={index} className='relative group'>
                                                     <img
-                                                        src={URL.createObjectURL(value)}
-                                                        alt='Preview'
-                                                        className='max-w-xs h-auto rounded-md'
+                                                        src={URL.createObjectURL(image)}
+                                                        alt={`Preview ${index + 1}`}
+                                                        className='w-24 h-24 object-cover rounded-md'
                                                     />
                                                     <div
                                                         className='absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer rounded-md'
-                                                        onClick={() => {
-                                                            onChange(null)
-                                                            setImageVisible(false)
-                                                            if (fileInputRef.current) {
-                                                                fileInputRef.current.value = ''
-                                                            }
-                                                        }}
+                                                        onClick={() => removeImage(index)}
                                                     >
-                                                        <Trash2Icon className='h-16 w-16 text-white' />
+                                                        <Trash2Icon className='h-6 w-6 text-white' />
                                                     </div>
                                                 </div>
+                                            ))}
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name='tags'
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className='text-lg font-semibold'>Tags (Max 5)</FormLabel>
+                                        <FormControl>
+                                            <div>
+                                                <Input
+                                                    type='text'
+                                                    placeholder='Enter tags (press Enter or comma to add)'
+                                                    onKeyDown={handleTagInput}
+                                                    className='p-2 border rounded-md'
+                                                />
+                                                <div className='mt-2 flex flex-wrap gap-2'>
+                                                    {suggestedTags.map((tag, index) => (
+                                                        <Button
+                                                            key={index}
+                                                            type='button'
+                                                            variant='outline'
+                                                            size='sm'
+                                                            onClick={() => addTag(tag)}
+                                                            disabled={tags.includes(tag) || tags.length >= 5}
+                                                            className='text-sm'
+                                                        >
+                                                            {tag}
+                                                        </Button>
+                                                    ))}
+                                                </div>
+                                                <div className='mt-2 flex flex-wrap gap-2'>
+                                                    {tags.map((tag, index) => (
+                                                        <span
+                                                            key={index}
+                                                            className='bg-orange-200 text-orange-800 px-2 py-1 rounded-full text-sm flex items-center'
+                                                        >
+                                                            {tag}
+                                                            <button
+                                                                type='button'
+                                                                onClick={() => removeTag(index)}
+                                                                className='ml-1 text-orange-600 hover:text-orange-800'
+                                                            >
+                                                                &times;
+                                                            </button>
+                                                        </span>
+                                                    ))}
+                                                </div>
                                             </div>
-                                        ) : (
-                                            <FormDescription></FormDescription>
-                                        )}
+                                        </FormControl>
                                         <FormMessage />
                                     </FormItem>
                                 )}

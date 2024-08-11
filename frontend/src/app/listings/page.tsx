@@ -14,6 +14,7 @@ import { SkeletonCard } from '@/components/ui/SkeletonCard'
 import { FaClipboardList } from 'react-icons/fa'
 import { Item } from '@/types/Item'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 
 export default function Listings() {
     const [activeItems, setActiveItems] = useState<Item[]>([])
@@ -30,6 +31,9 @@ export default function Listings() {
     const { isAuthenticated, token } = useAuth()
     const router = useRouter()
     const { toast } = useToast()
+    const [allTags, setAllTags] = useState<string[]>([])
+    const [selectedTags, setSelectedTags] = useState<string[]>([])
+    const [showNoResultsModal, setShowNoResultsModal] = useState(false)
 
     useEffect(() => {
         if (!isAuthenticated || !token) {
@@ -53,12 +57,21 @@ export default function Listings() {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
 
-            setActiveItems(activeResponse.data)
-            setSoldItems(soldResponse.data)
-            setFilteredItems(activeResponse.data)
+            const activeItems = activeResponse.data
+            const soldItems = soldResponse.data
 
-            if (activeResponse.data.length > 0) {
-                const prices = activeResponse.data.map(item => item.price)
+            const tags = new Set([
+                ...activeItems.flatMap(item => item.tags || []),
+                ...soldItems.flatMap(item => item.tags || [])
+            ])
+            setAllTags(Array.from(tags))
+
+            setActiveItems(activeItems)
+            setSoldItems(soldItems)
+            setFilteredItems(activeItems)
+
+            if (activeItems.length > 0) {
+                const prices = activeItems.map(item => item.price)
                 setMinPrice(Math.min(...prices))
                 setMaxPrice(Math.max(...prices))
             }
@@ -73,6 +86,50 @@ export default function Listings() {
         } finally {
             setLoading(false)
         }
+    }
+
+    const handleFilters = () => {
+        const items = activeTab === 'active' ? activeItems : soldItems
+        const filtered = items.filter(item =>
+            (selectedTags.length === 0 || selectedTags.every(tag => item.tags.includes(tag))) &&
+            item.price >= minPrice &&
+            item.price <= maxPrice &&
+            (item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
+        )
+        setFilteredItems(filtered)
+        setShowNoResultsModal(filtered.length === 0)
+    }
+
+    const handleDescriptionSearch = (term: string) => {
+        setSearchTerm(term)
+        handleFilters()
+    }
+
+    const handleTagSearch = (term: string) => {
+        setSearchTerm(term)
+        handleFilters()
+    }
+
+    const handleTagFilter = (tags: string[]) => {
+        setSelectedTags(tags)
+        handleFilters()
+    }
+
+    const handlePriceFilter = (min: number, max: number) => {
+        setMinPrice(min)
+        setMaxPrice(max)
+        handleFilters()
+    }
+
+    const clearFilters = () => {
+        setMinPrice(0)
+        setMaxPrice(Infinity)
+        setSearchTerm('')
+        setSelectedTags([])
+        setFilteredItems(activeTab === 'active' ? activeItems : soldItems)
+        setShowNoResultsModal(false)
     }
 
     const toggleSelectItem = (itemId: number) => {
@@ -145,31 +202,6 @@ export default function Listings() {
         setFilteredItems(sorted)
     }
 
-    const handlePriceFilter = (minPrice: number, maxPrice: number) => {
-        const filtered = activeTab === 'active' ? activeItems : soldItems
-        const filteredByPrice = filtered.filter(item => item.price >= minPrice && item.price <= maxPrice)
-        setFilteredItems(filteredByPrice)
-    }
-
-    const handleDateFilter = (startDate: Date, endDate: Date) => {
-        const filtered = activeTab === 'active' ? activeItems : soldItems
-        const filteredByDate = filtered.filter(item => {
-            const itemDate = new Date(item.listingDate)
-            return itemDate >= startDate && itemDate <= endDate
-        })
-        setFilteredItems(filteredByDate)
-    }
-
-    const handleSearch = (term: string) => {
-        setSearchTerm(term)
-        const items = activeTab === 'active' ? activeItems : soldItems
-        const filtered = items.filter(item =>
-            item.description.toLowerCase().includes(term.toLowerCase()) ||
-            item.title.toLowerCase().includes(term.toLowerCase())
-        )
-        setFilteredItems(filtered)
-    }
-
     const BASE_URL = `http://localhost:8080`
     const getFullImageUrl = (imageUrl: string) => {
         if (imageUrl.startsWith(`http`)) {
@@ -178,11 +210,12 @@ export default function Listings() {
         return `${BASE_URL}/uploads/${imageUrl}`
     }
 
+
     return (
         <div className="flex flex-col min-h-screen bg-orange-50">
             <Navbar />
             <div className="flex flex-1 overflow-hidden mb-10">
-                {!loading && filteredItems.length > 0 && (
+                {!loading && (activeItems.length > 0 || soldItems.length > 0) && (
                     <aside className="w-64 bg-orange-50 flex-shrink-0">
                         <FilterSidebar
                             sortOptions={[
@@ -192,13 +225,14 @@ export default function Listings() {
                                 { label: 'Oldest First', value: 'date_asc' }
                             ]}
                             priceFilter={true}
-                            dateFilter={true}
                             minPrice={minPrice}
                             maxPrice={maxPrice}
                             onSort={handleSort}
                             onPriceFilter={handlePriceFilter}
-                            onDateFilter={handleDateFilter}
-                            onSearch={handleSearch}
+                            onDescriptionSearch={handleDescriptionSearch}
+                            onTagSearch={handleTagSearch}
+                            onTagFilter={handleTagFilter}
+                            allTags={allTags}
                         />
                     </aside>
                 )}
@@ -304,6 +338,17 @@ export default function Listings() {
                 </main>
             </div>
             <Footer />
+            <Dialog open={showNoResultsModal} onOpenChange={setShowNoResultsModal}>
+                <DialogContent>
+                    <EmptyStateCard
+                        title="No items found"
+                        description="There are no items matching your current filters."
+                        actionText="Clear Filters"
+                        onAction={clearFilters}
+                        icon={<FaClipboardList className="text-orange-500" />}
+                    />
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
