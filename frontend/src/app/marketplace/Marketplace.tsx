@@ -67,7 +67,7 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
                 ...item,
                 isFavorited: favoritesResponse.data.includes(item.id)
             }))
-
+ 
             setItems(items)
             setFilteredItems(items)
 
@@ -123,7 +123,10 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
 
     const handleTagFilter = (tags: string[]) => {
         setSelectedTags(tags)
-        fetchItems(searchQuery, tags, descriptionSearch, tagSearch)
+        const filtered = items.filter(item =>
+            tags.length === 0 || tags.every(tag => item.tags.includes(tag))
+        )
+        setFilteredItems(filtered)
     }
 
     const fetchFavorites = async () => {
