@@ -6,7 +6,7 @@ import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import BeaverIcon from '@/components/ui/BeaverIcon'
 import { Button } from '@/components/ui/button'
-import { FaSearch, FaUserCircle } from 'react-icons/fa'
+import { FaSearch, FaUserCircle, FaHome, FaShoppingCart, FaHeart, FaBars, FaSignInAlt, FaUserPlus, FaUser, FaFacebookMessenger, FaList, FaTags } from 'react-icons/fa'
 import { useAuth } from '../../app/auth/AuthContext'
 import { useUnreadMessages } from '../../app/messages/UnreadMessagesContext'
 import { Input } from '@/components/ui/input'
@@ -20,8 +20,7 @@ export default function NavBar() {
   const { isAuthenticated, user, logout, token } = useAuth()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const { unreadCount, fetchUnreadCount } = useUnreadMessages()
-  const { clearUnreadCount } = useUnreadMessages()
+  const { unreadCount, fetchUnreadCount, clearUnreadCount } = useUnreadMessages()
   const router = useRouter()
   const [fullProfileImageUrl, setFullProfileImageUrl] = useState('')
 
@@ -53,7 +52,7 @@ export default function NavBar() {
         }
       }
     }
-  
+
     fetchUserInfo()
   }, [isAuthenticated, user])
 
@@ -80,121 +79,117 @@ export default function NavBar() {
 
   const handleSearch = (e: { preventDefault: () => void }) => {
     e.preventDefault()
-    if (searchTerm.trim()) {
+    if (isAuthenticated && searchTerm.trim()) {
       router.push(`/marketplace?search=${encodeURIComponent(searchTerm.trim())}`)
     }
-    else {
-      router.push(`/marketplace`)
+    else if (!isAuthenticated) {
+      router.push('/login')
     }
   }
 
   return (
-    <div className='sticky top-0 z-50 w-full'>
-      <header className='px-4 lg:px-6 h-14 flex items-center justify-between bg-[black] text-[white] shadow-md'>
-        <div className='flex items-center'>
-          <Link href='/' className='flex items-center justify-center' prefetch={false}>
-            <BeaverIcon />
-            <span className='text-2xl font-bold text-orange-500'>BeaverBargains</span>
+    <div className="sticky top-0 z-50 w-full">
+      <header className="px-4 lg:px-6 h-16 flex items-center justify-between bg-gradient-to-r from-gray-900 to-black text-white shadow-lg">
+        <div className="flex items-center">
+          <Link href="/" className="flex items-center justify-center hover:opacity-80 transition-opacity" prefetch={false}>
+            <BeaverIcon className="w-10 h-10" />
+            <span className="text-2xl font-bold text-orange-400 ml-2">BeaverBargains</span>
           </Link>
         </div>
-        <form onSubmit={handleSearch} className='flex-1 max-w-md mx-4 relative'>
-          <Input
-            type='search'
-            placeholder='Search BeaverBargains'
-            className='w-full bg-gray-800 text-white placeholder-gray-400 border border-white rounded-md pr-12'
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <button
-            type='submit'
-            className='absolute right-[3px] top-[3px] bottom-[3px] px-3 flex items-center justify-center bg-orange-500 hover:bg-orange-600 text-white rounded-r-[4px] transition-colors duration-200'
-          >
-            <FaSearch />
-          </button>
-        </form>
-        <nav className='flex gap-4 sm:gap-6 items-center'>
-          <Link href='/marketplace' className='text-sm font-medium hover:underline underline-offset-4 text-orange-500' prefetch={false}>
-            Marketplace
-          </Link>
+        <div className="flex-grow mx-4">
+          <form onSubmit={handleSearch} className="max-w-3xl mx-auto relative">
+            <Input
+              type="search"
+              placeholder={isAuthenticated ? "Search BeaverBargains" : "Login to search"}
+              className="w-full bg-gray-800 text-white placeholder-gray-400 border-2 border-orange-500 rounded-full pr-12 focus:ring-2 focus:ring-orange-300 focus:border-transparent transition-all duration-300"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              disabled={!isAuthenticated}
+            />
+            <button
+              type="submit"
+              className={`absolute right-1 top-1 bottom-1 px-3 flex items-center justify-center ${isAuthenticated ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-500 cursor-not-allowed'} text-white rounded-full transition-colors duration-200`}
+              disabled={!isAuthenticated}
+            >
+              <FaSearch />
+            </button>
+          </form>
+        </div>
+        <nav className="flex gap-4 sm:gap-6 items-center">
           {isAuthenticated && (
-            <>
-              <Link href='/sell' className='text-sm font-medium hover:underline underline-offset-4 text-orange-500' prefetch={false}>
-                Sell
-              </Link>
-              <Link href='/messages' className='text-sm font-medium hover:underline underline-offset-4 text-orange-500 relative' prefetch={false}>
-                Messages
-                {unreadCount > 0 && (
-                  <Badge variant="destructive" className="absolute -top-2 -right-2 px-2 py-1 text-xs">
-                    {unreadCount}
-                  </Badge>
-                )}
-              </Link>
-            </>
+            <Button
+              onClick={() => router.push('/sell')}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              <FaTags className="mr-2" /> Sell Items
+            </Button>
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <span className='text-sm font-medium hover:underline underline-offset-4 text-orange-500 flex items-center cursor-pointer'>
-                {isAuthenticated && user ? (
-                  <Avatar>
-                  <AvatarImage src={fullProfileImageUrl} alt={user?.firstName || 'User'} />
-                    <AvatarFallback>
-                      {user.firstName.charAt(0).toUpperCase()}
-                      {user.lastName ? user.lastName.charAt(0).toUpperCase() : ''}
-                    </AvatarFallback>
-                  </Avatar>
-                ) : (
-                  <FaUserCircle className='text-2xl' />
-                )}
-                {isAuthenticated && user && <span className='ml-2'>{user.firstName}</span>}
-              </span>
+              <Button variant="ghost" className="p-0 h-auto hover:bg-gray-800 border-2 border-orange-400 rounded-full">
+                <div className="flex items-center space-x-1 p-1">
+                  {isAuthenticated && user ? (
+                    <Avatar className="w-8 h-8 border-2 border-orange-400">
+                      <AvatarImage src={fullProfileImageUrl} alt={user?.firstName || 'User'} />
+                      <AvatarFallback className="bg-orange-500 text-white text-xs">
+                        {user.firstName.charAt(0).toUpperCase()}
+                        {user.lastName ? user.lastName.charAt(0).toUpperCase() : ''}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <FaUserCircle className="text-2xl text-orange-400" />
+                  )}
+                  <FaBars className="text-lg text-orange-400" />
+                </div>
+              </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className='w-56'>
-              <DropdownMenuLabel className='text-center'>
+            <DropdownMenuContent className="w-56 bg-gray-800 text-white border border-orange-400">
+              <DropdownMenuLabel className="text-center text-orange-400">
                 {isAuthenticated && user ? `Welcome ${user.firstName}!` : 'Welcome Guest!'}
               </DropdownMenuLabel>
-              <DropdownMenuSeparator />
+              <DropdownMenuSeparator className="bg-orange-400" />
               {isAuthenticated ? (
                 <div>
-                  <DropdownMenuItem>
-                    <Link href='/account' className='w-full'>
-                      Account
+                  <DropdownMenuItem className="hover:bg-gray-700">
+                    <Link href="/messages" className="w-full flex items-center">
+                      <FaFacebookMessenger className="mr-2" /> Messages
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link href='/messages' className='w-full'>
-                      Messages
+                  <DropdownMenuItem className="hover:bg-gray-700">
+                    <Link href="/favorites" className="w-full flex items-center">
+                      <FaHeart className="mr-2" /> Favorites
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link href='/favorites' className='w-full'>
-                      Favorites
+                  <DropdownMenuItem className="hover:bg-gray-700">
+                    <Link href="/listings" className="w-full flex items-center">
+                      <FaList className="mr-2" /> My Listings
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link href='/listings' className='w-full'>
-                      My Listings
+                  <DropdownMenuItem className="hover:bg-gray-700">
+                    <Link href="/orders" className="w-full flex items-center">
+                      <FaShoppingCart className="mr-2" /> Order History
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link href='/orders' className='w-full'>
-                      Orders
+                  <DropdownMenuItem className="hover:bg-gray-700">
+                    <Link href="/account" className="w-full flex items-center">
+                      <FaUser className="mr-2" /> My Account
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
+                  <DropdownMenuSeparator className="bg-orange-400" />
+                  <DropdownMenuItem onClick={handleLogout} className="hover:bg-gray-700 text-red-400">
                     Sign Out
                   </DropdownMenuItem>
                 </div>
               ) : (
                 <div>
-                  <DropdownMenuItem>
-                    <Link href='/login' className='w-full'>
-                      Login
+                  <DropdownMenuItem className="hover:bg-gray-700">
+                    <Link href="/login" className="w-full flex items-center">
+                      <FaSignInAlt className="mr-2" /> Login
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Link href='/register' className='w-full'>
-                      Create Account
+                  <DropdownMenuItem className="hover:bg-gray-700">
+                    <Link href="/register" className="w-full flex items-center">
+                      <FaUserPlus className="mr-2" /> Create Account
                     </Link>
                   </DropdownMenuItem>
                 </div>
@@ -204,15 +199,15 @@ export default function NavBar() {
         </nav>
       </header>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-gray-800 text-white">
           <DialogHeader>
-            <DialogTitle>Logout Successful</DialogTitle>
+            <DialogTitle className="text-orange-400">Logout Successful</DialogTitle>
             <DialogDescription>
               You have been successfully logged out of your account. Now redirecting you back to login.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={() => setIsDialogOpen(false)}>Close</Button>
+            <Button onClick={() => setIsDialogOpen(false)} className="bg-orange-500 hover:bg-orange-600 text-white">Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
