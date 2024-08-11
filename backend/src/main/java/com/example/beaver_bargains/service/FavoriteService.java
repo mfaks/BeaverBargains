@@ -42,11 +42,13 @@ public class FavoriteService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Item not found"));
-
-        if (favoriteRepository.findByUserAndItem(user, item).isPresent()) {
+    
+        List<Favorite> existingFavorites = favoriteRepository.findByUserAndItem(user, item);
+        
+        if (!existingFavorites.isEmpty()) {
             throw new RuntimeException("Item is already favorited");
         }
-
+    
         Favorite favorite = new Favorite(user, item);
         favoriteRepository.save(favorite);
     }
@@ -57,12 +59,12 @@ public class FavoriteService {
             .orElseThrow(() -> new RuntimeException("User not found"));
         Item item = itemRepository.findById(itemId)
             .orElseThrow(() -> new RuntimeException("Item not found"));
-
-        favoriteRepository.findByUserAndItem(user, item)
-            .ifPresentOrElse(
-                favorite -> favoriteRepository.delete(favorite),
-                () -> {
-                    throw new RuntimeException("Favorite not found");
-                });
+    
+        List<Favorite> favorites = favoriteRepository.findByUserAndItem(user, item);
+        if (!favorites.isEmpty()) {
+            favoriteRepository.deleteAll(favorites);
+        } else {
+            throw new RuntimeException("Favorite not found");
+        }
     }
 }
