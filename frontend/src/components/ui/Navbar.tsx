@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import BeaverIcon from '@/components/ui/BeaverIcon'
 import { Button } from '@/components/ui/button'
@@ -13,28 +14,59 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
+import { User } from '@/types/User'
 
 export default function NavBar() {
   const { isAuthenticated, user, logout, token } = useAuth()
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [avatarUrl, setAvatarUrl] = useState(user?.profileImage)
   const [searchTerm, setSearchTerm] = useState('')
   const { unreadCount, fetchUnreadCount } = useUnreadMessages()
   const { clearUnreadCount } = useUnreadMessages()
   const router = useRouter()
-
-
-  useEffect(() => {
-    if (user && user.profileImage) {
-      setAvatarUrl(user.profileImage)
-    }
-  }, [user])
+  const [fullProfileImageUrl, setFullProfileImageUrl] = useState('')
 
   useEffect(() => {
     if (isAuthenticated && token) {
       fetchUnreadCount()
     }
-  }, [isAuthenticated, token])
+  }, [isAuthenticated, token, fetchUnreadCount])
+
+  useEffect(() => {
+    if (user && user.profileImageUrl) {
+      setFullProfileImageUrl(getFullImageUrl(user.profileImageUrl))
+    }
+  }, [user, user?.profileImageUrl])
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      if (isAuthenticated && user) {
+        try {
+          const token = localStorage.getItem('token')
+          const config = {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+          const response = await axios.get<User>(`http://localhost:8080/api/users/${user.id}`, config)
+          const updatedUser = response.data
+          setFullProfileImageUrl(getFullImageUrl(updatedUser.profileImageUrl))
+        } catch (error) {
+          console.error('Error fetching user information:', error)
+        }
+      }
+    }
+  
+    fetchUserInfo()
+  }, [isAuthenticated, user])
+
+  const BASE_URL = 'http://localhost:8080'
+  const getFullImageUrl = (imageUrl: string | undefined): string => {
+    if (!imageUrl) {
+      return ''
+    }
+    if (imageUrl.startsWith('http')) {
+      return imageUrl
+    }
+    return `${BASE_URL}/uploads/${imageUrl}`
+  }
 
   const handleLogout = async () => {
     logout()
@@ -104,7 +136,7 @@ export default function NavBar() {
               <span className='text-sm font-medium hover:underline underline-offset-4 text-orange-500 flex items-center cursor-pointer'>
                 {isAuthenticated && user ? (
                   <Avatar>
-                    <AvatarImage src={avatarUrl} alt={user?.firstName} />
+                  <AvatarImage src={fullProfileImageUrl} alt={user?.firstName || 'User'} />
                     <AvatarFallback>
                       {user.firstName.charAt(0).toUpperCase()}
                       {user.lastName ? user.lastName.charAt(0).toUpperCase() : ''}

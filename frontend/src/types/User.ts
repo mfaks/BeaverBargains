@@ -4,5 +4,5 @@ export interface User {
     lastName: string
     email: string
     bio: string
-    profileImage?: string
+    profileImageUrl?: string
 }

@@ -17,23 +17,79 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { useToast } from '@/components/ui/use-toast'
-import { UserDetails } from '@/types/UserDetails'
+import { User } from '@/types/User'
 
 export default function Account() {
   const [bio, setBio] = useState('')
   const [bioChanged, setBioChanged] = useState(false)
-  const [userDetails, setUserDetails] = useState<UserDetails | null>(null)
+  const [userDetails, setUserDetails] = useState<User | null>(null)
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmNewPassword, setConfirmNewPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
   const [profileImage, setProfileImage] = useState<File | null>(null)
   const [croppedImage, setCroppedImage] = useState<File | null>(null)
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null)
   const router = useRouter()
-  const { isAuthenticated, user, updateUserProfileImage } = useAuth()
+  const { isAuthenticated, user, updateUserProfileImageUrl } = useAuth()
   const [showUnauthorizedModal, setShowUnauthorizedModal] = useState(false)
-
+  const [isNewImageUploaded, setIsNewImageUploaded] = useState(false)
+  const [showRemoveImageConfirmation, setShowRemoveImageConfirmation] = useState(false)
   const { toast } = useToast()
+
+  const handleProfileImageChange = async (file: File | null) => {
+    if (file) {
+      const formData = new FormData()
+      formData.append('image', file)
+      try {
+        const token = localStorage.getItem('token')
+        const config = {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+        const response = await axios.put(`http://localhost:8080/api/users/${user?.id}/profile-image`, formData, config)
+        const updatedUser = response.data
+        const fullImageUrl = getFullImageUrl(updatedUser.profileImageUrl)
+
+        if (user && userDetails) {
+          const newUser: User = {
+            ...userDetails,
+            profileImageUrl: fullImageUrl
+          }
+
+          setUserDetails(newUser)
+          updateUserProfileImageUrl(fullImageUrl)
+
+          toast({
+            title: 'Success',
+            description: 'Profile picture updated successfully!',
+          })
+
+          setProfileImage(file)
+          setIsNewImageUploaded(true)
+        }
+
+      } catch (error) {
+        console.error('Error updating profile picture:', error)
+        toast({
+          title: 'Error',
+          description: 'Failed to update profile picture. Please try again.',
+          variant: 'destructive',
+        })
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (user && user.profileImageUrl) {
+      setUserDetails(prevDetails => prevDetails ? {
+        ...prevDetails,
+        profileImageUrl: getFullImageUrl(user.profileImageUrl)
+      } : null)
+    }
+  }, [user?.profileImageUrl])
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -63,8 +119,12 @@ export default function Account() {
           const config = {
             headers: { Authorization: `Bearer ${token}` }
           }
-          const response = await axios.get<UserDetails>(`http://localhost:8080/api/users/${user.id}`, config)
-          setUserDetails(response.data)
+          const response = await axios.get<User>(`http://localhost:8080/api/users/${user.id}`, config)
+          setUserDetails({
+            ...response.data,
+            profileImageUrl: getFullImageUrl(response.data.profileImageUrl)
+          })
+
           setBio(response.data.bio || '')
         } catch (error) {
           console.error('Error fetching user details:', error)
@@ -80,83 +140,54 @@ export default function Account() {
     fetchUserDetails()
   }, [isAuthenticated, user, toast])
 
-  const handleProfileImageChange = async (file: File | null) => {
-    if (file) {
-      const formData = new FormData()
-      formData.append('image', file)
+  const handleImageDoubleClick = (imageUrl: string) => {
+    setEnlargedImage(imageUrl)
+  }
 
-      try {
-        const token = localStorage.getItem('token')
-        const config = {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          }
+  const handleRemoveProfileImage = async () => {
+    setShowRemoveImageConfirmation(true)
+  }
+
+  const confirmRemoveProfileImage = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const config = {
+        headers: {
+          'Authorization': `Bearer ${token}`,
         }
-        const response = await axios.put(`http://localhost:8080/api/users/${user?.id}/profile-image`, formData, config)
-        const updatedUser = response.data
-        updateUserProfileImage(updatedUser.profileImageUrl)
-
-        if (user && userDetails) {
-          const newUser: UserDetails = {
-            ...userDetails,
-            profileImage: updatedUser.profileImageUrl
-          }
-
-          setUserDetails(newUser)
-
-          toast({
-            title: 'Success',
-            description: 'Profile picture updated successfully!',
-          })
-
-          setProfileImage(file)
-        }
-      } catch (error) {
-        console.error('Error updating profile picture:', error)
-        toast({
-          title: 'Error',
-          description: 'Failed to update profile picture. Please try again.',
-          variant: 'destructive',
-        })
       }
-    } else {
-      try {
-        const token = localStorage.getItem('token')
-        const config = {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          }
+      await axios.delete(`http://localhost:8080/api/users/${user?.id}/profile-image`, config)
+
+      if (user && userDetails) {
+        const newUser: User = {
+          ...userDetails,
+          profileImageUrl: undefined
         }
-        const response = await axios.delete(`http://localhost:8080/api/users/${user?.id}/profile-image`, config)
-        const updatedUser = response.data
-        updateUserProfileImage('')
 
-        if (user && userDetails) {
-          const newUser: UserDetails = {
-            ...userDetails,
-            profileImage: undefined
-          }
+        setUserDetails(newUser)
+        updateUserProfileImageUrl('')
 
-          setUserDetails(newUser)
-
-          toast({
-            title: 'Success',
-            description: 'Profile picture removed successfully!',
-          })
-
-          setProfileImage(null)
-        }
-      } catch (error) {
-        console.error('Error removing profile picture:', error)
         toast({
-          title: 'Error',
-          description: 'Failed to remove profile picture. Please try again.',
-          variant: 'destructive',
+          title: 'Success',
+          description: 'Profile picture removed successfully!',
         })
+
+        setProfileImage(null)
+        setIsNewImageUploaded(false)
       }
+    } catch (error) {
+      console.error('Error removing profile picture:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to remove profile picture. Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setShowRemoveImageConfirmation(false)
     }
   }
+
+
 
   const passwordSchema = z.string()
     .min(8, 'Password must be at least 8 characters')
@@ -267,8 +298,21 @@ export default function Account() {
     }
   }
 
+  const BASE_URL = 'http://localhost:8080'
+  const getFullImageUrl = (imageUrl: string | undefined): string => {
+    if (!imageUrl) {
+      return ''
+    }
+    if (imageUrl.startsWith('http')) {
+      return imageUrl
+    }
+    return `${BASE_URL}/uploads/${imageUrl}`
+  }
+
   return (
     <div className='bg-orange-50 text-black flex flex-col min-h-screen'>
+      <div className="flex items-center justify-center p-4">
+      </div>
       <NavBar />
       <main className='container mx-auto py-8 px-4 max-w-7xl flex-grow mb-16'>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
@@ -278,9 +322,12 @@ export default function Account() {
                 <CardHeader className='p-4'>
                   <CardTitle className='text-lg font-semibold text-center'>My Profile</CardTitle>
                 </CardHeader>
-                <Avatar className='h-24 w-24'>
-                  <AvatarImage src={user?.profileImage} alt='Profile' />
-                  <AvatarFallback>{user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}</AvatarFallback>
+                <Avatar
+                  className='h-24 w-24 cursor-pointer'
+                  onDoubleClick={() => handleImageDoubleClick(getFullImageUrl(userDetails?.profileImageUrl))}
+                >
+                  <AvatarImage src={getFullImageUrl(userDetails?.profileImageUrl)} alt={userDetails?.firstName || 'User'} />
+                  <AvatarFallback>{userDetails?.firstName?.charAt(0)}{userDetails?.lastName?.charAt(0)}</AvatarFallback>
                 </Avatar>
               </div>
               <div className='text-center'>
@@ -338,18 +385,43 @@ export default function Account() {
               <div className='flex flex-col items-center space-y-3'>
                 <Label className='text-sm font-medium'>Profile Picture</Label>
                 <Avatar className='h-24 w-24'>
-                  <AvatarImage src={user?.profileImage} alt='Profile' />
-                  <AvatarFallback>{user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={getFullImageUrl(userDetails?.profileImageUrl)} alt={userDetails?.firstName || 'User'} />
+                  <AvatarFallback>{userDetails?.firstName?.charAt(0)}{userDetails?.lastName?.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className='flex justify-center space-x-2'>
-                  <ImageUploadAndCropper
-                    onImageCropped={(file) => {
-                      setCroppedImage(file)
-                      handleProfileImageChange(file)
-                    }}
-                    onClose={() => { }}
-                    currentImage={user?.profileImage || null}
-                  />
+                  {userDetails?.profileImageUrl && !isNewImageUploaded ? (
+                    <AlertDialog open={showRemoveImageConfirmation} onOpenChange={setShowRemoveImageConfirmation}>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant='destructive'
+                          onClick={handleRemoveProfileImage}
+                        >
+                          Remove Profile Picture
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Remove Profile Picture</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to remove your profile picture? This action cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={confirmRemoveProfileImage}>Remove</AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  ) : (
+                    <ImageUploadAndCropper
+                      onImageCropped={(file) => {
+                        setCroppedImage(file)
+                        handleProfileImageChange(file)
+                      }}
+                      onClose={() => { }}
+                      currentImage={user?.profileImageUrl || null}
+                    />
+                  )}
                 </div>
               </div>
               <div>
@@ -494,6 +566,18 @@ export default function Account() {
         </div>
       </main>
       <Footer />
+      {enlargedImage && (
+        <div
+          className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'
+          onClick={() => setEnlargedImage(null)}
+        >
+          <img
+            src={enlargedImage}
+            alt="Enlarged profile"
+            className='max-w-full max-h-full object-contain'
+          />
+        </div>
+      )}
     </div>
   )
 }
