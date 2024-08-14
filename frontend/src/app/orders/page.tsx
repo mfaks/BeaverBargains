@@ -1,29 +1,21 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import axios from 'axios'
 import NavBar from '@/components/ui/Navbar'
 import Footer from '@/components/ui/Footer'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import FilterSidebar from '../FilterSidebar'
-import { Button } from '@/components/ui/button'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
-
-interface OrderItem {
-    id: number
-    title: string
-    price: number
-    seller: {
-        firstName: string
-        lastName: string
-    }
-    purchaseDate: string
-    imageUrls: string[]
-    tags: string[]
-}
+import OrderHistoryCard from './OrderHistoryCard'
+import { OrderItem } from '@/types/OrderItem'
+import { SkeletonCard } from '@/components/ui/SkeletonCard'
+import EmptyStateCard from '@/components/ui/EmptyStateCard'
+import { FaSearch, FaShoppingBag } from 'react-icons/fa'
+import { useAuth } from '../auth/AuthContext'
 
 export default function Orders() {
+    const { token } = useAuth()
     const [orders, setOrders] = useState<OrderItem[]>([])
     const [filteredOrders, setFilteredOrders] = useState<OrderItem[]>([])
     const [minPrice, setMinPrice] = useState<number>(0)
@@ -31,12 +23,17 @@ export default function Orders() {
     const [currentImageIndices, setCurrentImageIndices] = useState<{ [key: number]: number }>({})
     const [allTags, setAllTags] = useState<string[]>([])
     const [selectedTags, setSelectedTags] = useState<string[]>([])
+    const [loading, setLoading] = useState(true)
+    const router = useRouter()
 
     useEffect(() => {
         const fetchOrders = async () => {
+            setLoading(true)
             try {
                 const response = await axios.get<OrderItem[]>('http://localhost:8080/api/items/user/purchased', {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    headers: { 
+                        'Authorization': `Bearer ${token}`
+                    }
                 })
 
                 setOrders(response.data)
@@ -58,11 +55,13 @@ export default function Orders() {
                 setAllTags(Array.from(tags))
             } catch (error) {
                 console.error('Error fetching purchase history:', error)
+            } finally {
+                setLoading(false)
             }
         }
 
         fetchOrders()
-    }, [])
+    }, [token])
 
     const handleSort = (sortBy: string) => {
         let sorted = [...filteredOrders]
@@ -105,7 +104,6 @@ export default function Orders() {
         setFilteredOrders(filtered)
     }
 
-
     const handleTagFilter = (tags: string[]) => {
         setSelectedTags(tags)
         filterOrders(minPrice, maxPrice, tags)
@@ -139,10 +137,20 @@ export default function Orders() {
         }))
     }
 
+    const [resetTrigger, setResetTrigger] = useState(0)
+
+    const handleClearFilters = () => {
+        setMinPrice(0)
+        setMaxPrice(Infinity)
+        setSelectedTags([])
+        setFilteredOrders(orders)
+        setResetTrigger(prev => prev + 1)
+    }
+
     return (
         <div className='flex flex-col min-h-[100dvh] bg-orange-50 text-[#black]'>
             <NavBar />
-            <div className="flex flex-1 overflow-hidden mb-10">
+            <div className="flex flex-1 overflow-hidden">
                 <aside className="w-64 bg-orange-50 flex-shrink-0">
                     <FilterSidebar
                         sortOptions={[
@@ -160,6 +168,7 @@ export default function Orders() {
                         onTagSearch={handleTagSearch}
                         onTagFilter={handleTagFilter}
                         allTags={allTags}
+                        resetTrigger={resetTrigger}
                     />
                 </aside>
                 <ScrollArea className='flex-1'>
@@ -169,65 +178,39 @@ export default function Orders() {
                                 My Purchase History
                             </h1>
                         </div>
-                        {filteredOrders.length > 0 ? (
+                        {loading ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                                {filteredOrders.map((order) => (
-                                    <Card key={order.id} className="w-full max-w-sm rounded-lg overflow-hidden shadow-lg">
-                                        <div className="relative h-56">
-                                            <img
-                                                src={getFullImageUrl(order.imageUrls[currentImageIndices[order.id]])}
-                                                alt={`${order.title} - Image ${currentImageIndices[order.id] + 1}`}
-                                                className="w-full h-full object-cover"
-                                            />
-                                            {order.imageUrls.length > 1 && (
-                                                <>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/70 hover:bg-orange-500 hover:text-white rounded-full p-1"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            prevImage(order.id);
-                                                        }}
-                                                    >
-                                                        <ChevronLeft className="h-4 w-4" />
-                                                    </Button>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/70 hover:bg-orange-500 hover:text-white rounded-full p-1"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            nextImage(order.id);
-                                                        }}
-                                                    >
-                                                        <ChevronRight className="h-4 w-4" />
-                                                    </Button>
-                                                </>
-                                            )}
-                                        </div>
-                                        <div className="p-4 bg-gradient-to-b from-gray-50 to-gray-100 h-[calc(100%-14rem)]">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <h3 className="text-lg font-semibold text-gray-800 truncate">{order.title}</h3>
-                                                <span className="text-xl font-bold text-orange-600">${order.price.toFixed(2)}</span>
-                                            </div>
-                                            <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                                                <span>{new Date(order.purchaseDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                                                <span>{order.seller.firstName} {order.seller.lastName}</span>
-                                            </div>
-                                            <div className="flex flex-wrap gap-1">
-                                                {order.tags.map((tag, index) => (
-                                                    <span key={index} className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
-                                                        {tag}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </Card>
+                                {[...Array(6)].map((_, index) => (
+                                    <SkeletonCard key={index} />
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-center text-gray-500">You haven't purchased any items yet.</p>
+                            filteredOrders.length > 0 ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                    {filteredOrders.map((order) => (
+                                        <OrderHistoryCard
+                                            key={order.id}
+                                            order={order}
+                                            currentImageIndex={currentImageIndices[order.id]}
+                                            onPrevImage={() => prevImage(order.id)}
+                                            onNextImage={() => nextImage(order.id)}
+                                            getFullImageUrl={getFullImageUrl}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <EmptyStateCard
+                                    title={orders.length > 0 ? 'No orders found' : 'No purchase history'}
+                                    description={
+                                        orders.length > 0
+                                            ? 'There are no orders matching your current filters.'
+                                            : 'You haven\'t made any purchases yet. Start shopping to see your order history!'
+                                    }
+                                    actionText={orders.length > 0 ? 'Clear Filters' : 'Go to Marketplace'}
+                                    onAction={orders.length > 0 ? handleClearFilters : () => router.push('/marketplace')}
+                                    icon={orders.length > 0 ? <FaSearch className="text-orange-500 text-5xl" /> : <FaShoppingBag className="text-orange-500 text-5xl" />}
+                                />
+                            )
                         )}
                     </main>
                 </ScrollArea>
