@@ -16,7 +16,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/use-toast'
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form'
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card'
-
 import FileInput from '@/components/ui/FileInput'
 import { Button } from '@/components/ui/button'
 import BeaverIcon from '@/components/ui/BeaverIcon'
@@ -38,7 +37,7 @@ const formSchema = z.object({
     tags: z.array(z.string()).max(5, 'Maximum 5 tags allowed'),
 })
 
-type FormValues = z.infer<typeof formSchema>;
+type FormValues = z.infer<typeof formSchema>
 
 export default function Sell() {
     const [images, setImages] = useState<File[]>([])
@@ -85,12 +84,16 @@ export default function Sell() {
 
     useEffect(() => {
         const subscription = form.watch((value) => {
-            const { title, description, price, images, tags } = value;
-            const isValid = !!(title && description && price && images && images.length > 0);
-            setIsFormValid(isValid);
-        });
-        return () => subscription.unsubscribe();
-    }, [form]);
+            const { title, description, price, images, tags } = value
+            const isValid = !!(title && description && price && images && images.length > 0)
+            setIsFormValid(isValid)
+        })
+        return () => subscription.unsubscribe()
+    }, [form])
+
+    useEffect(() => {
+        form.setValue('images', images)
+    }, [images, form])
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || [])
@@ -166,6 +169,9 @@ export default function Sell() {
             if (response.status === 200) {
                 form.reset()
                 setImages([])
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = ''
+                }
                 setTags([])
                 toast({
                     title: 'Success',
@@ -346,7 +352,7 @@ export default function Sell() {
                                                                     onClick={() => removeTag(index)}
                                                                     className='ml-1 text-orange-600 hover:text-orange-800'
                                                                 >
-                                                                    &times;
+                                                                    &times
                                                                 </button>
                                                             </span>
                                                         ))}
