@@ -374,21 +374,18 @@ export default function Account() {
                               className='border-gray-300 h-8 text-sm'
                             />
                           </div>
-                          <div className='flex justify-between items-center mt-2'>
-                            <Button
-                              variant='outline'
-                              className={`text-xs py-1 px-2 ${bioChanged
-                                ? 'bg-orange-500 text-white'
-                                : 'text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white'
-                                } `}
-                              onClick={handleSaveProfile}
-                              disabled={!bioChanged}
-                            >
-                              Save Biography
-                            </Button>
-                          </div>
                         </div>
                       </CardContent>
+                      <CardFooter className='p-3'>
+                        <Button
+                          variant='outline'
+                          className={`text-xs py-1 px-2 w-full ${bioChanged ? 'bg-orange-500 text-white' : 'text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white'}`}
+                          onClick={handleSaveProfile}
+                          disabled={!bioChanged}
+                        >
+                          Save Biography
+                        </Button>
+                      </CardFooter>
                     </Card>
                     <Card className='bg-white shadow rounded-lg text-black flex flex-col'>
                       <CardHeader className='p-3'>
