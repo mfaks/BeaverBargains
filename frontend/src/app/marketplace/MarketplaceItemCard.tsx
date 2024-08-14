@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { Calendar, ChevronLeft, ChevronRight, Heart, MessageCircle, User } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import DateIcon from '../DateIcon'
+import DateIcon from '../../components/ui/DateIcon'
 
 const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggleFavorite, getFullImageUrl }) => {
     const { user, token } = useAuth()
