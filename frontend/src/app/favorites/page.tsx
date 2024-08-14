@@ -12,8 +12,9 @@ import UnauthorizedModal from '@/components/ui/UnauthorizedModal'
 import EmptyStateCard from '@/components/ui/EmptyStateCard'
 import { useToast } from "@/components/ui/use-toast"
 import { SkeletonCard } from '@/components/ui/SkeletonCard'
-import { FaHeart } from 'react-icons/fa'
+import { FaHeart, FaShoppingBasket } from 'react-icons/fa'
 import { Item } from '@/types/Item'
+import BeaverIcon from '@/components/ui/BeaverIcon'
 
 export default function Favorites() {
     const [items, setItems] = useState<Item[]>([])
@@ -26,20 +27,13 @@ export default function Favorites() {
     const { toast } = useToast()
     const [minPrice, setMinPrice] = useState<number>(0)
     const [maxPrice, setMaxPrice] = useState<number>(Infinity)
+    const [originalMinPrice, setOriginalMinPrice] = useState<number>(0)
+    const [originalMaxPrice, setOriginalMaxPrice] = useState<number>(0)
     const [loading, setLoading] = useState(true)
-    const [searchTerm, setSearchTerm] = useState('')
+    const [descriptionSearch, setDescriptionSearch] = useState('')
+    const [tagSearch, setTagSearch] = useState('')
     const [allTags, setAllTags] = useState<string[]>([])
     const [selectedTags, setSelectedTags] = useState<string[]>([])
-
-    if (!isAuthenticated) {
-        return (
-            <UnauthorizedModal
-                isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                message={errorMessage}
-            />
-        )
-    }
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -80,8 +74,12 @@ export default function Favorites() {
 
             if (favoritedItems.length > 0) {
                 const prices = favoritedItems.map(item => item.price)
-                setMinPrice(Math.min(...prices))
-                setMaxPrice(Math.max(...prices))
+                const minItemPrice = Math.min(...prices)
+                const maxItemPrice = Math.max(...prices)
+                setMinPrice(minItemPrice)
+                setMaxPrice(maxItemPrice)
+                setOriginalMinPrice(minItemPrice)
+                setOriginalMaxPrice(maxItemPrice)
             }
         } catch (error) {
             console.error('Error fetching items:', error)
@@ -97,36 +95,25 @@ export default function Favorites() {
     }
 
     const handleDescriptionSearch = (term: string) => {
-        const filtered = items.filter(item =>
-            item.description.toLowerCase().includes(term.toLowerCase()) ||
-            item.title.toLowerCase().includes(term.toLowerCase())
-        )
-        setFilteredItems(filtered)
+        setDescriptionSearch(term)
+        applyFilters(term, selectedTags, minPrice, maxPrice)
     }
 
     const handleTagSearch = (term: string) => {
-        const filtered = items.filter(item =>
-            item.tags.some(tag => tag.toLowerCase().includes(term.toLowerCase()))
-        )
-        setFilteredItems(filtered)
+        setTagSearch(term)
     }
-
 
     const handleTagFilter = (tags: string[]) => {
         setSelectedTags(tags)
-        const filtered = items.filter(item => 
-            tags.length === 0 || tags.every(tag => item.tags.includes(tag))
-        )
-        setFilteredItems(filtered)
+        applyFilters(descriptionSearch, tags, minPrice, maxPrice)
     }
 
     const toggleFavorite = async (itemId: number) => {
         try {
             const itemToUpdate = items.find(item => item.id === itemId)
             if (itemToUpdate) {
-
                 const newFavoritedStatus = !itemToUpdate.isFavorited
-                
+
                 if (newFavoritedStatus) {
                     await axios.post(`http://localhost:8080/api/favorites`, { itemId }, {
                         headers: {
@@ -141,16 +128,12 @@ export default function Favorites() {
                     })
                 }
 
-                setItems(items.map(item =>
-                    item.id === itemId ? { ...item, isFavorited: newFavoritedStatus } : item
-                ))
-                setFilteredItems(filteredItems.map(item =>
-                    item.id === itemId ? { ...item, isFavorited: newFavoritedStatus } : item
-                ))
+                setItems(items.filter(item => item.id !== itemId))
+                setFilteredItems(filteredItems.filter(item => item.id !== itemId))
 
                 toast({
                     title: "Success",
-                    description: `Item ${newFavoritedStatus ? 'added to' : 'removed from'} favorites.`,
+                    description: `Item removed from favorites.`,
                     duration: 3000,
                 })
             }
@@ -186,81 +169,131 @@ export default function Favorites() {
         setFilteredItems(sorted)
     }
 
-    const handlePriceFilter = (minPrice: number, maxPrice: number) => {
-        const filtered = items.filter(item => item.price >= minPrice && item.price <= maxPrice)
+    const handlePriceFilter = (min: number, max: number) => {
+        setMinPrice(min)
+        setMaxPrice(max)
+        applyFilters(descriptionSearch, selectedTags, min, max)
+    }
+
+    const applyFilters = (descSearch: string, tags: string[], min: number, max: number) => {
+        let filtered = items
+
+        if (descSearch) {
+            filtered = filtered.filter(item =>
+                item.description.toLowerCase().includes(descSearch.toLowerCase()) ||
+                item.title.toLowerCase().includes(descSearch.toLowerCase())
+            )
+        }
+
+        if (tags.length > 0) {
+            filtered = filtered.filter(item =>
+                tags.every(tag => item.tags.includes(tag))
+            )
+        }
+
+        filtered = filtered.filter(item =>
+            item.price >= min && item.price <= max
+        )
+
         setFilteredItems(filtered)
     }
 
     const BASE_URL = `http://localhost:8080`
-    const getFullImageUrl = (imageUrl: string) => {
-        if (imageUrl.startsWith(`http`)) {
+    const getFullImageUrl = (imageUrl: string): string => {
+        if (imageUrl.startsWith('http')) {
             return imageUrl
         }
         return `${BASE_URL}/uploads/${imageUrl}`
     }
 
+    const [resetTrigger, setResetTrigger] = useState(0)
+
+    const handleClearFilters = () => {
+        setDescriptionSearch('')
+        setTagSearch('')
+        setSelectedTags([])
+        setMinPrice(originalMinPrice)
+        setMaxPrice(originalMaxPrice)
+        setResetTrigger(prev => prev + 1)
+        setFilteredItems(items)
+    }
+
     return (
-        <div className="flex flex-col min-h-screen bg-orange-50">
+        <div className='flex flex-col min-h-screen bg-orange-50 text-orange-500'>
             <Navbar />
-            <div className="flex flex-1 overflow-hidden mb-10">
-                {!loading && filteredItems.length > 0 && (
-                    <aside className="w-64 bg-orange-50 flex-shrink-0">
-                        <FilterSidebar
-                            sortOptions={[
-                                { label: 'Price: Low to High', value: 'price_asc' },
-                                { label: 'Price: High to Low', value: 'price_desc' },
-                                { label: 'Newest First', value: 'date_desc' },
-                                { label: 'Oldest First', value: 'date_asc' }
-                            ]}
-                            priceFilter={true}
-                            minPrice={minPrice}
-                            maxPrice={maxPrice}
-                            onSort={handleSort}
-                            onPriceFilter={handlePriceFilter}
-                            onDescriptionSearch={handleDescriptionSearch}
-                            onTagSearch={handleTagSearch}
-                            onTagFilter={handleTagFilter}
-                            allTags={allTags}
-                        />
-                    </aside>
-                )}
-                <main className="flex-1 overflow-y-auto pl-0 pr-6 py-6">
-                    <div className="max-w-4xl mx-auto">
-                        <div className="flex justify-center mb-6">
-                            <h1 className="text-3xl font-bold text-orange-500 border-b-2 border-orange-500 pb-1">
-                                Your Current Favorites
-                            </h1>
-                        </div>
-                        {loading ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                                {[...Array(6)].map((_, index) => (
-                                    <SkeletonCard key={index} />
-                                ))}
-                            </div>
-                        ) : filteredItems.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                                {filteredItems.map(item => (
-                                    <FavoriteItemCard
-                                        key={item.id}
-                                        item={item}
-                                        onToggleFavorite={toggleFavorite}
-                                        getFullImageUrl={getFullImageUrl}
-                                    />
-                                ))}
-                            </div>
-                        ) : (
-                            <EmptyStateCard
-                                title="No favorites yet"
-                                description="You haven't added any items to your favorites. Browse the marketplace to add some!"
-                                actionText="Browse Marketplace"
-                                onAction={() => router.push('/marketplace')}
-                                icon={<FaHeart className="text-orange-500" />}
-                            />
-                        )}
+            <div className='flex flex-1 overflow-hidden'>
+                <FilterSidebar
+                    sortOptions={[
+                        { label: 'Price: Low to High', value: 'price_asc' },
+                        { label: 'Price: High to Low', value: 'price_desc' },
+                        { label: 'Newest First', value: 'date_desc' },
+                        { label: 'Oldest First', value: 'date_asc' }
+                    ]}
+                    priceFilter={true}
+                    minPrice={minPrice}
+                    maxPrice={maxPrice}
+                    onSort={handleSort}
+                    onPriceFilter={handlePriceFilter}
+                    onDescriptionSearch={handleDescriptionSearch}
+                    onTagSearch={handleTagSearch}
+                    onTagFilter={handleTagFilter}
+                    allTags={allTags}
+                    resetTrigger={resetTrigger}
+                />
+                <div className='flex-1 flex flex-col overflow-hidden'>
+                    <div className='bg-orange-100 py-4 mb-6 flex items-center justify-center'>
+                        <BeaverIcon className='text-orange-700 mr-4' />
+                        <h1 className='text-2xl font-bold text-center text-orange-700'> Your Favorite Items </h1>
+                        <BeaverIcon className='text-orange-700 ml-4' />
                     </div>
-                </main>
+                    <main className='flex-1 overflow-y-auto pl-0 pr-6 py-6'>
+                        <div className='max-w-6xl mx-auto'>
+                            {loading ? (
+                                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
+                                    {[...Array(8)].map((_, index) => (
+                                        <SkeletonCard key={index} />
+                                    ))}
+                                </div>
+                            ) : items.length > 0 ? (
+                                filteredItems.length > 0 ? (
+                                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
+                                        {filteredItems.map(item => (
+                                            <FavoriteItemCard
+                                                key={item.id}
+                                                item={item}
+                                                onToggleFavorite={toggleFavorite}
+                                                getFullImageUrl={getFullImageUrl}
+                                            />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <EmptyStateCard
+                                        title='No favorites found'
+                                        description='There are currently no favorited items matching your criteria.'
+                                        actionText='Clear Filters'
+                                        onAction={handleClearFilters}
+                                        icon={<FaHeart className='text-orange-500 text-5xl' />}
+                                    />
+                                )
+                            ) : (
+                                <EmptyStateCard
+                                    title='No favorites yet'
+                                    description="You haven't added any items to your favorites. Browse the marketplace to find items you like!"
+                                    actionText='Go to Marketplace'
+                                    onAction={() => router.push('/marketplace')}
+                                    icon={<FaShoppingBasket className='text-orange-500 text-5xl' />}
+                                />
+                            )}
+                        </div>
+                    </main>
+                </div>
             </div>
             <Footer />
+            <UnauthorizedModal
+                isOpen={modalOpen}
+                onClose={() => setModalOpen(false)}
+                message={errorMessage}
+            />
         </div>
     )
 }
