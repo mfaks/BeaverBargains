@@ -88,14 +88,8 @@ public class ItemService {
     }
 
     public Item updateItem(Long itemId, ItemDto itemDto, List<MultipartFile> newImages, String userEmail) throws IOException {
-        Item existingItem = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item not found"));
-
-        User user = userService.getUserByEmail(userEmail);
-        if (user == null || !existingItem.getSeller().equals(user)) {
-            throw new RuntimeException("Unauthorized to update this item");
-        }
-
+        Item existingItem = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException("Item not found"));
+        
         existingItem.setTitle(itemDto.getTitle());
         existingItem.setDescription(itemDto.getDescription());
         existingItem.setPrice(itemDto.getPrice());
@@ -118,18 +112,10 @@ public class ItemService {
     }
 
     public void deleteItem(Long itemId, String userEmail) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item not found"));
-
-        User user = userService.getUserByEmail(userEmail);
-        if (user == null || !item.getSeller().equals(user)) {
-            throw new RuntimeException("Unauthorized to delete this item");
-        }
-
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException("Item not found"));
         for (String imageUrl : item.getImageUrls()) {
             fileStorageService.deleteFile(imageUrl);
         }
-
         itemRepository.delete(item);
     }
 
@@ -236,24 +222,13 @@ public class ItemService {
             throw new RuntimeException("User not found");
         }
         return itemRepository.findBySeller(user).stream()
-                .filter(Item::isSold)
-                .collect(Collectors.toList());
+            .filter(Item::isSold)
+                    .collect(Collectors.toList());
     }
 
     public Item markItemAsSold(Long itemId, Long buyerId, LocalDateTime purchaseDate, String sellerEmail) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item not found"));
-
-        User seller = userService.getUserByEmail(sellerEmail);
-        if (seller == null || !item.getSeller().equals(seller)) {
-            throw new RuntimeException("User not authorized to update this item");
-        }
-
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException("Item not found with id: " + itemId));    
         User buyer = userService.getUserById(buyerId);
-        if (buyer == null) {
-            throw new RuntimeException("Buyer not found");
-        }
-
         item.setStatus(ItemStatus.SOLD);
         item.setBuyer(buyer);
         item.setPurchaseDate(purchaseDate);
@@ -261,27 +236,13 @@ public class ItemService {
     }
 
     public Item reactivateItem(Long itemId, String userEmail) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item not found"));
-
-        User user = userService.getUserByEmail(userEmail);
-        if (user == null || !item.getSeller().equals(user)) {
-            throw new RuntimeException("Unauthorized to reactivate this item");
-        }
-
-        if (item.getStatus() != ItemStatus.SOLD) {
-            throw new RuntimeException("Only sold items can be reactivated");
-        }
-
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException("Item not found"));
         item.setStatus(ItemStatus.ACTIVE);
         return itemRepository.save(item);
     }
 
     public List<Item> getPurchasedItemsByUser(String userEmail) {
         User user = userService.getUserByEmail(userEmail);
-        if (user == null) {
-            throw new RuntimeException("User not found");
-        }
         return itemRepository.findByBuyerAndStatus(user, ItemStatus.SOLD);
     }
 }
