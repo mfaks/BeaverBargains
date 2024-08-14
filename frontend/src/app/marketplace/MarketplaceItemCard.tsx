@@ -9,8 +9,10 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { MarketplaceItemCardProps } from '@/types/MarketplaceItemCardProps'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Calendar, ChevronLeft, ChevronRight, Heart, MessageCircle, User } from 'lucide-react'
 import { Textarea } from '@/components/ui/textarea'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import DateIcon from '../DateIcon'
 
 const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggleFavorite, getFullImageUrl }) => {
     const { user, token } = useAuth()
@@ -21,6 +23,18 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
     const [messageContent, setMessageContent] = useState(`Hi ${item.seller.firstName}, my name is ${user?.firstName} and I'm interested in your item: ${item.title}`)
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const [fullImageUrls, setFullImageUrls] = useState<string[]>([])
+    const [sellerProfileImageUrl, setSellerProfileImageUrl] = useState('')
+
+    const BASE_URL = 'http://localhost:8080'
+    const getFullProfileImageUrl = (imageUrl: string | undefined): string => {
+        if (!imageUrl) {
+            return ''
+        }
+        if (imageUrl.startsWith('http')) {
+            return imageUrl
+        }
+        return `${BASE_URL}/uploads/${imageUrl}`
+    }
 
     useEffect(() => {
         setIsFavorited(item.isFavorited)
@@ -28,8 +42,9 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
 
     useEffect(() => {
         setCurrentImageIndex(0)
+        setSellerProfileImageUrl(getFullProfileImageUrl(item.seller.profileImageUrl))
         setFullImageUrls(getFullImageUrl(item.imageUrls || []))
-    }, [item.imageUrls, getFullImageUrl])
+    }, [item.imageUrls, item.seller.profileImageUrl, getFullImageUrl])
 
     const handleFavoriteToggle = (e: React.MouseEvent) => {
         e.stopPropagation()
@@ -48,7 +63,6 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
             const existingConversation = conversationsResponse.data.find(
                 (conv: { user1: { id: number }; user2: { id: number } }) => (conv.user1.id === item.seller.id || conv.user2.id === item.seller.id)
             )
-
             if (existingConversation) {
                 conversationId = existingConversation.id
             } else {
@@ -125,8 +139,8 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
                     <Button
                         className="w-full bg-orange-500 hover:bg-orange-600 text-white text-sm py-1"
                         onClick={(e) => {
-                            e.stopPropagation();
-                            setIsMessageDialogOpen(true);
+                            e.stopPropagation()
+                            setIsMessageDialogOpen(true)
                         }}
                     >
                         {`Message ${item.seller.firstName}`}
@@ -134,61 +148,87 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
                 </div>
             </Card>
             <Dialog open={isFullDetailsOpen} onOpenChange={setIsFullDetailsOpen}>
-                <DialogContent className="max-w-3xl">
-                    <DialogHeader>
-                        <DialogTitle>{item.title}</DialogTitle>
-                    </DialogHeader>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="relative">
+                <DialogContent className="max-w-4xl p-0 overflow-hidden">
+                    <div className="flex flex-col md:flex-row">
+                        <div className="w-full md:w-1/2 relative">
                             <img
                                 src={fullImageUrls[currentImageIndex] || '/placeholder-image.jpg'}
                                 alt={`${item.title} - Image ${currentImageIndex + 1}`}
-                                className="w-full h-64 object-cover rounded-lg"
+                                className="w-full h-full object-cover"
                             />
                             {fullImageUrls.length > 1 && (
                                 <>
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/70 hover:bg-orange-500 hover:text-white rounded-full p-1"
+                                        className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-orange-500 text-white rounded-full p-2"
                                         onClick={prevImage}
                                     >
-                                        <ChevronLeft className="h-4 w-4" />
+                                        <ChevronLeft className="h-8 w-8" />
                                     </Button>
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/70 hover:bg-orange-500 hover:text-white rounded-full p-1"
+                                        className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-orange-500 text-white rounded-full p-2"
                                         onClick={nextImage}
                                     >
-                                        <ChevronRight className="h-4 w-4" />
+                                        <ChevronRight className="h-8 w-8" />
                                     </Button>
                                 </>
                             )}
                         </div>
-                        <div>
-                            <p className="text-2xl font-bold text-orange-600 mb-2">${item.price.toFixed(2)}</p>
-                            <p className="text-sm text-gray-600 mb-4">{item.description}</p>
-                            <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
-                                <span>Listed on: {new Date(item.listingDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                                <span>Seller: {item.seller.firstName} {item.seller.lastName}</span>
+                        <div className="w-full md:w-1/2 p-6 bg-gray-50">
+                            <DialogHeader>
+                                <DialogTitle className="text-2xl font-bold text-gray-800 mb-2">{item.title}</DialogTitle>
+                            </DialogHeader>
+                            <p className="text-3xl font-bold text-orange-600 mb-4">${item.price.toFixed(2)}</p>
+                            <p className="text-gray-600 mb-6 leading-relaxed">Description: {item.description}</p>
+                            <div className="flex flex-col space-y-4 text-base text-gray-500 mb-6">
+                                <div className="flex items-center">
+                                    <div className="w-16 flex justify-center items-center">
+                                        <Avatar className="h-16 w-16 border-2 border-white">
+                                            <AvatarImage src={sellerProfileImageUrl || '/default-profile-image.jpg'} alt={`${item.seller.firstName} ${item.seller.lastName}`} />
+                                            <AvatarFallback className="bg-orange-500 text-white text-xl">
+                                                {item.seller.firstName.charAt(0).toUpperCase()}
+                                                {item.seller.lastName ? item.seller.lastName.charAt(0).toUpperCase() : ''}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    </div>
+                                    <span className="text-lg ml-3">Seller: {item.seller.firstName} {item.seller.lastName}</span>
+                                </div>
+                                <div className="flex items-center">
+                                    <div className="w-16 flex justify-center items-center">
+                                        <DateIcon date={new Date(item.listingDate)} />
+                                    </div>
+                                    <span className="text-lg ml-3">Listed on: {new Date(item.listingDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                </div>
                             </div>
-                            <div className="flex flex-wrap gap-2 mb-4">
+                            <div className="flex flex-wrap gap-2 mb-6">
                                 {item.tags.map((tag, index) => (
-                                    <span key={index} className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
+                                    <span key={index} className="bg-orange-100 text-orange-800 text-sm px-3 py-1 rounded-full">
                                         {tag}
                                     </span>
                                 ))}
                             </div>
-                            <Button
-                                className="w-full bg-orange-500 hover:bg-orange-600 text-white"
-                                onClick={() => {
-                                    setIsFullDetailsOpen(false)
-                                    setIsMessageDialogOpen(true)
-                                }}
-                            >
-                                {`Message ${item.seller.firstName}`}
-                            </Button>
+                            <div className="flex space-x-4">
+                                <Button
+                                    className="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-3"
+                                    onClick={() => {
+                                        setIsFullDetailsOpen(false)
+                                        setIsMessageDialogOpen(true)
+                                    }}
+                                >
+                                    <MessageCircle className="h-6 w-6 mr-3" />
+                                    <span className="text-lg">Message {item.seller.firstName}</span>
+                                </Button>
+                                <Button
+                                    className={`flex-1 ${isFavorited ? 'bg-orange-100 text-orange-600' : 'bg-gray-200 text-gray-600'} hover:bg-orange-200 py-3`}
+                                    onClick={handleFavoriteToggle}
+                                >
+                                    <Heart className={`h-6 w-6 mr-3 ${isFavorited ? 'fill-current' : ''}`} />
+                                    <span className="text-lg">{isFavorited ? 'Favorited' : 'Add to Favorites'}</span>
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </DialogContent>

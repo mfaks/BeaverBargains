@@ -14,6 +14,7 @@ import EmptyStateCard from '@/components/ui/EmptyStateCard'
 import { SkeletonCard } from '@/components/ui/SkeletonCard'
 import { FaShoppingBasket } from 'react-icons/fa'
 import { Item } from '@/types/Item'
+import BeaverIcon from '@/components/ui/BeaverIcon'
 
 export default function Marketplace({ searchQuery }: { searchQuery: string }) {
     const { isAuthenticated, token } = useAuth()
@@ -26,11 +27,14 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
     const [modalOpen, setModalOpen] = useState(false)
     const [minPrice, setMinPrice] = useState<number>(0)
     const [maxPrice, setMaxPrice] = useState<number>(Infinity)
+    const [originalMinPrice, setOriginalMinPrice] = useState<number>(0)
+    const [originalMaxPrice, setOriginalMaxPrice] = useState<number>(0)
     const [loading, setLoading] = useState(true)
     const [descriptionSearch, setDescriptionSearch] = useState('')
     const [tagSearch, setTagSearch] = useState('')
     const [allTags, setAllTags] = useState<string[]>([])
     const [selectedTags, setSelectedTags] = useState<string[]>([])
+    const [currentSearchQuery, setCurrentSearchQuery] = useState(searchQuery)
 
     if (!isAuthenticated) {
         return (
@@ -44,15 +48,12 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
 
     const BASE_URL = `http://localhost:8080`
     const getFullImageUrl = (imageUrls: string | string[]): string[] => {
+        const processUrl = (url: string) => url.startsWith('http') ? url : `${BASE_URL}/uploads/${url}`
+
         if (Array.isArray(imageUrls)) {
-            return imageUrls.map(url => {
-                if (url.startsWith('http')) {
-                    return url
-                }
-                return `${BASE_URL}/uploads/${url}`
-            })
+            return imageUrls.map(processUrl)
         }
-        return [imageUrls.startsWith('http') ? imageUrls : `${BASE_URL}/uploads/${imageUrls}`]
+        return [processUrl(imageUrls)]
     }
 
     useEffect(() => {
@@ -92,14 +93,17 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
             setAllItems(items)
             setFilteredItems(items)
 
-            // Extract all unique tags from the items
             const uniqueTags = new Set(items.flatMap(item => item.tags || []))
             setAllTags(Array.from(uniqueTags))
 
             if (items.length > 0) {
                 const prices = items.map(item => item.price)
-                setMinPrice(Math.min(...prices))
-                setMaxPrice(Math.max(...prices))
+                const minItemPrice = Math.min(...prices)
+                const maxItemPrice = Math.max(...prices)
+                setMinPrice(minItemPrice)
+                setMaxPrice(maxItemPrice)
+                setOriginalMinPrice(minItemPrice)
+                setOriginalMaxPrice(maxItemPrice)
             }
 
             setLoading(false)
@@ -213,7 +217,7 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
 
     const applyFilters = (descSearch: string, tags: string[], min: number, max: number) => {
         let filtered = allItems
-        
+
         if (descSearch) {
             filtered = filtered.filter(item =>
                 item.description.toLowerCase().includes(descSearch.toLowerCase()) ||
@@ -227,16 +231,30 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
             )
         }
 
-        filtered = filtered.filter(item => 
+        filtered = filtered.filter(item =>
             item.price >= min && item.price <= max
         )
 
         setFilteredItems(filtered)
     }
 
+    const [resetTrigger, setResetTrigger] = useState(0)
+
+    const handleClearFilters = () => {
+        setDescriptionSearch('')
+        setTagSearch('')
+        setSelectedTags([])
+        setMinPrice(originalMinPrice)
+        setMaxPrice(originalMaxPrice)
+        setResetTrigger(prev => prev + 1)
+        setFilteredItems(allItems)
+        setCurrentSearchQuery('')
+        router.push('/marketplace')
+    }
+
     return (
         <div className='flex flex-col min-h-screen bg-orange-50 text-orange-500'>
-            <Navbar />
+            <Navbar searchQuery={currentSearchQuery} />
             <div className='flex flex-1 overflow-hidden'>
                 <FilterSidebar
                     sortOptions={[
@@ -254,51 +272,47 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
                     onTagSearch={handleTagSearch}
                     onTagFilter={handleTagFilter}
                     allTags={allTags}
+                    resetTrigger={resetTrigger}
                 />
-                <main className='flex-1 overflow-y-auto pl-0 pr-6 py-6'>
-                    <div className='max-w-6xl mx-auto'>
-                        {loading ? (
-                            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
-                                {[...Array(8)].map((_, index) => (
-                                    <SkeletonCard key={index} />
-                                ))}
-                            </div>
-                        ) : filteredItems.length > 0 ? (
-                            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
-                                {filteredItems.map(item => (
-                                    <MarketplaceItemCard
-                                        key={item.id}
-                                        item={item}
-                                        onToggleFavorite={toggleFavorite}
-                                        getFullImageUrl={getFullImageUrl}
-                                    />
-                                ))}
-                            </div>
-                        ) : (
-                            <EmptyStateCard
-                                title='No items found'
-                                description='There are currently no items in the marketplace matching your criteria.'
-                                actionText='Clear Filters'
-                                onAction={() => {
-                                    setDescriptionSearch('')
-                                    setTagSearch('')
-                                    setSelectedTags([])
-                                    setMinPrice(0)
-                                    setMaxPrice(Infinity)
-                                    fetchItems('', [], '')
-                                }}
-                                icon={<FaShoppingBasket className='text-orange-500 text-5xl' />}
-                            />
-                        )}
+                <div className='flex-1 flex flex-col overflow-hidden'>
+                    <div className='bg-orange-100 py-4 mb-6 flex items-center justify-center'>
+                        <BeaverIcon className='text-orange-700 mr-4' />
+                        <h1 className='text-2xl font-bold text-center text-orange-700'> Welcome to the Marketplace </h1>
+                        <BeaverIcon className='text-orange-700 ml-4' />
                     </div>
-                </main>
+                    <main className='flex-1 overflow-y-auto pl-0 pr-6 py-6'>
+                        <div className='max-w-6xl mx-auto'>
+                            {loading ? (
+                                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
+                                    {[...Array(8)].map((_, index) => (
+                                        <SkeletonCard key={index} />
+                                    ))}
+                                </div>
+                            ) : filteredItems.length > 0 ? (
+                                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
+                                    {filteredItems.map(item => (
+                                        <MarketplaceItemCard
+                                            key={item.id}
+                                            item={item}
+                                            onToggleFavorite={toggleFavorite}
+                                            getFullImageUrl={getFullImageUrl}
+                                        />
+                                    ))}
+                                </div>
+                            ) : (
+                                <EmptyStateCard
+                                    title='No items found'
+                                    description='There are currently no items in the marketplace matching your criteria.'
+                                    actionText='Clear Filters'
+                                    onAction={handleClearFilters}
+                                    icon={<FaShoppingBasket className='text-orange-500 text-5xl' />}
+                                />
+                            )}
+                        </div>
+                    </main>
+                </div>
             </div>
             <Footer />
-            <UnauthorizedModal
-                isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                message={errorMessage}
-            />
         </div>
     )
 }
