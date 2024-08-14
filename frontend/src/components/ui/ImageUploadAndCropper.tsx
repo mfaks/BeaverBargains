@@ -128,7 +128,7 @@ const ImageUploadAndCropper = forwardRef<HTMLDivElement, ImageUploadAndCropperPr
           className='text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white'
           onClick={() => fileInputRef.current?.click()}
         >
-          Choose File
+          Choose New File
         </Button>
         {currentImage && (
           <Button
