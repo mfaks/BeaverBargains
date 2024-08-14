@@ -11,19 +11,22 @@ import { useAuth } from '../../app/auth/AuthContext'
 import { useUnreadMessages } from '../../app/messages/UnreadMessagesContext'
 import { Input } from '@/components/ui/input'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { User } from '@/types/User'
 import { ShoppingBag } from 'lucide-react'
+import { useToast } from '@/components/ui/use-toast'
 
-export default function NavBar() {
+interface NavBarProps {
+  searchQuery?: string;
+}
+
+export default function NavBar({ searchQuery = '' }: NavBarProps) {
   const { isAuthenticated, user, logout, token } = useAuth()
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState(searchQuery)
   const { unreadCount, fetchUnreadCount, clearUnreadCount } = useUnreadMessages()
   const router = useRouter()
   const [fullProfileImageUrl, setFullProfileImageUrl] = useState('')
+  const { toast } = useToast()
 
   useEffect(() => {
     if (isAuthenticated && token) {
@@ -57,6 +60,10 @@ export default function NavBar() {
     fetchUserInfo()
   }, [isAuthenticated, user])
 
+  useEffect(() => {
+    setSearchTerm(searchQuery)
+  }, [searchQuery])
+
   const BASE_URL = 'http://localhost:8080'
   const getFullImageUrl = (imageUrl: string | undefined): string => {
     if (!imageUrl) {
@@ -71,23 +78,28 @@ export default function NavBar() {
   const handleLogout = async () => {
     logout()
     clearUnreadCount()
-    setIsDialogOpen(true)
+    toast({
+      title: "Logout Successful",
+      description: "You have been successfully logged out of your account.",
+      duration: 3000,
+    })
     setTimeout(() => {
-      setIsDialogOpen(false)
       window.location.href = `/login`
-    }, 2000)
+    }, 3000)
   }
 
-  const handleSearch = (e: { preventDefault: () => void }) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (isAuthenticated && searchTerm.trim()) {
-      router.push(`/marketplace?search=${encodeURIComponent(searchTerm.trim())}`)
-    }
-    else if (!isAuthenticated) {
+    if (isAuthenticated) {
+      if (searchTerm.trim()) {
+        router.push(`/marketplace?search=${encodeURIComponent(searchTerm.trim())}`)
+      } else {
+        router.push('/marketplace')
+      }
+    } else {
       router.push('/login')
     }
   }
-
 
   return (
     <div className="sticky top-0 z-50 w-full">
@@ -128,7 +140,7 @@ export default function NavBar() {
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="p-0 h-auto hover:bg-orange-900 border-2 border-orange-500 rounded-full">
+              <Button variant="ghost" className="p-0 h-auto hover:bg-orange-900 border-2 border-orange-500 rounded-full relative">
                 <div className="flex items-center space-x-1 p-1">
                   {isAuthenticated && user ? (
                     <Avatar className="w-8 h-8 border-2 border-orange-500">
@@ -143,6 +155,11 @@ export default function NavBar() {
                   )}
                   <FaBars className="text-lg text-orange-500" />
                 </div>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56 bg-orange-50 text-orange-900 border border-orange-200 shadow-lg">
@@ -152,9 +169,14 @@ export default function NavBar() {
               <DropdownMenuSeparator className="bg-orange-200" />
               {isAuthenticated ? (
                 <div>
-                  <DropdownMenuItem className="hover:bg-orange-100 focus:bg-orange-100">
+                  <DropdownMenuItem className="hover:bg-orange-100 focus:bg-orange-100 relative">
                     <Link href="/messages" className="w-full flex items-center text-orange-700">
                       <FaFacebookMessenger className="mr-2" /> Messages
+                      {unreadCount > 0 && (
+                        <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                          {unreadCount}
+                        </span>
+                      )}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="hover:bg-orange-100 focus:bg-orange-100">
@@ -205,19 +227,6 @@ export default function NavBar() {
           </DropdownMenu>
         </nav>
       </header>
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-black text-orange-500">
-          <DialogHeader>
-            <DialogTitle className="text-orange-500">Logout Successful</DialogTitle>
-            <DialogDescription className="text-orange-300">
-              You have been successfully logged out of your account. Now redirecting you back to login.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => setIsDialogOpen(false)} className="bg-orange-500 hover:bg-orange-600 text-black">Close</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
