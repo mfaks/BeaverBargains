@@ -14,7 +14,7 @@ import { SkeletonCard } from '@/components/ui/SkeletonCard'
 import { FaClipboardList } from 'react-icons/fa'
 import { Item } from '@/types/Item'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import BeaverIcon from '@/components/ui/BeaverIcon'
 
 export default function Listings() {
     const [activeItems, setActiveItems] = useState<Item[]>([])
@@ -34,6 +34,7 @@ export default function Listings() {
     const [allTags, setAllTags] = useState<string[]>([])
     const [selectedTags, setSelectedTags] = useState<string[]>([])
     const [showNoResultsModal, setShowNoResultsModal] = useState(false)
+    const [resetTrigger, setResetTrigger] = useState(0)
 
     useEffect(() => {
         if (!isAuthenticated || !token) {
@@ -47,14 +48,22 @@ export default function Listings() {
         }
     }, [isAuthenticated, token, router])
 
+    useEffect(() => {
+        setFilteredItems(activeTab === 'active' ? activeItems : soldItems)
+    }, [activeTab, activeItems, soldItems])
+
     const fetchItems = async () => {
         setLoading(true)
         try {
             const activeResponse = await axios.get<Item[]>(`http://localhost:8080/api/items/user/active`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             })
             const soldResponse = await axios.get<Item[]>(`http://localhost:8080/api/items/user/sold`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             })
 
             const activeItems = activeResponse.data
@@ -130,6 +139,7 @@ export default function Listings() {
         setSelectedTags([])
         setFilteredItems(activeTab === 'active' ? activeItems : soldItems)
         setShowNoResultsModal(false)
+        setResetTrigger(prev => prev + 1)
     }
 
     const toggleSelectItem = (itemId: number) => {
@@ -152,10 +162,11 @@ export default function Listings() {
     }
 
     const handleMarkAsSold = async (itemId: number, buyerId: number, purchaseDate: string) => {
+        const formattedDate = purchaseDate.replace('Z', '')
         try {
             const response = await axios.put<Item>(
-                `http://localhost:8080/api/items/${itemId}/mark-as-sold`,
-                { buyerId, purchaseDate },
+                `http://localhost:8080/api/items/${itemId}/mark-as-sold?buyerId=${buyerId}&purchaseDate=${encodeURIComponent(formattedDate)}`,
+                {},
                 {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }
@@ -163,7 +174,11 @@ export default function Listings() {
             const updatedItem = response.data
             setActiveItems(prev => prev.filter(item => item.id !== itemId))
             setSoldItems(prev => [...prev, updatedItem])
-            setFilteredItems(prev => prev.filter(item => item.id !== itemId))
+            setFilteredItems(prev =>
+                activeTab === 'active'
+                    ? prev.filter(item => item.id !== itemId)
+                    : [...prev, updatedItem]
+            )
 
             toast({
                 title: 'Success',
@@ -210,41 +225,41 @@ export default function Listings() {
         return `${BASE_URL}/uploads/${imageUrl}`
     }
 
-
     return (
         <div className="flex flex-col min-h-screen bg-orange-50">
             <Navbar />
-            <div className="flex flex-1 overflow-hidden mb-10">
-                {!loading && (activeItems.length > 0 || soldItems.length > 0) && (
-                    <aside className="w-64 bg-orange-50 flex-shrink-0">
-                        <FilterSidebar
-                            sortOptions={[
-                                { label: 'Price: Low to High', value: 'price_asc' },
-                                { label: 'Price: High to Low', value: 'price_desc' },
-                                { label: 'Newest First', value: 'date_desc' },
-                                { label: 'Oldest First', value: 'date_asc' }
-                            ]}
-                            priceFilter={true}
-                            minPrice={minPrice}
-                            maxPrice={maxPrice}
-                            onSort={handleSort}
-                            onPriceFilter={handlePriceFilter}
-                            onDescriptionSearch={handleDescriptionSearch}
-                            onTagSearch={handleTagSearch}
-                            onTagFilter={handleTagFilter}
-                            allTags={allTags}
-                        />
-                    </aside>
-                )}
-                <main className="flex-1 overflow-y-auto pl-0 pr-6 py-6">
-                    <div className="max-w-4xl mx-auto">
-                        <div className="flex justify-center mb-6">
-                            <h1 className="text-3xl font-bold text-orange-500 border-b-2 border-orange-500 pb-1">
-                                Your Listings
-                            </h1>
+            <div className="flex flex-1 overflow-hidden">
+                <aside className="w-64 bg-orange-50 flex-shrink-0 border-r border-orange-200">
+                    <FilterSidebar
+                        sortOptions={[
+                            { label: 'Price: Low to High', value: 'price_asc' },
+                            { label: 'Price: High to Low', value: 'price_desc' },
+                            { label: 'Newest First', value: 'date_desc' },
+                            { label: 'Oldest First', value: 'date_asc' }
+                        ]}
+                        priceFilter={true}
+                        minPrice={minPrice}
+                        maxPrice={maxPrice}
+                        onSort={handleSort}
+                        onPriceFilter={handlePriceFilter}
+                        onDescriptionSearch={handleDescriptionSearch}
+                        onTagSearch={handleTagSearch}
+                        onTagFilter={handleTagFilter}
+                        allTags={allTags}
+                        resetTrigger={resetTrigger}
+                    />
+                </aside>
+                <main className="flex-1 overflow-y-auto">
+                    <div className="bg-orange-100 py-4 w-full sticky top-0 z-10">
+                        <div className="max-w-6xl mx-auto flex items-center justify-center">
+                            <BeaverIcon className="text-orange-700 mr-4" />
+                            <h1 className="text-2xl font-bold text-center text-orange-700">Your Listing History</h1>
+                            <BeaverIcon className="text-orange-700 ml-4" />
                         </div>
+                    </div>
+                    <div className="max-w-6xl mx-auto p-6">
                         <Tabs defaultValue="active" className="w-full mb-6">
-                            <TabsList>
+                            <TabsList className="grid w-full grid-cols-2">
                                 <TabsTrigger
                                     value="active"
                                     onClick={() => {
@@ -266,13 +281,13 @@ export default function Listings() {
                             </TabsList>
                             <TabsContent value="active">
                                 {loading ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                                        {[...Array(6)].map((_, index) => (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                        {[...Array(8)].map((_, index) => (
                                             <SkeletonCard key={index} />
                                         ))}
                                     </div>
-                                ) : activeItems.length > 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                ) : filteredItems.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                                         {filteredItems.map(item => (
                                             <ListingItemCard
                                                 key={item.id}
@@ -283,29 +298,29 @@ export default function Listings() {
                                                 token={token}
                                                 onItemUpdate={handleItemUpdate}
                                                 onMarkAsSold={handleMarkAsSold}
-                                                isSold={item.status === 'SOLD'}
+                                                isSold={false}
                                             />
                                         ))}
                                     </div>
                                 ) : (
                                     <EmptyStateCard
-                                        title="No active listings"
-                                        description="You don't have any active listings. Start selling to see your listings here!"
-                                        actionText="Create Listing"
-                                        onAction={() => router.push('/sell')}
+                                        title={activeItems.length > 0 ? "No items found" : "No active listings"}
+                                        description={activeItems.length > 0 ? "There are no items matching your current filters." : "You don't have any active listings. Start selling to see your listings here!"}
+                                        actionText={activeItems.length > 0 ? "Clear Filters" : "Create Listing"}
+                                        onAction={activeItems.length > 0 ? clearFilters : () => router.push('/sell')}
                                         icon={<FaClipboardList className="text-orange-500" />}
                                     />
                                 )}
                             </TabsContent>
                             <TabsContent value="sold">
                                 {loading ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                                        {[...Array(6)].map((_, index) => (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                        {[...Array(8)].map((_, index) => (
                                             <SkeletonCard key={index} />
                                         ))}
                                     </div>
-                                ) : soldItems.length > 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                ) : filteredItems.length > 0 ? (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                                         {filteredItems.map(item => (
                                             <ListingItemCard
                                                 key={item.id}
@@ -316,19 +331,16 @@ export default function Listings() {
                                                 token={token}
                                                 onItemUpdate={handleItemUpdate}
                                                 onMarkAsSold={handleMarkAsSold}
-                                                isSold={item.status === 'SOLD'}
+                                                isSold={true}
                                             />
                                         ))}
                                     </div>
                                 ) : (
                                     <EmptyStateCard
-                                        title="No sold items"
-                                        description="You haven't sold any items yet. Keep listing and promoting your items!"
-                                        actionText="View Active Listings"
-                                        onAction={() => {
-                                            setActiveTab('active')
-                                            setFilteredItems(activeItems)
-                                        }}
+                                        title={soldItems.length > 0 ? "No items found" : "No sold items"}
+                                        description={soldItems.length > 0 ? "There are no items matching your current filters." : "You haven't sold any items yet. Keep listing and promoting your items!"}
+                                        actionText={soldItems.length > 0 ? "Clear Filters" : "View Active Listings"}
+                                        onAction={soldItems.length > 0 ? clearFilters : () => setActiveTab('active')}
                                         icon={<FaClipboardList className="text-orange-500" />}
                                     />
                                 )}
@@ -338,17 +350,6 @@ export default function Listings() {
                 </main>
             </div>
             <Footer />
-            <Dialog open={showNoResultsModal} onOpenChange={setShowNoResultsModal}>
-                <DialogContent>
-                    <EmptyStateCard
-                        title="No items found"
-                        description="There are no items matching your current filters."
-                        actionText="Clear Filters"
-                        onAction={clearFilters}
-                        icon={<FaClipboardList className="text-orange-500" />}
-                    />
-                </DialogContent>
-            </Dialog>
         </div>
     )
 }
