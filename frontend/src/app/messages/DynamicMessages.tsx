@@ -8,6 +8,10 @@ import Conversations from './Conversations'
 import MessageThread from './MessageThread'
 import { Conversation } from '@/types/Conversation'
 import UnauthorizedModal from '@/components/ui/UnauthorizedModal'
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels'
+import EmptyStateCard from '@/components/ui/EmptyStateCard'
+import { FaComments, FaShoppingCart } from 'react-icons/fa'
+import BeaverIcon from '@/components/ui/BeaverIcon'
 
 const DynamicMessages: React.FC = () => {
     const { isAuthenticated, user } = useAuth()
@@ -61,6 +65,10 @@ const DynamicMessages: React.FC = () => {
         fetchUnreadCount()
     }
 
+    const handleNavigateToMarketplace = () => {
+        router.push('/marketplace')
+    }
+
     if (!isAuthenticated || !user) {
         return (
             <UnauthorizedModal
@@ -72,29 +80,55 @@ const DynamicMessages: React.FC = () => {
     }
 
     return (
-        <main className='flex-1 container mx-auto p-4 flex'>
-            <Conversations
-                userId={user.id}
-                conversations={conversations}
-                setConversations={setConversations}
-                onSelectConversation={handleConversationSelect}
-                selectedConversationId={selectedConversation?.id ?? null}
-                onConversationRead={handleConversationRead}
-            />
-
-            {selectedConversation ? (
-                <MessageThread
-                    userId={user.id}
-                    conversationId={selectedConversation.id}
-                    otherUserId={selectedConversation.otherUserId}
-                    updateLastMessage={updateLastMessage}
-                />
-            ) : (
-                <div className='flex-1 flex items-center justify-center text-gray-500'>
-                    Select a conversation to start messaging
-                </div>
-            )}
-        </main>
+        <div className="flex flex-col h-screen bg-orange-50 text-orange-500">
+            <div className="flex-1 overflow-hidden">
+                <PanelGroup direction="horizontal">
+                    <Panel defaultSize={15} minSize={15}>
+                        <div className="h-full overflow-y-auto bg-orange-100">
+                            <Conversations
+                                userId={user.id}
+                                conversations={conversations}
+                                setConversations={setConversations}
+                                onSelectConversation={handleConversationSelect}
+                                selectedConversationId={selectedConversation?.id ?? null}
+                                onConversationRead={handleConversationRead}
+                            />
+                        </div>
+                    </Panel>
+                    <PanelResizeHandle className="w-1 bg-orange-300 hover:bg-orange-400 transition-colors" />
+                    <Panel>
+                        {selectedConversation ? (
+                            <MessageThread
+                                userId={user.id}
+                                conversationId={selectedConversation.id}
+                                otherUserId={selectedConversation.otherUserId}
+                                updateLastMessage={updateLastMessage}
+                            />
+                        ) : (
+                            <div className='flex items-center justify-center h-full bg-orange-50'>
+                                {conversations.length === 0 ? (
+                                    <EmptyStateCard
+                                        title="No Conversations Yet"
+                                        description="Start chatting with sellers by browsing items in the marketplace"
+                                        actionText="Go to Marketplace"
+                                        onAction={handleNavigateToMarketplace}
+                                        icon={<FaShoppingCart className="text-orange-500 text-5xl" />}
+                                    />
+                                ) : (
+                                    <EmptyStateCard
+                                        title="No Conversation Selected"
+                                        description="Choose a conversation from the list to start messaging"
+                                        actionText="Select a Conversation"
+                                        onAction={() => { }}
+                                        icon={<FaComments className="text-orange-500 text-5xl" />}
+                                    />
+                                )}
+                            </div>
+                        )}
+                    </Panel>
+                </PanelGroup>
+            </div>
+        </div>
     )
 }
 
