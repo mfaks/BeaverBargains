@@ -24,6 +24,7 @@ import com.example.beaver_bargains.service.UserService;
 @RestController
 @RequestMapping("/api/messages")
 public class MessageController {
+    
     @Autowired
     private MessageService messageService;
 
