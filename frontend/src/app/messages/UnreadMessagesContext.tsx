@@ -2,7 +2,7 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react'
 import axios from 'axios'
-import { useAuth } from '../auth/AuthContext'
+import { useAuth } from '../../components/auth/AuthContext'
 import { UnreadMessagesContextType } from '@/types/UnreadMessageContextType'
 
 const UnreadMessagesContext = createContext<UnreadMessagesContextType | undefined>(undefined)

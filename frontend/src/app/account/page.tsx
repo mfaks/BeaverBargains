@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import axios from 'axios'
-import { useAuth } from '../auth/AuthContext'
+import { useAuth } from '../../components/auth/AuthContext'
 import UnauthorizedModal from '@/components/ui/UnauthorizedModal'
 import ImageUploadAndCropper from '@/components/ui/ImageUploadAndCropper'
 import { z } from 'zod'

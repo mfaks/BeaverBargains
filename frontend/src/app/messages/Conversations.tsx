@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '../auth/AuthContext'
+import { useAuth } from '../../components/auth/AuthContext'
 import UnauthorizedModal from '@/components/ui/UnauthorizedModal'
 import { Conversation } from '@/types/Conversation'
 import { User } from '@/types/User'

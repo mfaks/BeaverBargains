@@ -12,7 +12,7 @@ import { OrderItem } from '@/types/OrderItem'
 import { SkeletonCard } from '@/components/ui/SkeletonCard'
 import EmptyStateCard from '@/components/ui/EmptyStateCard'
 import { FaSearch, FaShoppingBag } from 'react-icons/fa'
-import { useAuth } from '../auth/AuthContext'
+import { useAuth } from '../../components/auth/AuthContext'
 
 export default function Orders() {
     const { token } = useAuth()

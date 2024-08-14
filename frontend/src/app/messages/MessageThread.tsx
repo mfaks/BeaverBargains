@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '../auth/AuthContext'
+import { useAuth } from '../../components/auth/AuthContext'
 import { Conversation } from '@/types/Conversation'
 import { Message } from '@/types/Message'
 import { MessageThreadProps } from '@/types/MessageThreadProps'

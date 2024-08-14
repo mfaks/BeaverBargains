@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useAuth } from '../auth/AuthContext'
+import { useAuth } from '../../components/auth/AuthContext'
 import { useUnreadMessages } from './UnreadMessagesContext'
 import Conversations from './Conversations'
 import MessageThread from './MessageThread'
