@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/components/ui/use-toast'
 import { Separator } from '@/components/ui/separator'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { useAuth } from '@/components/auth/AuthContext'
 
 const passwordSchema = z.string()
     .min(8, 'Password must be at least 8 characters')
@@ -39,6 +40,7 @@ const createAccountSchema = z.object({
 type RegistrationForm = z.infer<typeof createAccountSchema>
 
 export default function Register() {
+    const { login } = useAuth()
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const { toast } = useToast()
     const router = useRouter()
@@ -64,6 +66,8 @@ export default function Register() {
                 email: values.email,
                 password: values.password
             })
+            const { user, token } = response.data
+            login(user, token)
             setUserFirstName(values.firstName)
             setIsRegistrationSuccessful(true)
             setErrorMessage(null)
