@@ -212,8 +212,8 @@ public class ItemService {
             throw new RuntimeException("User not found");
         }
         return itemRepository.findBySeller(user).stream()
-                .filter(Item::isActive)
-                .collect(Collectors.toList());
+            .filter(Item::isActive)
+            .collect(Collectors.toList());
     }
 
     public List<Item> getSoldItemsByUser(String userEmail) {
@@ -223,7 +223,7 @@ public class ItemService {
         }
         return itemRepository.findBySeller(user).stream()
             .filter(Item::isSold)
-                    .collect(Collectors.toList());
+                .collect(Collectors.toList());
     }
 
     public Item markItemAsSold(Long itemId, Long buyerId, LocalDateTime purchaseDate, String sellerEmail) {

@@ -34,11 +34,9 @@ public class MessageController {
     private UserService userService;
 
     @PostMapping
-    public ResponseEntity<Conversation> getOrCreateConversation(@RequestBody ConversationDto conversationDto,
-            Authentication authentication) {
+    public ResponseEntity<Conversation> getOrCreateConversation(@RequestBody ConversationDto conversationDto, Authentication authentication) {
         String senderEmail = authentication.getName();
-        Conversation conversation = messageService.getOrCreateConversation(senderEmail,
-                conversationDto.getReceiverId());
+        Conversation conversation = messageService.getOrCreateConversation(senderEmail, conversationDto.getReceiverId());
         return ResponseEntity.ok(conversation);
     }
 
@@ -57,8 +55,7 @@ public class MessageController {
     }
 
     @PostMapping("/conversations/{conversationId}/messages")
-    public ResponseEntity<Message> sendMessage(@PathVariable Long conversationId, @RequestBody MessageDto messageDto,
-            Authentication authentication) {
+    public ResponseEntity<Message> sendMessage(@PathVariable Long conversationId, @RequestBody MessageDto messageDto, Authentication authentication) {
         String senderEmail = authentication.getName();
         Message message = messageService.sendMessage(senderEmail, conversationId, messageDto.getContent());
         return ResponseEntity.ok(message);
@@ -89,8 +86,7 @@ public class MessageController {
     }
 
     @PostMapping("/conversations/{conversationId}/read")
-    public ResponseEntity<Void> markConversationAsRead(@PathVariable Long conversationId,
-            Authentication authentication) {
+    public ResponseEntity<Void> markConversationAsRead(@PathVariable Long conversationId, Authentication authentication) {
         String userEmail = authentication.getName();
         notificationService.markConversationAsRead(conversationId, userEmail);
         return ResponseEntity.ok().build();

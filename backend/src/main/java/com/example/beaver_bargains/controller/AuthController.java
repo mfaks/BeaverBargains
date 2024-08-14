@@ -80,10 +80,4 @@ public class AuthController {
         
         return ResponseEntity.ok(response);
     }
-
-    @PostMapping("/logout")
-    public ResponseEntity<?> logoutUser() {
-        //invalidate the token on the client-side
-        return ResponseEntity.ok("Logged out successfully");
-    }
 }
