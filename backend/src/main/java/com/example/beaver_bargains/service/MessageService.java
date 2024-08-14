@@ -54,8 +54,7 @@ public class MessageService {
         List<Conversation> conversations = conversationRepository.findByUser1OrUser2(currentUser, currentUser);
 
         return conversations.stream()
-            .map(conversation -> conversation.getUser1().equals(currentUser) ? conversation.getUser2()
-                : conversation.getUser1())
+            .map(conversation -> conversation.getUser1().equals(currentUser) ? conversation.getUser2(): conversation.getUser1())
             .distinct()
             .map(user -> new UserDto(user))
             .collect(Collectors.toList());

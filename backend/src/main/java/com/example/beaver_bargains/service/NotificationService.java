@@ -21,27 +21,23 @@ public class NotificationService {
     private UserRepository userRepository;
 
     public long getUnreadMessageCount(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return messageRepository.countByReceiverAndIsReadFalse(user);
     }
 
     public List<Message> getUnreadMessages(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return messageRepository.findByReceiverAndIsReadFalse(user);
     }
 
     public void markMessageAsRead(Long messageId) {
-        Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+        Message message = messageRepository.findById(messageId).orElseThrow(() -> new ResourceNotFoundException("Message not found"));
         message.setIsRead(true);
         messageRepository.save(message);
     }
 
     public void markConversationAsRead(Long conversationId, String userEmail) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = userRepository.findByEmail(userEmail).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         List<Message> unreadMessages = messageRepository.findByConversationIdAndReceiverAndIsReadFalse(conversationId, user);
         unreadMessages.forEach(message -> message.setIsRead(true));
         messageRepository.saveAll(unreadMessages);

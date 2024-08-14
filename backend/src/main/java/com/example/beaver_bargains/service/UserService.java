@@ -45,11 +45,11 @@ public class UserService implements UserDetailsService {
     }
 
     public User authenticateUser(UserLoginDto loginDto) {
-        User user = userRepository.findByEmail(loginDto.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user = userRepository.findByEmail(loginDto.getEmail()).orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if (passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
             return user;
-        } else {
+        } 
+        else {
             throw new BadCredentialsException("Invalid credentials");
         }
     }
@@ -60,13 +60,11 @@ public class UserService implements UserDetailsService {
     }
 
     public User getUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+        return userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
     }
 
     public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        return userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
 
     public boolean userExists(String email) {
@@ -75,20 +73,17 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
         return new CustomUserDetails(user);
     }
     
     public UserDto getUserDetails(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return new UserDto(user);
     }
 
     public UserDto updateBiography(Long userId, UserUpdateDto userUpdateDto) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         user.setBio(userUpdateDto.getBio());
         user = userRepository.save(user);
         return new UserDto(user);
@@ -101,8 +96,7 @@ public class UserService implements UserDetailsService {
     }
 
     public UserDto updateProfileImage(Long userId, MultipartFile image) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
 
         try {
             String imageUrl = fileStorageService.storeFile(image);
@@ -119,8 +113,7 @@ public class UserService implements UserDetailsService {
     }
 
     public UserDto removeProfileImage(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found with id " + userId));
 
         if (user.getProfileImageUrl() != null) {
             fileStorageService.deleteFile(user.getProfileImageUrl());
@@ -131,8 +124,7 @@ public class UserService implements UserDetailsService {
     }
 
     public void deleteUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         userRepository.delete(user);
     }
 }
