@@ -1,0 +1,3 @@
+interface NavBarProps {
+    searchQuery?: string
+}

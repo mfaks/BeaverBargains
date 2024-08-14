@@ -16,10 +16,6 @@ import { User } from '@/types/User'
 import { ShoppingBag } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
 
-interface NavBarProps {
-  searchQuery?: string;
-}
-
 export default function NavBar({ searchQuery = '' }: NavBarProps) {
   const { isAuthenticated, user, logout, token } = useAuth()
   const [searchTerm, setSearchTerm] = useState(searchQuery)
