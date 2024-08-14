@@ -146,5 +146,4 @@ public class Item {
     public void setStatus(ItemStatus status) {
         this.status = status;
     }
-
 }
