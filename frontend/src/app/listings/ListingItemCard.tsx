@@ -11,10 +11,14 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/use-toast'
 import FileInput from '@/components/ui/FileInput'
 import { Card } from '@/components/ui/card'
-import { Trash2Icon, ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { Trash2Icon, ChevronLeft, ChevronRight, X, MoreVertical } from 'lucide-react'
 import { Item } from '@/types/Item'
 import { ListingItemCardProps } from '@/types/ListingItemCard'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+
 
 const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl, isSelected, onToggleSelect, token, onItemUpdate, onMarkAsSold, isSold }) => {
 
@@ -23,17 +27,33 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
     const [editedItem, setEditedItem] = useState<Item>(item)
     const [priceInput, setPriceInput] = useState(item.price.toFixed(2))
     const [newImages, setNewImages] = useState<File[]>([])
-    const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>(item.imageUrls)
+    const [imagePreviewUrls, setImagePreviewUrls] = useState<{ url: string; isNew: boolean }[]>(item.imageUrls.map(url => ({ url, isNew: false })))
     const [selectedBuyerId, setSelectedBuyerId] = useState<string>('')
-    const [buyers, setBuyers] = useState<{ id: number; firstName: string; lastName: string; email: string }[]>([])
+    const [buyers, setBuyers] = useState<{ id: number; firstName: string; lastName: string; email: string; profileImageUrl: string }[]>([])
     const fileInputRef = useRef<HTMLInputElement>(null)
     const { toast } = useToast()
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
     const [newTag, setNewTag] = useState('')
+    const [isExpanded, setIsExpanded] = useState(false)
+    const [fullImageUrls, setFullImageUrls] = useState<string[]>([])
+    const [isUnsavedChanges, setIsUnsavedChanges] = useState(false)
+    const [isConfirmCloseDialogOpen, setIsConfirmCloseDialogOpen] = useState(false)
+    const [isConfirmSaveDialogOpen, setIsConfirmSaveDialogOpen] = useState(false)
+
+    const BASE_URL = 'http://localhost:8080'
+    const getFullProfileImageUrl = (imageUrl: string | undefined): string => {
+        if (!imageUrl) {
+            return '/default-profile-image.jpg'
+        }
+        if (imageUrl.startsWith('http')) {
+            return imageUrl
+        }
+        return `${BASE_URL}/uploads/${imageUrl}`
+    }
 
     useEffect(() => {
         setEditedItem(item)
-        setImagePreviewUrls(item.imageUrls)
+        setImagePreviewUrls(item.imageUrls.map(url => ({ url, isNew: false })))
         setPriceInput(item.price.toFixed(2))
     }, [item])
 
@@ -42,6 +62,11 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
             fetchBuyers()
         }
     }, [isMarkAsSoldModalOpen])
+
+    useEffect(() => {
+        setCurrentImageIndex(0)
+        setFullImageUrls(item.imageUrls.map(getFullImageUrl))
+    }, [item.imageUrls, getFullImageUrl])
 
     const fetchBuyers = async () => {
         try {
@@ -64,41 +89,51 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target
         setEditedItem(prev => ({ ...prev, [name]: value }))
+        setIsUnsavedChanges(true)
     }
 
     const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value
         if (/^\d*\.?\d{0,2}$/.test(value) || value === '') {
             setPriceInput(value)
-        }
-    }
-
-    const handlePriceBlur = () => {
-        if (priceInput !== '' && !isNaN(parseFloat(priceInput))) {
-            const numericPrice = parseFloat(parseFloat(priceInput).toFixed(2))
-            setEditedItem(prev => ({ ...prev, price: numericPrice }))
-            setPriceInput(numericPrice.toFixed(2))
-        } else if (priceInput === '') {
-            setEditedItem(prev => ({ ...prev, price: 0 }))
-            setPriceInput('0.00')
+            setIsUnsavedChanges(true)
         }
     }
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || [])
         if (files.length > 0) {
-            setNewImages(prevImages => [...prevImages, ...files])
-            const newPreviewUrls = files.map(file => URL.createObjectURL(file))
-            setImagePreviewUrls(prevUrls => [...prevUrls, ...newPreviewUrls])
+            const newTotalImages = imagePreviewUrls.length + files.length
+            if (newTotalImages <= 5) {
+                setNewImages(prevImages => [...prevImages, ...files])
+                const newPreviewUrls = files.map(file => ({
+                    url: URL.createObjectURL(file),
+                    isNew: true
+                }))
+                setImagePreviewUrls(prevUrls => [...prevUrls, ...newPreviewUrls])
+                setIsUnsavedChanges(true)
+            } else {
+                toast({
+                    title: 'Maximum Images Reached',
+                    description: 'You can only have a maximum of 5 images per listing.',
+                    variant: 'destructive',
+                    duration: 5000,
+                })
+            }
         }
     }
 
     const handleRemoveImage = (index: number) => {
         setImagePreviewUrls(prevUrls => prevUrls.filter((_, i) => i !== index))
         setNewImages(prevImages => prevImages.filter((_, i) => i !== index))
+        setIsUnsavedChanges(true)
     }
 
     const handleSave = async () => {
+        setIsConfirmSaveDialogOpen(true)
+    }
+
+    const confirmSave = async () => {
         try {
             const formData = new FormData()
 
@@ -111,8 +146,8 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                 type: 'application/json'
             }))
 
-            newImages.forEach((image, index) => {
-                formData.append(`images`, image)
+            newImages.forEach((image) => {
+                formData.append('images', image)
             })
 
             const response = await axios.put(`http://localhost:8080/api/items/${item.id}`, formData, {
@@ -123,6 +158,7 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
             })
             onItemUpdate(response.data)
             setIsEditModalOpen(false)
+            setIsUnsavedChanges(false)
             toast({
                 title: 'Success',
                 description: 'Item updated successfully.',
@@ -137,45 +173,24 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                 duration: 5000,
             })
         }
+        setIsConfirmSaveDialogOpen(false)
     }
 
-    const handleMarkAsSold = async () => {
-        if (!selectedBuyerId) {
-            toast({
-                title: 'Error',
-                description: 'Please select a buyer before marking the item as sold.',
-                variant: 'destructive',
-                duration: 5000,
-            });
-            return;
-        }
-        try {
-            const currentDate = new Date().toISOString();
-            await onMarkAsSold(item.id, parseInt(selectedBuyerId), currentDate);
-            setIsMarkAsSoldModalOpen(false);
-            toast({
-                title: 'Success',
-                description: 'Item marked as sold successfully.',
-                duration: 3000,
-            });
-        } catch (error) {
-            console.error('Error marking item as sold:', error);
-            toast({
-                title: 'Error',
-                description: 'Failed to mark item as sold. Please try again.',
-                variant: 'destructive',
-                duration: 5000
-            });
-        }
-    };
-
     const handleAddTag = () => {
-        if (newTag && !editedItem.tags.includes(newTag)) {
+        if (newTag && !editedItem.tags.includes(newTag) && editedItem.tags.length < 5) {
             setEditedItem(prev => ({
                 ...prev,
                 tags: [...prev.tags, newTag]
             }))
             setNewTag('')
+            setIsUnsavedChanges(true)
+        } else if (editedItem.tags.length >= 5) {
+            toast({
+                title: 'Maximum Tags Reached',
+                description: 'You can only have a maximum of 5 tags per listing.',
+                variant: 'destructive',
+                duration: 5000,
+            })
         }
     }
 
@@ -184,7 +199,27 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
             ...prev,
             tags: prev.tags.filter(tag => tag !== tagToRemove)
         }))
+        setIsUnsavedChanges(true)
     }
+
+    const handleCloseEditModal = () => {
+        if (isUnsavedChanges) {
+            setIsConfirmCloseDialogOpen(true)
+        } else {
+            setIsEditModalOpen(false)
+        }
+    }
+
+    const confirmClose = () => {
+        setIsEditModalOpen(false)
+        setIsUnsavedChanges(false)
+        setIsConfirmCloseDialogOpen(false)
+        setEditedItem(item)
+        setImagePreviewUrls(item.imageUrls.map(url => ({ url, isNew: false })))
+        setPriceInput(item.price.toFixed(2))
+        setNewImages([])
+    }
+
 
     const handleReactivate = async () => {
         try {
@@ -229,23 +264,55 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
         setCurrentImageIndex((prevIndex) => (prevIndex - 1 + item.imageUrls.length) % item.imageUrls.length)
     }
 
-    const [fullImageUrls, setFullImageUrls] = useState<string[]>([])
+    const handlePriceBlur = () => {
+        if (priceInput !== '' && !isNaN(parseFloat(priceInput))) {
+            const numericPrice = parseFloat(parseFloat(priceInput).toFixed(2))
+            setEditedItem(prev => ({ ...prev, price: numericPrice }))
+            setPriceInput(numericPrice.toFixed(2))
+        } else if (priceInput === '') {
+            setEditedItem(prev => ({ ...prev, price: 0 }))
+            setPriceInput('0.00')
+        }
+    }
 
-    useEffect(() => {
-        setCurrentImageIndex(0)
-        setFullImageUrls(item.imageUrls.map(getFullImageUrl))
-    }, [item.imageUrls, getFullImageUrl])
-
+    const handleMarkAsSold = () => {
+        if (selectedBuyerId) {
+            onMarkAsSold(item.id, parseInt(selectedBuyerId), new Date().toISOString())
+            setIsMarkAsSoldModalOpen(false)
+            toast({
+                title: "Item Marked as Sold",
+                description: "The item has been successfully marked as sold.",
+                duration: 3000,
+            })
+        } else {
+            toast({
+                title: "Error",
+                description: "Please select a buyer before marking the item as sold.",
+                variant: "destructive",
+                duration: 3000,
+            })
+        }
+    }
 
     return (
         <div>
-            <Card className="w-full max-w-sm rounded-lg overflow-hidden shadow-lg" onDoubleClick={handleDoubleClick}>
-                <div className="relative h-56">
+            <Card
+                className={`w-full rounded-lg overflow-hidden shadow-lg border-2 
+            ${isSelected ? 'border-orange-500' : 'border-orange-300'}
+            ${isSold ? 'opacity-70 bg-gray-100' : ''}`}
+                onDoubleClick={handleDoubleClick}
+            >
+                <div className="relative h-48">
                     <img
-                        src={fullImageUrls[currentImageIndex] || '/placeholder-image.jpg'}
-                        alt={`${item.title} - Image ${currentImageIndex + 1}`}
+                        src={getFullImageUrl(item.imageUrls[currentImageIndex])}
+                        alt={item.title}
                         className="w-full h-full object-cover"
                     />
+                    {isSold && (
+                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                            <span className="text-white text-2xl font-bold">SOLD</span>
+                        </div>
+                    )}
                     {item.imageUrls.length > 1 && (
                         <>
                             <Button
@@ -266,71 +333,74 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                             </Button>
                         </>
                     )}
-                    <div className="absolute top-2 right-2">
-                        <Checkbox
-                            checked={isSelected}
-                            onCheckedChange={onToggleSelect}
-                        />
-                    </div>
-                    {isSold && (
-                        <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded">
-                            Sold
-                        </div>
-                    )}
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="absolute top-2 right-2 p-1 rounded-full bg-white/70">
+                                <MoreVertical className="h-5 w-5" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" side="left">
+                            {!isSold && (
+                                <>
+                                    <DropdownMenuItem onClick={() => setIsMarkAsSoldModalOpen(true)}>
+                                        Mark as Sold
+                                    </DropdownMenuItem>
+                                </>
+                            )}
+                            {isSold && (
+                                <DropdownMenuItem onClick={handleReactivate}>
+                                    Reactivate Listing
+                                </DropdownMenuItem>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
-                <div className="p-4 bg-gradient-to-b from-gray-50 to-gray-100 h-[calc(100%-14rem)]">
+                <div className="p-4 bg-gradient-to-b from-gray-50 to-gray-100">
                     <div className="flex items-center justify-between mb-2">
                         <h3 className="text-lg font-semibold text-gray-800 truncate">{item.title}</h3>
                         <span className="text-xl font-bold text-orange-600">${item.price.toFixed(2)}</span>
                     </div>
-                    <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                    <p className={`text-sm text-gray-600 mb-2 ${isExpanded ? '' : 'line-clamp-2'}`}>
                         {item.description}
                     </p>
-                    <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                        <div className="flex items-center gap-1">
-                            <Image
-                                src='/icons/calendar-icon.svg'
-                                alt='Calendar'
-                                width={12}
-                                height={12}
-                            />
-                            <span>{new Date(item.listingDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
-                        </div>
-                    </div>
-                    {!isSold ? (
-                        <div className="flex gap-2">
-                            <Button className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-1 px-3 rounded-full transition-colors flex items-center justify-center text-sm" onClick={() => setIsEditModalOpen(true)}>
-                                Edit Listing
-                            </Button>
-                            <Button className="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-1 px-3 rounded-full transition-colors flex items-center justify-center text-sm" onClick={() => setIsMarkAsSoldModalOpen(true)}>
-                                Mark as Sold
-                            </Button>
-                        </div>
-                    ) : (
-                        <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-1 px-3 rounded-full transition-colors flex items-center justify-center text-sm" onClick={handleReactivate}>
-                            Reactivate Listing
+                    {item.description.length > 100 && (
+                        <Button variant="link" onClick={() => setIsExpanded(!isExpanded)} className="text-orange-500 p-0">
+                            {isExpanded ? 'Show less' : 'Show more'}
                         </Button>
                     )}
+                    <div className="flex flex-wrap gap-1 mb-2">
+                        {item.tags.map((tag, index) => (
+                            <span key={index} className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
+                                {tag}
+                            </span>
+                        ))}
+                    </div>
+                    <div className="flex items-center mt-4 justify-between">
+                        <p className="text-xs text-gray-500">Listed: {new Date(item.listingDate).toLocaleDateString()}</p>
+                        {isSold && item.purchaseDate && (
+                            <p className="text-xs text-gray-500">Sold: {new Date(item.purchaseDate).toLocaleDateString()}</p>
+                        )}
+                    </div>
                 </div>
             </Card>
-            <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-                <DialogContent>
+            <Dialog open={isEditModalOpen} onOpenChange={handleCloseEditModal}>
+                <DialogContent className="sm:max-w-[625px] bg-orange-50 border-2 border-orange-300">
                     <DialogHeader>
-                        <DialogTitle>Edit Listing</DialogTitle>
+                        <DialogTitle className="text-center text-2xl font-bold text-orange-700">Edit Listing</DialogTitle>
                     </DialogHeader>
-                    <div className='grid gap-4 py-4'>
+                    <div className='grid gap-6 py-4'>
                         <div className='grid grid-cols-4 items-center gap-4'>
-                            <label htmlFor='title' className='text-right'>Title</label>
+                            <label htmlFor='title' className='text-right font-medium text-orange-600'>Title</label>
                             <Input
                                 id='title'
                                 name='title'
                                 value={editedItem.title}
                                 onChange={handleInputChange}
-                                className='col-span-3'
+                                className='col-span-3 border-orange-300 focus:border-orange-500'
                             />
                         </div>
                         <div className='grid grid-cols-4 items-center gap-4'>
-                            <label htmlFor='price' className='text-right'>Price</label>
+                            <label htmlFor='price' className='text-right font-medium text-orange-600'>Price</label>
                             <Input
                                 id='price'
                                 name='price'
@@ -338,21 +408,21 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                                 value={priceInput}
                                 onChange={handlePriceChange}
                                 onBlur={handlePriceBlur}
-                                className='col-span-3'
+                                className='col-span-3 border-orange-300 focus:border-orange-500'
                             />
                         </div>
                         <div className='grid grid-cols-4 items-center gap-4'>
-                            <label htmlFor='description' className='text-right'>Description</label>
+                            <label htmlFor='description' className='text-right font-medium text-orange-600'>Description</label>
                             <Textarea
                                 id='description'
                                 name='description'
                                 value={editedItem.description}
                                 onChange={handleInputChange}
-                                className='col-span-3'
+                                className='col-span-3 border-orange-300 focus:border-orange-500'
                             />
                         </div>
                         <div className='grid grid-cols-4 items-center gap-4'>
-                            <label htmlFor='tags' className='text-right'>Tags</label>
+                            <label htmlFor='tags' className='text-right font-medium text-orange-600'>Tags</label>
                             <div className='col-span-3'>
                                 <div className='flex flex-wrap gap-2 mb-2'>
                                     {editedItem.tags.map((tag, index) => (
@@ -370,27 +440,20 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                                         value={newTag}
                                         onChange={(e) => setNewTag(e.target.value)}
                                         placeholder='Add a new tag'
-                                        className='flex-grow'
+                                        className='flex-grow border-orange-300 focus:border-orange-500'
                                     />
-                                    <Button onClick={handleAddTag} type='button'>Add Tag</Button>
+                                    <Button onClick={handleAddTag} type='button' className="bg-orange-500 hover:bg-orange-600 text-white">Add Tag</Button>
                                 </div>
                             </div>
                         </div>
                         <div className='grid grid-cols-4 items-center gap-4'>
-                            <label htmlFor='image' className='text-right'>Images</label>
+                            <label htmlFor='image' className='text-right font-medium text-orange-600'>Images</label>
                             <div className='col-span-3'>
-                                <FileInput
-                                    id='image'
-                                    accept='image/*'
-                                    onChange={handleImageChange}
-                                    ref={fileInputRef}
-                                    multiple
-                                />
                                 <div className='mt-4 flex flex-wrap gap-2'>
-                                    {imagePreviewUrls.map((url, index) => (
+                                    {imagePreviewUrls.map((imageData, index) => (
                                         <div key={index} className='relative group'>
                                             <img
-                                                src={fullImageUrls[0] || '/placeholder-image.jpg'}
+                                                src={imageData.isNew ? imageData.url : getFullImageUrl(imageData.url)}
                                                 alt={`Preview ${index + 1}`}
                                                 className='w-24 h-24 object-cover rounded-md'
                                             />
@@ -402,31 +465,81 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                                             </div>
                                         </div>
                                     ))}
+                                    <FileInput
+                                        id='image'
+                                        accept='image/*'
+                                        onChange={handleImageChange}
+                                        ref={fileInputRef}
+                                        multiple
+                                        className="border-orange-300 focus:border-orange-500"
+                                    />
                                 </div>
                             </div>
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button type='submit' onClick={handleSave}>Save changes</Button>
+                        <Button type='submit' onClick={handleSave} className="bg-orange-500 hover:bg-orange-600 text-white">Save changes</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog open={isConfirmCloseDialogOpen} onOpenChange={setIsConfirmCloseDialogOpen}>
+                <AlertDialogContent className="bg-orange-50 border-2 border-orange-300">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-orange-700">Unsaved Changes</AlertDialogTitle>
+                        <AlertDialogDescription className="text-orange-600">
+                            You have unsaved changes. Are you sure you want to close without saving?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="bg-gray-200 text-orange-700 hover:bg-gray-300">Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmClose} className="bg-orange-500 hover:bg-orange-600 text-white">Close without saving</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            <AlertDialog open={isConfirmSaveDialogOpen} onOpenChange={setIsConfirmSaveDialogOpen}>
+                <AlertDialogContent className="bg-orange-50 border-2 border-orange-300">
+                    <AlertDialogHeader>
+                        <AlertDialogTitle className="text-orange-700">Confirm Save</AlertDialogTitle>
+                        <AlertDialogDescription className="text-orange-600">
+                            Are you sure you want to save your changes?
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel className="bg-gray-200 text-orange-700 hover:bg-gray-300">Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmSave} className="bg-orange-500 hover:bg-orange-600 text-white">Save changes</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
             <Dialog open={isMarkAsSoldModalOpen} onOpenChange={setIsMarkAsSoldModalOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Mark Item as Sold</DialogTitle>
-                    </DialogHeader>
+                <DialogContent className="sm:max-w-[425px] bg-orange-50 border-2 border-orange-300">
+                    <div className="flex justify-center">
+                        <DialogHeader>
+                            <DialogTitle className="text-2xl font-bold text-orange-700">Mark Item as Sold</DialogTitle>
+                        </DialogHeader>
+                    </div>
                     <div className='grid gap-4 py-4'>
-                        <div className='grid grid-cols-4 items-center gap-4'>
-                            <label htmlFor='buyer' className='text-right'>Buyer</label>
+                        <div className='space-y-2'>
+                            <label htmlFor='buyer' className='text-sm font-medium text-orange-600'>Select Buyer</label>
                             <Select onValueChange={setSelectedBuyerId}>
-                                <SelectTrigger className='col-span-3'>
-                                    <SelectValue placeholder="Select a buyer" />
+                                <SelectTrigger className='w-full border-orange-300 focus:border-orange-500'>
+                                    <SelectValue placeholder="Choose a buyer" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="bg-orange-50">
                                     {buyers.map(buyer => (
-                                        <SelectItem key={buyer.id} value={buyer.id.toString()}>
-                                            {buyer.firstName} {buyer.lastName} ({buyer.email})
+                                        <SelectItem key={buyer.id} value={buyer.id.toString()} className="flex items-center space-x-2 p-2">
+                                            <div className="flex flex-row items-center space-x-2 w-full">
+                                                <Avatar className="h-8 w-8 flex-shrink-0">
+                                                    <AvatarImage src={getFullProfileImageUrl(buyer.profileImageUrl)} alt={`${buyer.firstName} ${buyer.lastName}`} />
+                                                    <AvatarFallback>{buyer.firstName[0]}{buyer.lastName[0]}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex flex-row items-center space-x-2 flex-grow min-w-0">
+                                                    <p className="text-sm text-orange-700 whitespace-nowrap">{buyer.firstName} {buyer.lastName}</p>
+                                                    <p className="text-sm text-orange-600 whitespace-nowrap">{buyer.email}</p>
+                                                </div>
+                                            </div>
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -434,11 +547,17 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                         </div>
                     </div>
                     <DialogFooter>
-                        <Button onClick={handleMarkAsSold} disabled={!selectedBuyerId}>Mark as Sold</Button>
+                        <Button
+                            onClick={handleMarkAsSold}
+                            disabled={!selectedBuyerId}
+                            className="bg-orange-500 hover:bg-orange-600 text-white"
+                        >
+                            Mark as Sold
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     )
 }
 
