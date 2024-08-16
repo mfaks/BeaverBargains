@@ -7,61 +7,80 @@ import NavBar from '@/components/ui/Navbar'
 import Footer from '@/components/ui/Footer'
 import FilterSidebar from '../../components/ui/FilterSidebar'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import OrderHistoryCard from './OrderHistoryCard'
+import OrderItemCard from './OrderItemCard'
 import { OrderItem } from '@/types/OrderItem'
 import { SkeletonCard } from '@/components/ui/SkeletonCard'
 import EmptyStateCard from '@/components/ui/EmptyStateCard'
 import { FaSearch, FaShoppingBag } from 'react-icons/fa'
 import { useAuth } from '../../components/auth/AuthContext'
+import { useToast } from '@/components/ui/use-toast'
 
 export default function Orders() {
     const { token } = useAuth()
+    const { toast } = useToast()
     const [orders, setOrders] = useState<OrderItem[]>([])
     const [filteredOrders, setFilteredOrders] = useState<OrderItem[]>([])
     const [minPrice, setMinPrice] = useState<number>(0)
-    const [maxPrice, setMaxPrice] = useState<number>(Infinity)
+    const [maxPrice, setMaxPrice] = useState<number>(0)
+    const [priceRange, setPriceRange] = useState<[number, number]>([0, 0])
+    const [originalMinPrice, setOriginalMinPrice] = useState<number>(0)
+    const [originalMaxPrice, setOriginalMaxPrice] = useState<number>(0)
     const [currentImageIndices, setCurrentImageIndices] = useState<{ [key: number]: number }>({})
     const [allTags, setAllTags] = useState<string[]>([])
     const [selectedTags, setSelectedTags] = useState<string[]>([])
     const [loading, setLoading] = useState(true)
+    const [descriptionSearch, setDescriptionSearch] = useState('')
+    const [tagSearch, setTagSearch] = useState('')
+    const [resetTrigger, setResetTrigger] = useState(0)
     const router = useRouter()
 
     useEffect(() => {
-        const fetchOrders = async () => {
-            setLoading(true)
-            try {
-                const response = await axios.get<OrderItem[]>('http://localhost:8080/api/items/user/purchased', {
-                    headers: { 
-                        'Authorization': `Bearer ${token}`
-                    }
-                })
-
-                setOrders(response.data)
-                setFilteredOrders(response.data)
-
-                if (response.data.length > 0) {
-                    const prices = response.data.map(item => item.price)
-                    setMinPrice(Math.min(...prices))
-                    setMaxPrice(Math.max(...prices))
-                }
-
-                const initialIndices = response.data.reduce((acc, item) => {
-                    acc[item.id] = 0
-                    return acc
-                }, {} as { [key: number]: number })
-                setCurrentImageIndices(initialIndices)
-
-                const tags = new Set(response.data.flatMap(item => item.tags))
-                setAllTags(Array.from(tags))
-            } catch (error) {
-                console.error('Error fetching purchase history:', error)
-            } finally {
-                setLoading(false)
-            }
-        }
-
         fetchOrders()
     }, [token])
+
+    const fetchOrders = async () => {
+        setLoading(true)
+        try {
+            const response = await axios.get<OrderItem[]>('http://localhost:8080/api/items/user/purchased', {
+                headers: { 
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+
+            setOrders(response.data)
+            setFilteredOrders(response.data)
+
+            if (response.data.length > 0) {
+                const prices = response.data.map(item => item.price)
+                const minItemPrice = Math.min(...prices)
+                const maxItemPrice = Math.max(...prices)
+                setMinPrice(minItemPrice)
+                setMaxPrice(maxItemPrice)
+                setOriginalMinPrice(minItemPrice)
+                setOriginalMaxPrice(maxItemPrice)
+                setPriceRange([minItemPrice, maxItemPrice])
+            }
+
+            const initialIndices = response.data.reduce((acc, item) => {
+                acc[item.id] = 0
+                return acc
+            }, {} as { [key: number]: number })
+            setCurrentImageIndices(initialIndices)
+
+            const tags = new Set(response.data.flatMap(item => item.tags))
+            setAllTags(Array.from(tags))
+        } catch (error) {
+            console.error('Error fetching purchase history:', error)
+            toast({
+                title: 'Error',
+                description: 'Failed to fetch purchase history. Please try again.',
+                variant: 'destructive',
+                duration: 5000,
+            })
+        } finally {
+            setLoading(false)
+        }
+    }
 
     const handleSort = (sortBy: string) => {
         let sorted = [...filteredOrders]
@@ -85,36 +104,45 @@ export default function Orders() {
     }
 
     const handlePriceFilter = (min: number, max: number) => {
-        filterOrders(min, max, selectedTags)
+        setPriceRange([min, max])
+        applyFilters(descriptionSearch, selectedTags, min, max)
     }
 
     const handleDescriptionSearch = (term: string) => {
-        const filtered = orders.filter(order =>
-            order.title.toLowerCase().includes(term.toLowerCase()) ||
-            order.seller.firstName.toLowerCase().includes(term.toLowerCase()) ||
-            order.seller.lastName.toLowerCase().includes(term.toLowerCase())
-        )
-        setFilteredOrders(filtered)
+        setDescriptionSearch(term)
+        applyFilters(term, selectedTags, priceRange[0], priceRange[1])
     }
 
     const handleTagSearch = (term: string) => {
-        const filtered = orders.filter(order =>
-            order.tags.some(tag => tag.toLowerCase().includes(term.toLowerCase()))
-        )
-        setFilteredOrders(filtered)
+        setTagSearch(term)
     }
 
     const handleTagFilter = (tags: string[]) => {
         setSelectedTags(tags)
-        filterOrders(minPrice, maxPrice, tags)
+        applyFilters(descriptionSearch, tags, priceRange[0], priceRange[1])
     }
 
-    const filterOrders = (minPrice: number, maxPrice: number, tags: string[]) => {
-        const filtered = orders.filter(order =>
-            order.price >= minPrice &&
-            order.price <= maxPrice &&
-            (tags.length === 0 || tags.every(tag => order.tags.includes(tag)))
+    const applyFilters = (descSearch: string, tags: string[], min: number, max: number) => {
+        let filtered = orders
+
+        if (descSearch) {
+            filtered = filtered.filter(order =>
+                order.title.toLowerCase().includes(descSearch.toLowerCase()) ||
+                order.seller.firstName.toLowerCase().includes(descSearch.toLowerCase()) ||
+                order.seller.lastName.toLowerCase().includes(descSearch.toLowerCase())
+            )
+        }
+
+        if (tags.length > 0) {
+            filtered = filtered.filter(order =>
+                tags.every(tag => order.tags.includes(tag))
+            )
+        }
+
+        filtered = filtered.filter(order =>
+            order.price >= min && order.price <= max
         )
+
         setFilteredOrders(filtered)
     }
 
@@ -137,21 +165,20 @@ export default function Orders() {
         }))
     }
 
-    const [resetTrigger, setResetTrigger] = useState(0)
-
     const handleClearFilters = () => {
-        setMinPrice(0)
-        setMaxPrice(Infinity)
+        setDescriptionSearch('')
+        setTagSearch('')
         setSelectedTags([])
-        setFilteredOrders(orders)
+        setPriceRange([originalMinPrice, originalMaxPrice])
         setResetTrigger(prev => prev + 1)
+        setFilteredOrders(orders)
     }
 
     return (
         <div className='flex flex-col min-h-[100dvh] bg-orange-50 text-[#black]'>
             <NavBar />
             <div className="flex flex-1 overflow-hidden">
-                <aside className="w-64 bg-orange-50 flex-shrink-0">
+                <aside className="w-64 bg-orange-50 flex-shrink-0 border-r border-orange-200">
                     <FilterSidebar
                         sortOptions={[
                             { label: 'Price: Low to High', value: 'price_asc' },
@@ -162,6 +189,7 @@ export default function Orders() {
                         priceFilter={true}
                         minPrice={minPrice}
                         maxPrice={maxPrice}
+                        priceRange={priceRange}
                         onSort={handleSort}
                         onPriceFilter={handlePriceFilter}
                         onDescriptionSearch={handleDescriptionSearch}
@@ -175,7 +203,7 @@ export default function Orders() {
                     <main className='container mx-auto px-4 md:px-6 py-12'>
                         <div className='flex justify-center mb-6'>
                             <h1 className='text-3xl font-bold text-orange-500 border-b-2 border-orange-500 pb-1'>
-                                My Purchase History
+                                My Order History
                             </h1>
                         </div>
                         {loading ? (
@@ -188,7 +216,7 @@ export default function Orders() {
                             filteredOrders.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                                     {filteredOrders.map((order) => (
-                                        <OrderHistoryCard
+                                        <OrderItemCard
                                             key={order.id}
                                             order={order}
                                             currentImageIndex={currentImageIndices[order.id]}

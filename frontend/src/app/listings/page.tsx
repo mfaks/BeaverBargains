@@ -17,24 +17,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import BeaverIcon from '@/components/ui/BeaverIcon'
 
 export default function Listings() {
-    const [activeItems, setActiveItems] = useState<Item[]>([])
-    const [soldItems, setSoldItems] = useState<Item[]>([])
+    const [allItems, setAllItems] = useState<Item[]>([])
     const [filteredItems, setFilteredItems] = useState<Item[]>([])
     const [selectedItems, setSelectedItems] = useState<number[]>([])
     const [errorMessage, setErrorMessage] = useState('')
     const [modalOpen, setModalOpen] = useState(false)
     const [minPrice, setMinPrice] = useState<number>(0)
-    const [maxPrice, setMaxPrice] = useState<number>(Infinity)
+    const [maxPrice, setMaxPrice] = useState<number>(0)
+    const [priceRange, setPriceRange] = useState<[number, number]>([0, 0])
+    const [originalMinPrice, setOriginalMinPrice] = useState<number>(0)
+    const [originalMaxPrice, setOriginalMaxPrice] = useState<number>(0)
     const [loading, setLoading] = useState(true)
-    const [searchTerm, setSearchTerm] = useState('')
+    const [descriptionSearch, setDescriptionSearch] = useState('')
+    const [tagSearch, setTagSearch] = useState('')
+    const [allTags, setAllTags] = useState<string[]>([])
+    const [selectedTags, setSelectedTags] = useState<string[]>([])
     const [activeTab, setActiveTab] = useState('active')
+    const [resetTrigger, setResetTrigger] = useState(0)
+    const [lastUpdatedItem, setLastUpdatedItem] = useState<Item | null>(null)
     const { isAuthenticated, token } = useAuth()
     const router = useRouter()
     const { toast } = useToast()
-    const [allTags, setAllTags] = useState<string[]>([])
-    const [selectedTags, setSelectedTags] = useState<string[]>([])
-    const [showNoResultsModal, setShowNoResultsModal] = useState(false)
-    const [resetTrigger, setResetTrigger] = useState(0)
 
     useEffect(() => {
         if (!isAuthenticated || !token) {
@@ -48,41 +51,32 @@ export default function Listings() {
         }
     }, [isAuthenticated, token, router])
 
-    useEffect(() => {
-        setFilteredItems(activeTab === 'active' ? activeItems : soldItems)
-    }, [activeTab, activeItems, soldItems])
-
     const fetchItems = async () => {
         setLoading(true)
         try {
             const activeResponse = await axios.get<Item[]>(`http://localhost:8080/api/items/user/active`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             })
             const soldResponse = await axios.get<Item[]>(`http://localhost:8080/api/items/user/sold`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             })
 
-            const activeItems = activeResponse.data
-            const soldItems = soldResponse.data
+            const allItems = [...activeResponse.data, ...soldResponse.data]
+            setAllItems(allItems)
+            setFilteredItems(activeTab === 'active' ? activeResponse.data : soldResponse.data)
 
-            const tags = new Set([
-                ...activeItems.flatMap(item => item.tags || []),
-                ...soldItems.flatMap(item => item.tags || [])
-            ])
-            setAllTags(Array.from(tags))
+            const uniqueTags = new Set(allItems.flatMap(item => item.tags || []))
+            setAllTags(Array.from(uniqueTags))
 
-            setActiveItems(activeItems)
-            setSoldItems(soldItems)
-            setFilteredItems(activeItems)
-
-            if (activeItems.length > 0) {
-                const prices = activeItems.map(item => item.price)
-                setMinPrice(Math.min(...prices))
-                setMaxPrice(Math.max(...prices))
+            if (allItems.length > 0) {
+                const prices = allItems.map(item => item.price)
+                const minItemPrice = Math.min(...prices)
+                const maxItemPrice = Math.max(...prices)
+                setMinPrice(minItemPrice)
+                setMaxPrice(maxItemPrice)
+                setOriginalMinPrice(minItemPrice)
+                setOriginalMaxPrice(maxItemPrice)
+                setPriceRange([minItemPrice, maxItemPrice])
             }
         } catch (error) {
             console.error('Error fetching items:', error)
@@ -97,49 +91,80 @@ export default function Listings() {
         }
     }
 
-    const handleFilters = () => {
-        const items = activeTab === 'active' ? activeItems : soldItems
-        const filtered = items.filter(item =>
-            (selectedTags.length === 0 || selectedTags.every(tag => item.tags.includes(tag))) &&
-            item.price >= minPrice &&
-            item.price <= maxPrice &&
-            (item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
-        )
-        setFilteredItems(filtered)
-        setShowNoResultsModal(filtered.length === 0)
-    }
+    useEffect(() => {
+        if (lastUpdatedItem) {
+            setAllItems(prev => prev.map(item => item.id === lastUpdatedItem.id ? lastUpdatedItem : item))
+            setFilteredItems(prev => prev.map(item => item.id === lastUpdatedItem.id ? lastUpdatedItem : item))
+
+            const updatedTags = new Set([...allTags, ...(lastUpdatedItem.tags || [])])
+            setAllTags(Array.from(updatedTags))
+
+            const allPrices = allItems.map(item => item.price)
+            const newMinPrice = Math.min(...allPrices, lastUpdatedItem.price)
+            const newMaxPrice = Math.max(...allPrices, lastUpdatedItem.price)
+
+            if (newMinPrice !== minPrice || newMaxPrice !== maxPrice) {
+                setMinPrice(newMinPrice)
+                setMaxPrice(newMaxPrice)
+                setOriginalMinPrice(newMinPrice)
+                setOriginalMaxPrice(newMaxPrice)
+                setPriceRange([newMinPrice, newMaxPrice])
+            }
+
+            setLastUpdatedItem(null)
+        }
+    }, [lastUpdatedItem, allItems, allTags, minPrice, maxPrice])
+
 
     const handleDescriptionSearch = (term: string) => {
-        setSearchTerm(term)
-        handleFilters()
+        setDescriptionSearch(term)
+        applyFilters(term, selectedTags, priceRange[0], priceRange[1])
     }
 
     const handleTagSearch = (term: string) => {
-        setSearchTerm(term)
-        handleFilters()
+        setTagSearch(term)
     }
 
     const handleTagFilter = (tags: string[]) => {
         setSelectedTags(tags)
-        handleFilters()
+        applyFilters(descriptionSearch, tags, priceRange[0], priceRange[1])
     }
 
     const handlePriceFilter = (min: number, max: number) => {
-        setMinPrice(min)
-        setMaxPrice(max)
-        handleFilters()
+        setPriceRange([min, max])
+        applyFilters(descriptionSearch, selectedTags, min, max)
     }
 
-    const clearFilters = () => {
-        setMinPrice(0)
-        setMaxPrice(Infinity)
-        setSearchTerm('')
+    const applyFilters = (descSearch: string, tags: string[], min: number, max: number) => {
+        let filtered = allItems.filter(item => activeTab === 'active' ? item.status === 'ACTIVE' : item.status === 'SOLD')
+
+        if (descSearch) {
+            filtered = filtered.filter(item =>
+                item.description.toLowerCase().includes(descSearch.toLowerCase()) ||
+                item.title.toLowerCase().includes(descSearch.toLowerCase())
+            )
+        }
+
+        if (tags.length > 0) {
+            filtered = filtered.filter(item =>
+                tags.every(tag => item.tags.includes(tag))
+            )
+        }
+
+        filtered = filtered.filter(item =>
+            item.price >= min && item.price <= max
+        )
+
+        setFilteredItems(filtered)
+    }
+
+    const handleClearFilters = () => {
+        setDescriptionSearch('')
+        setTagSearch('')
         setSelectedTags([])
-        setFilteredItems(activeTab === 'active' ? activeItems : soldItems)
-        setShowNoResultsModal(false)
+        setPriceRange([originalMinPrice, originalMaxPrice])
         setResetTrigger(prev => prev + 1)
+        setFilteredItems(allItems.filter(item => activeTab === 'active' ? item.status === 'ACTIVE' : item.status === 'SOLD'))
     }
 
     const toggleSelectItem = (itemId: number) => {
@@ -150,16 +175,42 @@ export default function Listings() {
         )
     }
 
-    const handleItemUpdate = (updatedItem: Item) => {
-        if (updatedItem.status === 'ACTIVE') {
-            setActiveItems(prev => [...prev, updatedItem])
-            setSoldItems(prev => prev.filter(item => item.id !== updatedItem.id))
-        } else if (updatedItem.status === 'SOLD') {
-            setActiveItems(prev => prev.filter(item => item.id !== updatedItem.id))
-            setSoldItems(prev => [...prev, updatedItem])
+    const handleItemUpdate = async (updatedItem: Item) => {
+        try {
+            setAllItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item))
+            setFilteredItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item))
+
+            const updatedTags = new Set([...allTags, ...(updatedItem.tags || [])])
+            setAllTags(Array.from(updatedTags))
+
+            const allPrices = allItems.map(item => item.price)
+            const newMinPrice = Math.min(...allPrices, updatedItem.price)
+            const newMaxPrice = Math.max(...allPrices, updatedItem.price)
+
+            if (newMinPrice !== minPrice || newMaxPrice !== maxPrice) {
+                setMinPrice(newMinPrice)
+                setMaxPrice(newMaxPrice)
+                setOriginalMinPrice(newMinPrice)
+                setOriginalMaxPrice(newMaxPrice)
+                setPriceRange([newMinPrice, newMaxPrice])
+            }
+
+            toast({
+                title: 'Success',
+                description: 'Item details updated successfully.',
+                duration: 3000,
+            })
+        } catch (error) {
+            console.error('Error updating item details:', error)
+            toast({
+                title: 'Error',
+                description: 'Failed to update item details. Please try again.',
+                variant: 'destructive',
+                duration: 5000,
+            })
         }
-        setFilteredItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item))
     }
+
 
     const handleMarkAsSold = async (itemId: number, buyerId: number, purchaseDate: string) => {
         const formattedDate = purchaseDate.replace('Z', '')
@@ -167,18 +218,12 @@ export default function Listings() {
             const response = await axios.put<Item>(
                 `http://localhost:8080/api/items/${itemId}/mark-as-sold?buyerId=${buyerId}&purchaseDate=${encodeURIComponent(formattedDate)}`,
                 {},
-                {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }
+                { headers: { 'Authorization': `Bearer ${token}` } }
             )
             const updatedItem = response.data
-            setActiveItems(prev => prev.filter(item => item.id !== itemId))
-            setSoldItems(prev => [...prev, updatedItem])
-            setFilteredItems(prev =>
-                activeTab === 'active'
-                    ? prev.filter(item => item.id !== itemId)
-                    : [...prev, updatedItem]
-            )
+
+            setAllItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item))
+            setFilteredItems(prev => prev.filter(item => item.id !== updatedItem.id))
 
             toast({
                 title: 'Success',
@@ -240,6 +285,7 @@ export default function Listings() {
                         priceFilter={true}
                         minPrice={minPrice}
                         maxPrice={maxPrice}
+                        priceRange={priceRange}
                         onSort={handleSort}
                         onPriceFilter={handlePriceFilter}
                         onDescriptionSearch={handleDescriptionSearch}
@@ -264,7 +310,7 @@ export default function Listings() {
                                     value="active"
                                     onClick={() => {
                                         setActiveTab('active')
-                                        setFilteredItems(activeItems)
+                                        applyFilters(descriptionSearch, selectedTags, priceRange[0], priceRange[1])
                                     }}
                                 >
                                     Active Listings
@@ -273,7 +319,7 @@ export default function Listings() {
                                     value="sold"
                                     onClick={() => {
                                         setActiveTab('sold')
-                                        setFilteredItems(soldItems)
+                                        applyFilters(descriptionSearch, selectedTags, priceRange[0], priceRange[1])
                                     }}
                                 >
                                     Sold Items
@@ -304,10 +350,10 @@ export default function Listings() {
                                     </div>
                                 ) : (
                                     <EmptyStateCard
-                                        title={activeItems.length > 0 ? "No items found" : "No active listings"}
-                                        description={activeItems.length > 0 ? "There are no items matching your current filters." : "You don't have any active listings. Start selling to see your listings here!"}
-                                        actionText={activeItems.length > 0 ? "Clear Filters" : "Create Listing"}
-                                        onAction={activeItems.length > 0 ? clearFilters : () => router.push('/sell')}
+                                        title={allItems.some(item => item.status === 'ACTIVE') ? "No items found" : "No active listings"}
+                                        description={allItems.some(item => item.status === 'ACTIVE') ? "There are no items matching your current filters." : "You don't have any active listings. Start selling to see your listings here!"}
+                                        actionText={allItems.some(item => item.status === 'ACTIVE') ? "Clear Filters" : "Create Listing"}
+                                        onAction={allItems.some(item => item.status === 'ACTIVE') ? handleClearFilters : () => router.push('/sell')}
                                         icon={<FaClipboardList className="text-orange-500" />}
                                     />
                                 )}
@@ -331,16 +377,16 @@ export default function Listings() {
                                                 token={token}
                                                 onItemUpdate={handleItemUpdate}
                                                 onMarkAsSold={handleMarkAsSold}
-                                                isSold={true}
+                                                isSold={false}
                                             />
                                         ))}
                                     </div>
                                 ) : (
                                     <EmptyStateCard
-                                        title={soldItems.length > 0 ? "No items found" : "No sold items"}
-                                        description={soldItems.length > 0 ? "There are no items matching your current filters." : "You haven't sold any items yet. Keep listing and promoting your items!"}
-                                        actionText={soldItems.length > 0 ? "Clear Filters" : "View Active Listings"}
-                                        onAction={soldItems.length > 0 ? clearFilters : () => setActiveTab('active')}
+                                        title={allItems.some(item => item.status === 'SOLD') ? "No items found" : "No sold items"}
+                                        description={allItems.some(item => item.status === 'SOLD') ? "There are no items matching your current filters." : "You haven't sold any items yet. Keep listing and promoting your items!"}
+                                        actionText={allItems.some(item => item.status === 'SOLD') ? "Clear Filters" : "View Active Listings"}
+                                        onAction={allItems.some(item => item.status === 'SOLD') ? handleClearFilters : () => setActiveTab('active')}
                                         icon={<FaClipboardList className="text-orange-500" />}
                                     />
                                 )}

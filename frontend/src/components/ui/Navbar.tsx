@@ -81,7 +81,7 @@ export default function NavBar({ searchQuery = '' }: NavBarProps) {
     })
     setTimeout(() => {
       window.location.href = `/login`
-    }, 3000)
+    }, 0)
   }
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {

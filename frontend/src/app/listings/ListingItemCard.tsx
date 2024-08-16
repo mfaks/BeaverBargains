@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/components/ui/use-toast'
 import FileInput from '@/components/ui/FileInput'
 import { Card } from '@/components/ui/card'
-import { Trash2Icon, ChevronLeft, ChevronRight, X, MoreVertical } from 'lucide-react'
+import { Trash2Icon, ChevronLeft, ChevronRight, X, MoreVertical, Edit } from 'lucide-react'
 import { Item } from '@/types/Item'
 import { ListingItemCardProps } from '@/types/ListingItemCard'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -294,15 +294,28 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
         }
     }
 
+    const handleEditClick = () => {
+        if (!isSold) {
+            setIsEditModalOpen(true)
+        } else {
+            toast({
+                title: 'Cannot Edit Sold Item',
+                description: 'You cannot edit sold items. Only active items on the marketplace can be edited.',
+                variant: 'default',
+                duration: 5000,
+            })
+        }
+    }
+
     return (
         <div>
             <Card
-                className={`w-full rounded-lg overflow-hidden shadow-lg border-2 
-            ${isSelected ? 'border-orange-500' : 'border-orange-300'}
-            ${isSold ? 'opacity-70 bg-gray-100' : ''}`}
+                className={`w-64 h-[380px] rounded-lg overflow-hidden shadow-lg cursor-pointer border-2 
+                            ${isSelected ? 'border-orange-500' : 'border-orange-300'}
+                            ${isSold ? 'opacity-70 bg-gray-100' : ''} flex flex-col`}
                 onDoubleClick={handleDoubleClick}
             >
-                <div className="relative h-48">
+                <div className="relative h-48 flex-shrink-0">
                     <img
                         src={getFullImageUrl(item.imageUrls[currentImageIndex])}
                         alt={item.title}
@@ -310,15 +323,15 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                     />
                     {isSold && (
                         <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-                            <span className="text-white text-2xl font-bold">SOLD</span>
+                            <span className="text-white text-xl font-bold">SOLD</span>
                         </div>
                     )}
                     {item.imageUrls.length > 1 && (
-                        <>
+                        <div>
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/70 hover:bg-orange-500 hover:text-white rounded-full p-1"
+                                className="absolute left-1 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-orange-500 text-white rounded-full p-1"
                                 onClick={prevImage}
                             >
                                 <ChevronLeft className="h-4 w-4" />
@@ -326,26 +339,24 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/70 hover:bg-orange-500 hover:text-white rounded-full p-1"
+                                className="absolute right-1 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-orange-500 text-white rounded-full p-1"
                                 onClick={nextImage}
                             >
                                 <ChevronRight className="h-4 w-4" />
                             </Button>
-                        </>
+                        </div>
                     )}
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="absolute top-2 right-2 p-1 rounded-full bg-white/70">
-                                <MoreVertical className="h-5 w-5" />
+                            <Button variant="ghost" className="absolute top-1 right-1 p-1 rounded-full bg-white/70">
+                                <MoreVertical className="h-4 w-4" />
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" side="left">
                             {!isSold && (
-                                <>
-                                    <DropdownMenuItem onClick={() => setIsMarkAsSoldModalOpen(true)}>
-                                        Mark as Sold
-                                    </DropdownMenuItem>
-                                </>
+                                <DropdownMenuItem onClick={() => setIsMarkAsSoldModalOpen(true)}>
+                                    Mark as Sold
+                                </DropdownMenuItem>
                             )}
                             {isSold && (
                                 <DropdownMenuItem onClick={handleReactivate}>
@@ -355,30 +366,41 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
-                <div className="p-4 bg-gradient-to-b from-gray-50 to-gray-100">
-                    <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-semibold text-gray-800 truncate">{item.title}</h3>
-                        <span className="text-xl font-bold text-orange-600">${item.price.toFixed(2)}</span>
+                <div className="p-3 bg-gradient-to-b from-gray-50 to-gray-100 flex-grow flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center justify-between mb-1">
+                            <h3 className="text-sm font-semibold text-gray-800 truncate">{item.title}</h3>
+                            <span className="text-lg font-bold text-orange-600">${item.price.toFixed(2)}</span>
+                        </div>
+                        <p className="text-xs text-gray-600 mb-1 line-clamp-2">
+                            {item.description}
+                        </p>
+                        <div className="flex flex-wrap gap-1 mb-1">
+                            {item.tags.slice(0, 2).map((tag, index) => (
+                                <span key={index} className="bg-orange-100 text-orange-800 text-xs px-1 py-0.5 rounded-full">
+                                    {tag}
+                                </span>
+                            ))}
+                            {item.tags.length > 2 && (
+                                <span className="bg-orange-100 text-orange-800 text-xs px-1 py-0.5 rounded-full">
+                                    +{item.tags.length - 2}
+                                </span>
+                            )}
+                        </div>
                     </div>
-                    <p className={`text-sm text-gray-600 mb-2 ${isExpanded ? '' : 'line-clamp-2'}`}>
-                        {item.description}
-                    </p>
-                    {item.description.length > 100 && (
-                        <Button variant="link" onClick={() => setIsExpanded(!isExpanded)} className="text-orange-500 p-0">
-                            {isExpanded ? 'Show less' : 'Show more'}
-                        </Button>
-                    )}
-                    <div className="flex flex-wrap gap-1 mb-2">
-                        {item.tags.map((tag, index) => (
-                            <span key={index} className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
-                                {tag}
-                            </span>
-                        ))}
-                    </div>
-                    <div className="flex items-center mt-4 justify-between">
-                        <p className="text-xs text-gray-500">Listed: {new Date(item.listingDate).toLocaleDateString()}</p>
+                    <div className="mt-2 flex items-center justify-between text-xs">
+                        <p className="text-gray-500">Listed: {new Date(item.listingDate).toLocaleDateString()}</p>
                         {isSold && item.purchaseDate && (
-                            <p className="text-xs text-gray-500">Sold: {new Date(item.purchaseDate).toLocaleDateString()}</p>
+                            <p className="text-gray-500">Sold: {new Date(item.purchaseDate).toLocaleDateString()}</p>
+                        )}
+                        {!isSold && (
+                            <Button
+                                onClick={handleEditClick}
+                                className="bg-orange-500 hover:bg-orange-600 text-white flex items-center text-xs px-2 py-1"
+                            >
+                                <Edit className="mr-1 h-3 w-3" />
+                                Edit
+                            </Button>
                         )}
                     </div>
                 </div>
@@ -482,7 +504,6 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-
             <AlertDialog open={isConfirmCloseDialogOpen} onOpenChange={setIsConfirmCloseDialogOpen}>
                 <AlertDialogContent className="bg-orange-50 border-2 border-orange-300">
                     <AlertDialogHeader>
@@ -497,7 +518,6 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-
             <AlertDialog open={isConfirmSaveDialogOpen} onOpenChange={setIsConfirmSaveDialogOpen}>
                 <AlertDialogContent className="bg-orange-50 border-2 border-orange-300">
                     <AlertDialogHeader>
@@ -512,7 +532,6 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-
             <Dialog open={isMarkAsSoldModalOpen} onOpenChange={setIsMarkAsSoldModalOpen}>
                 <DialogContent className="sm:max-w-[425px] bg-orange-50 border-2 border-orange-300">
                     <div className="flex justify-center">

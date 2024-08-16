@@ -352,7 +352,7 @@ export default function Sell() {
                                                                     onClick={() => removeTag(index)}
                                                                     className='ml-1 text-orange-600 hover:text-orange-800'
                                                                 >
-                                                                    &times
+                                                                    &times;
                                                                 </button>
                                                             </span>
                                                         ))}

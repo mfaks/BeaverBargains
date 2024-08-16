@@ -8,18 +8,31 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { FilterSidebarProps } from '@/types/FilterSidebarProps'
 
-const FilterSidebar: React.FC<FilterSidebarProps> = ({ sortOptions, priceFilter = false, minPrice, maxPrice, onSort, onPriceFilter, onDescriptionSearch, onTagSearch, onTagFilter, allTags, resetTrigger }) => {
-  const [priceRange, setPriceRange] = useState([minPrice, maxPrice])
+const FilterSidebar: React.FC<FilterSidebarProps> = ({
+  sortOptions,
+  priceFilter = false,
+  minPrice,
+  maxPrice,
+  priceRange,
+  onSort,
+  onPriceFilter,
+  onDescriptionSearch,
+  onTagSearch,
+  onTagFilter,
+  allTags,
+  resetTrigger
+}) => {
   const [descriptionSearchTerm, setDescriptionSearchTerm] = useState('')
   const [tagSearchTerm, setTagSearchTerm] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [filteredTags, setFilteredTags] = useState(allTags)
+  const [localPriceRange, setLocalPriceRange] = useState<[number, number]>(priceRange)
 
   const shouldResetRef = useRef(false)
 
   useEffect(() => {
-    setPriceRange([minPrice, maxPrice])
-  }, [minPrice, maxPrice])
+    setLocalPriceRange(priceRange)
+  }, [priceRange])
 
   useEffect(() => {
     setFilteredTags(
@@ -38,13 +51,13 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ sortOptions, priceFilter 
       setDescriptionSearchTerm('')
       setTagSearchTerm('')
       setSelectedTags([])
-      setPriceRange([minPrice, maxPrice])
+      setLocalPriceRange([minPrice, maxPrice])
       onDescriptionSearch('')
       onTagSearch('')
       onTagFilter([])
       shouldResetRef.current = false
     }
-  }, [minPrice, maxPrice, onDescriptionSearch, onTagSearch, onTagFilter])
+  }, [minPrice, maxPrice, onDescriptionSearch, onTagSearch, onTagFilter, resetTrigger])
 
   const handleDescriptionSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value
@@ -63,10 +76,10 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ sortOptions, priceFilter 
   }
 
   const handlePriceChange = (value: number[]) => {
-    setPriceRange(value)
-    onPriceFilter(value[0], value[1])
+    const newPriceRange: [number, number] = [value[0], value[1]]
+    setLocalPriceRange(newPriceRange)
+    onPriceFilter(newPriceRange[0], newPriceRange[1])
   }
-
   const handleTagToggle = (tag: string) => {
     setSelectedTags(prev => {
       const newTags = prev.includes(tag)
@@ -111,13 +124,13 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ sortOptions, priceFilter 
               min={minPrice}
               max={maxPrice}
               step={(maxPrice - minPrice) / 100}
-              value={priceRange}
+              value={localPriceRange}
               onValueChange={handlePriceChange}
               className='my-4'
             />
             <div className='flex justify-between mt-2 text-xs text-orange-700 font-semibold'>
-              <span>${priceRange[0].toFixed(2)}</span>
-              <span>${priceRange[1].toFixed(2)}</span>
+              <span>${localPriceRange[0].toFixed(2)}</span>
+              <span>${localPriceRange[1].toFixed(2)}</span>
             </div>
           </div>
         )}

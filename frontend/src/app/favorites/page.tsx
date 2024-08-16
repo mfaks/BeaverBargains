@@ -26,7 +26,8 @@ export default function Favorites() {
     const router = useRouter()
     const { toast } = useToast()
     const [minPrice, setMinPrice] = useState<number>(0)
-    const [maxPrice, setMaxPrice] = useState<number>(Infinity)
+    const [maxPrice, setMaxPrice] = useState<number>(0)
+    const [priceRange, setPriceRange] = useState<[number, number]>([0, 0])
     const [originalMinPrice, setOriginalMinPrice] = useState<number>(0)
     const [originalMaxPrice, setOriginalMaxPrice] = useState<number>(0)
     const [loading, setLoading] = useState(true)
@@ -34,6 +35,7 @@ export default function Favorites() {
     const [tagSearch, setTagSearch] = useState('')
     const [allTags, setAllTags] = useState<string[]>([])
     const [selectedTags, setSelectedTags] = useState<string[]>([])
+    const [resetTrigger, setResetTrigger] = useState(0)
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -80,6 +82,7 @@ export default function Favorites() {
                 setMaxPrice(maxItemPrice)
                 setOriginalMinPrice(minItemPrice)
                 setOriginalMaxPrice(maxItemPrice)
+                setPriceRange([minItemPrice, maxItemPrice])
             }
         } catch (error) {
             console.error('Error fetching items:', error)
@@ -96,7 +99,7 @@ export default function Favorites() {
 
     const handleDescriptionSearch = (term: string) => {
         setDescriptionSearch(term)
-        applyFilters(term, selectedTags, minPrice, maxPrice)
+        applyFilters(term, selectedTags, priceRange[0], priceRange[1])
     }
 
     const handleTagSearch = (term: string) => {
@@ -105,7 +108,7 @@ export default function Favorites() {
 
     const handleTagFilter = (tags: string[]) => {
         setSelectedTags(tags)
-        applyFilters(descriptionSearch, tags, minPrice, maxPrice)
+        applyFilters(descriptionSearch, tags, priceRange[0], priceRange[1])
     }
 
     const toggleFavorite = async (itemId: number) => {
@@ -170,8 +173,7 @@ export default function Favorites() {
     }
 
     const handlePriceFilter = (min: number, max: number) => {
-        setMinPrice(min)
-        setMaxPrice(max)
+        setPriceRange([min, max])
         applyFilters(descriptionSearch, selectedTags, min, max)
     }
 
@@ -198,22 +200,17 @@ export default function Favorites() {
         setFilteredItems(filtered)
     }
 
-    const BASE_URL = `http://localhost:8080`
-    const getFullImageUrl = (imageUrl: string): string => {
-        if (imageUrl.startsWith('http')) {
-            return imageUrl
-        }
+    const BASE_URL = 'http://localhost:8080'
+    const getFullImageUrl = (imageUrl: string) => {
         return `${BASE_URL}/uploads/${imageUrl}`
     }
 
-    const [resetTrigger, setResetTrigger] = useState(0)
 
     const handleClearFilters = () => {
         setDescriptionSearch('')
         setTagSearch('')
         setSelectedTags([])
-        setMinPrice(originalMinPrice)
-        setMaxPrice(originalMaxPrice)
+        setPriceRange([originalMinPrice, originalMaxPrice])
         setResetTrigger(prev => prev + 1)
         setFilteredItems(items)
     }
@@ -221,25 +218,28 @@ export default function Favorites() {
     return (
         <div className='flex flex-col min-h-screen bg-orange-50 text-orange-500'>
             <Navbar />
-            <div className='flex flex-1 overflow-hidden'>
-                <FilterSidebar
-                    sortOptions={[
-                        { label: 'Price: Low to High', value: 'price_asc' },
-                        { label: 'Price: High to Low', value: 'price_desc' },
-                        { label: 'Newest First', value: 'date_desc' },
-                        { label: 'Oldest First', value: 'date_asc' }
-                    ]}
-                    priceFilter={true}
-                    minPrice={minPrice}
-                    maxPrice={maxPrice}
-                    onSort={handleSort}
-                    onPriceFilter={handlePriceFilter}
-                    onDescriptionSearch={handleDescriptionSearch}
-                    onTagSearch={handleTagSearch}
-                    onTagFilter={handleTagFilter}
-                    allTags={allTags}
-                    resetTrigger={resetTrigger}
-                />
+            <div className="flex flex-1 overflow-hidden">
+                <aside className="w-64 bg-orange-50 flex-shrink-0 border-r border-orange-200">
+                    <FilterSidebar
+                        sortOptions={[
+                            { label: 'Price: Low to High', value: 'price_asc' },
+                            { label: 'Price: High to Low', value: 'price_desc' },
+                            { label: 'Newest First', value: 'date_desc' },
+                            { label: 'Oldest First', value: 'date_asc' }
+                        ]}
+                        priceFilter={true}
+                        minPrice={minPrice}
+                        maxPrice={maxPrice}
+                        priceRange={priceRange}
+                        onSort={handleSort}
+                        onPriceFilter={handlePriceFilter}
+                        onDescriptionSearch={handleDescriptionSearch}
+                        onTagSearch={handleTagSearch}
+                        onTagFilter={handleTagFilter}
+                        allTags={allTags}
+                        resetTrigger={resetTrigger}
+                    />
+                </aside>
                 <div className='flex-1 flex flex-col overflow-hidden'>
                     <div className='bg-orange-100 py-4 mb-6 flex items-center justify-center'>
                         <BeaverIcon className='text-orange-700 mr-4' />

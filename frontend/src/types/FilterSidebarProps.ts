@@ -3,6 +3,7 @@ export interface FilterSidebarProps {
   priceFilter?: boolean
   minPrice: number
   maxPrice: number
+  priceRange: [number, number]
   onSort: (sortBy: string) => void
   onPriceFilter: (minPrice: number, maxPrice: number) => void
   onDescriptionSearch: (term: string) => void

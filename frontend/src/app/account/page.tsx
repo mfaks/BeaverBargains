@@ -7,7 +7,7 @@ import { useAuth } from '../../components/auth/AuthContext'
 import UnauthorizedModal from '@/components/ui/UnauthorizedModal'
 import ImageUploadAndCropper from '@/components/ui/ImageUploadAndCropper'
 import { z } from 'zod'
-import { FaFacebookMessenger, FaBox, FaStar, FaList } from 'react-icons/fa'
+import { FaFacebookMessenger, FaBox, FaList, FaHeart } from 'react-icons/fa'
 import NavBar from '@/components/ui/Navbar'
 import Footer from '@/components/ui/Footer'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
@@ -323,12 +323,12 @@ export default function Account() {
             <div className='max-w-6xl mx-auto'>
               <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
                 {loading ? (
-                  <>
+                  <div>
                     <SkeletonCard />
                     <SkeletonCard />
-                  </>
+                  </div>
                 ) : (
-                  <>
+                  <div>
                     <Card className='bg-white shadow rounded-lg text-black'>
                       <CardHeader className='flex items-center justify-center gap-2 p-3'>
                         <div className='flex flex-col items-center space-y-2'>
@@ -517,7 +517,7 @@ export default function Account() {
                         </AlertDialog>
                       </CardFooter>
                     </Card>
-                  </>
+                  </div>
                 )}
               </div>
               <div className='mt-3'>
@@ -529,16 +529,16 @@ export default function Account() {
                       <CardTitle className='text-center font-semibold text-base'>Quick Actions</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3'>
+                      <div className='grid grid-cßols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3'>
                         {loading ? (
-                          <>
+                          <div>
                             <SkeletonCard />
                             <SkeletonCard />
                             <SkeletonCard />
                             <SkeletonCard />
-                          </>
+                          </div>
                         ) : (
-                          <>
+                          <div>
                             <Card className='bg-gray-50 shadow-sm'>
                               <CardHeader className='flex items-center justify-center p-2'>
                                 <FaFacebookMessenger className='text-2xl text-orange-500' />
@@ -556,16 +556,16 @@ export default function Account() {
                             </Card>
                             <Card className='bg-gray-50 shadow-sm'>
                               <CardHeader className='flex items-center justify-center p-2'>
-                                <FaStar className='text-2xl text-orange-500' />
+                                <FaHeart className='text-2xl text-orange-500' />
                               </CardHeader>
                               <CardContent className='text-center p-2'>
-                                <CardTitle className='text-sm font-semibold'>Watch List</CardTitle>
-                                <CardDescription className='text-xs'>View items you've added to your watch list.</CardDescription>
+                                <CardTitle className='text-sm font-semibold'>Favorites</CardTitle>
+                                <CardDescription className='text-xs'>View items you've added to your favorites.</CardDescription>
                               </CardContent>
                               <CardFooter className='text-center p-2'>
                                 <Button variant='outline' className='w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white text-xs py-1'
                                   onClick={() => router.push('/favorites')}>
-                                  View Watch List
+                                  View Favorites
                                 </Button>
                               </CardFooter>
                             </Card>
@@ -599,7 +599,7 @@ export default function Account() {
                                 </Button>
                               </CardFooter>
                             </Card>
-                          </>
+                          </div>
                         )}
                       </div>
                     </CardContent>

@@ -212,7 +212,12 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
                     <h2 className="text-lg font-semibold text-orange-700">{receiverInfo.name}</h2>
                 </div>
             )}
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-scroll p-4"
+                style={{
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none',
+                    WebkitOverflowScrolling: 'touch'
+                }}>
                 {loading && messages.length === 0 ? (
                     <div className="space-y-4">
                         {[...Array(5)].map((_, index) => (
@@ -220,7 +225,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
                         ))}
                     </div>
                 ) : (
-                    <>
+                    <div>
                         {hasMore && (
                             <button
                                 onClick={loadMoreMessages}
@@ -256,7 +261,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
                             })}
                         </div>
                         <div ref={messagesEndRef} />
-                    </>
+                    </div>
                 )}
             </div>
             <div className="mt-4 pb-3 px-4">

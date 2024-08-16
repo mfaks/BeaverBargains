@@ -26,7 +26,8 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
     const [errorMessage, setErrorMessage] = useState('')
     const [modalOpen, setModalOpen] = useState(false)
     const [minPrice, setMinPrice] = useState<number>(0)
-    const [maxPrice, setMaxPrice] = useState<number>(Infinity)
+    const [maxPrice, setMaxPrice] = useState<number>(0)
+    const [priceRange, setPriceRange] = useState<[number, number]>([0, 0])
     const [originalMinPrice, setOriginalMinPrice] = useState<number>(0)
     const [originalMaxPrice, setOriginalMaxPrice] = useState<number>(0)
     const [loading, setLoading] = useState(true)
@@ -35,6 +36,7 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
     const [allTags, setAllTags] = useState<string[]>([])
     const [selectedTags, setSelectedTags] = useState<string[]>([])
     const [currentSearchQuery, setCurrentSearchQuery] = useState(searchQuery)
+    const [resetTrigger, setResetTrigger] = useState(0)
 
     if (!isAuthenticated) {
         return (
@@ -200,9 +202,20 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
         setFilteredItems(sorted)
     }
 
+    useEffect(() => {
+        if (allItems.length > 0) {
+            const prices = allItems.map(item => item.price)
+            const minItemPrice = Math.min(...prices)
+            const maxItemPrice = Math.max(...prices)
+            setMinPrice(minItemPrice)
+            setMaxPrice(maxItemPrice)
+            setPriceRange([minItemPrice, maxItemPrice])
+        }
+    }, [allItems])
+
+
     const handlePriceFilter = (min: number, max: number) => {
-        setMinPrice(min)
-        setMaxPrice(max)
+        setPriceRange([min, max])
         applyFilters(descriptionSearch, selectedTags, min, max)
     }
 
@@ -238,14 +251,11 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
         setFilteredItems(filtered)
     }
 
-    const [resetTrigger, setResetTrigger] = useState(0)
-
     const handleClearFilters = () => {
         setDescriptionSearch('')
         setTagSearch('')
         setSelectedTags([])
-        setMinPrice(originalMinPrice)
-        setMaxPrice(originalMaxPrice)
+        setPriceRange([originalMinPrice, originalMaxPrice])
         setResetTrigger(prev => prev + 1)
         setFilteredItems(allItems)
         setCurrentSearchQuery('')
@@ -255,32 +265,35 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
     return (
         <div className='flex flex-col min-h-screen bg-orange-50 text-orange-500'>
             <Navbar searchQuery={currentSearchQuery} />
-            <div className='flex flex-1 overflow-hidden'>
-                <FilterSidebar
-                    sortOptions={[
-                        { label: 'Price: Low to High', value: 'price_asc' },
-                        { label: 'Price: High to Low', value: 'price_desc' },
-                        { label: 'Newest First', value: 'date_desc' },
-                        { label: 'Oldest First', value: 'date_asc' }
-                    ]}
-                    priceFilter={true}
-                    minPrice={minPrice}
-                    maxPrice={maxPrice}
-                    onSort={handleSort}
-                    onPriceFilter={handlePriceFilter}
-                    onDescriptionSearch={handleDescriptionSearch}
-                    onTagSearch={handleTagSearch}
-                    onTagFilter={handleTagFilter}
-                    allTags={allTags}
-                    resetTrigger={resetTrigger}
-                />
+            <div className="flex flex-1 overflow-hidden">
+                <aside className="w-64 bg-orange-50 flex-shrink-0 border-r border-orange-200">
+                    <FilterSidebar
+                        sortOptions={[
+                            { label: 'Price: Low to High', value: 'price_asc' },
+                            { label: 'Price: High to Low', value: 'price_desc' },
+                            { label: 'Newest First', value: 'date_desc' },
+                            { label: 'Oldest First', value: 'date_asc' }
+                        ]}
+                        priceFilter={true}
+                        minPrice={minPrice}
+                        maxPrice={maxPrice}
+                        priceRange={priceRange}
+                        onSort={handleSort}
+                        onPriceFilter={handlePriceFilter}
+                        onDescriptionSearch={handleDescriptionSearch}
+                        onTagSearch={handleTagSearch}
+                        onTagFilter={handleTagFilter}
+                        allTags={allTags}
+                        resetTrigger={resetTrigger}
+                    />
+                </aside>
                 <div className='flex-1 flex flex-col overflow-hidden'>
                     <div className='bg-orange-100 py-4 mb-6 flex items-center justify-center'>
                         <BeaverIcon className='text-orange-700 mr-4' />
                         <h1 className='text-2xl font-bold text-center text-orange-700'> Welcome to the Marketplace </h1>
                         <BeaverIcon className='text-orange-700 ml-4' />
                     </div>
-                    <main className='flex-1 overflow-y-auto pl-0 pr-6 py-6'>
+                    <main className='flex-1 overflow-y-auto px-6 py-6'>
                         <div className='max-w-6xl mx-auto'>
                             {loading ? (
                                 <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>

@@ -99,10 +99,10 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
     return (
         <div>
             <Card
-                className="w-full max-w-sm rounded-lg overflow-hidden shadow-lg cursor-pointer border-2 border-orange-300"
+                className="w-full h-[420px] rounded-lg overflow-hidden shadow-lg cursor-pointer border-2 border-orange-300 flex flex-col"
                 onClick={() => setIsFullDetailsOpen(true)}
             >
-                <div className="relative h-56">
+                <div className="relative h-56 flex-shrink-0">
                     <img
                         src={fullImageUrls[0] || '/placeholder-image.jpg'}
                         alt={`${item.title} - Main Image`}
@@ -121,23 +121,30 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
                         />
                     </button>
                 </div>
-                <div className="p-4 bg-gradient-to-b from-gray-50 to-gray-100 h-[calc(100%-14rem)]">
-                    <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-semibold text-gray-800 truncate">{item.title}</h3>
-                        <span className="text-xl font-bold text-orange-600">${item.price.toFixed(2)}</span>
-                    </div>
-                    <p className="text-xs text-gray-600 mb-2 line-clamp-2">
-                        {item.description}
-                    </p>
-                    <div className="flex flex-wrap gap-1 mb-2">
-                        {item.tags.map((tag, index) => (
-                            <span key={index} className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
-                                {tag}
-                            </span>
-                        ))}
+                <div className="p-4 bg-gradient-to-b from-gray-50 to-gray-100 flex-grow flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-lg font-semibold text-gray-800 truncate">{item.title}</h3>
+                            <span className="text-xl font-bold text-orange-600">${item.price.toFixed(2)}</span>
+                        </div>
+                        <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                            {item.description}
+                        </p>
+                        <div className="flex flex-wrap gap-1 mb-2">
+                            {item.tags.slice(0, 3).map((tag, index) => (
+                                <span key={index} className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
+                                    {tag}
+                                </span>
+                            ))}
+                            {item.tags.length > 3 && (
+                                <span className="bg-orange-100 text-orange-800 text-xs px-2 py-1 rounded-full">
+                                    +{item.tags.length - 3}
+                                </span>
+                            )}
+                        </div>
                     </div>
                     <Button
-                        className="w-full bg-orange-500 hover:bg-orange-600 text-white text-sm py-1"
+                        className="w-full bg-orange-500 hover:bg-orange-600 text-white text-sm py-1 mt-2"
                         onClick={(e) => {
                             e.stopPropagation()
                             setIsMessageDialogOpen(true)
@@ -157,7 +164,7 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
                                 className="w-full h-full object-cover"
                             />
                             {fullImageUrls.length > 1 && (
-                                <>
+                                <div>
                                     <Button
                                         variant="ghost"
                                         size="icon"
@@ -174,7 +181,7 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
                                     >
                                         <ChevronRight className="h-8 w-8" />
                                     </Button>
-                                </>
+                                </div>
                             )}
                         </div>
                         <div className="w-full md:w-1/2 p-6 bg-gray-50">
