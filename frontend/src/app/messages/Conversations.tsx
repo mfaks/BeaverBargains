@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '../../components/auth/AuthContext'
-import UnauthorizedModal from '@/components/ui/UnauthorizedModal'
 import { Conversation } from '@/types/Conversation'
 import { User } from '@/types/User'
 import { ConversationWithUnread } from '@/types/ConversationsWithUnread'
@@ -14,22 +13,16 @@ import { SkeletonCard } from '@/components/ui/SkeletonCard'
 const Conversations: React.FC<UpdatedConversationsProps> = ({ userId, conversations, setConversations, onSelectConversation, selectedConversationId, onConversationRead }) => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const { isAuthenticated, token } = useAuth()
-    const [modalOpen, setModalOpen] = useState(false)
-    const [errorMessage, setErrorMessage] = useState('')
+    const { isAuthenticated, user, token } = useAuth()
     const router = useRouter()
 
     useEffect(() => {
-        if (!isAuthenticated) {
-            setErrorMessage('You must be logged in to access messages. Redirecting to login.')
-            setModalOpen(true)
-            setTimeout(() => {
-                router.push('/login')
-            }, 2000)
-        } else if (token) {
+        if (!loading && !isAuthenticated) {
+            router.push('/login')
+        } else if (isAuthenticated && user) {
             fetchConversationsAndUnreadMessages()
         }
-    }, [isAuthenticated, token, router])
+    }, [isAuthenticated, loading, user, router])
 
     const fetchConversationsAndUnreadMessages = async () => {
         setLoading(true)
@@ -101,56 +94,49 @@ const Conversations: React.FC<UpdatedConversationsProps> = ({ userId, conversati
         return `${BASE_URL}/uploads/${imageUrl}`
     }
 
-    if (!isAuthenticated) {
-        return (
-            <UnauthorizedModal
-                isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                message={errorMessage}
-            />
-        )
-    }
-
     return (
-        <div className="flex flex-col h-full">
-            <div className="flex-1 overflow-y-auto">
-                {loading ? (
-                    <div className="space-y-4 p-4">
-                        {[...Array(5)].map((_, index) => (
-                            <SkeletonCard key={index} />
-                        ))}
-                    </div>
-                ) : (
-                    conversations.map((conversation: ConversationWithUnread) => {
-                        const otherUser = getOtherUser(conversation)
-                        return (
-                            <div
-                                key={conversation.id}
-                                className={`flex items-center gap-3 px-4 py-4 cursor-pointer border-b border-orange-200 ${
-                                    selectedConversationId === conversation.id ? 'bg-orange-200' : ''
-                                } hover:bg-orange-100`}
-                                onClick={() => handleConversationClick(conversation.id, otherUser.id)}
-                            >
-                                <span className="relative flex shrink-0 overflow-hidden rounded-full w-10 h-10 border">
-                                    <img
-                                        className="aspect-square h-full w-full"
-                                        alt={`${otherUser.firstName} ${otherUser.lastName}`}
-                                        src={getFullImageUrl(otherUser.profileImageUrl) || "/placeholder-user.jpg"}
-                                    />
-                                </span>
-                                <div className="flex-1 min-w-0 flex items-center">
-                                    <span className="text-sm font-medium truncate">{`${otherUser.firstName} ${otherUser.lastName}`}</span>
-                                    {conversation.unreadCount > 0 && (
-                                        <div className="ml-2 flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full" />
-                                    )}
-                                </div>
+        <div>
+            {isAuthenticated ? (
+                <div className="flex flex-col h-full">
+                    <div className="flex-1 overflow-y-auto">
+                        {loading ? (
+                            <div className="space-y-4 p-4">
+                                {[...Array(5)].map((_, index) => (
+                                    <SkeletonCard key={index} />
+                                ))}
                             </div>
-                        )
-                    })
-                )}
-            </div>
+                        ) : (
+                            conversations.map((conversation: ConversationWithUnread) => {
+                                const otherUser = getOtherUser(conversation)
+                                return (
+                                    <div
+                                        key={conversation.id}
+                                        className={`flex items-center gap-3 px-4 py-4 cursor-pointer border-b border-orange-200 ${selectedConversationId === conversation.id ? 'bg-orange-200' : ''} hover:bg-orange-100`}
+                                        onClick={() => handleConversationClick(conversation.id, otherUser.id)}
+                                    >
+                                        <span className="relative flex shrink-0 overflow-hidden rounded-full w-10 h-10 border">
+                                            <img
+                                                className="aspect-square h-full w-full"
+                                                alt={`${otherUser.firstName} ${otherUser.lastName}`}
+                                                src={getFullImageUrl(otherUser.profileImageUrl) || "/placeholder-user.jpg"}
+                                            />
+                                        </span>
+                                        <div className="flex-1 min-w-0 flex items-center">
+                                            <span className="text-sm font-medium truncate">{`${otherUser.firstName} ${otherUser.lastName}`}</span>
+                                            {conversation.unreadCount > 0 && (
+                                                <div className="ml-2 flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full" />
+                                            )}
+                                        </div>
+                                    </div>
+                                )
+                            })
+                        )}
+                    </div>
+                </div>
+            ) : (
+                <div></div>
+            )}
         </div>
     )
 }
-
 export default Conversations

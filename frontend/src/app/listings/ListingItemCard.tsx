@@ -1,10 +1,8 @@
 "use client"
 
 import React, { useState, useRef, useEffect } from 'react'
-import Image from 'next/image'
 import axios from 'axios'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'

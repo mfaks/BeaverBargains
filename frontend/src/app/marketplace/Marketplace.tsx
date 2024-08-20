@@ -8,7 +8,6 @@ import MarketplaceItemCard from './MarketplaceItemCard'
 import FilterSidebar from '../../components/ui/FilterSidebar'
 import Navbar from '@/components/ui/Navbar'
 import Footer from '@/components/ui/Footer'
-import UnauthorizedModal from '@/components/ui/UnauthorizedModal'
 import { useToast } from '@/components/ui/use-toast'
 import EmptyStateCard from '@/components/ui/EmptyStateCard'
 import { SkeletonCard } from '@/components/ui/SkeletonCard'
@@ -17,7 +16,7 @@ import { Item } from '@/types/Item'
 import BeaverIcon from '@/components/ui/BeaverIcon'
 
 export default function Marketplace({ searchQuery }: { searchQuery: string }) {
-    const { isAuthenticated, token } = useAuth()
+    const { isAuthenticated, user, token } = useAuth()
     const router = useRouter()
     const { toast } = useToast()
     const [allItems, setAllItems] = useState<Item[]>([])
@@ -38,15 +37,14 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
     const [currentSearchQuery, setCurrentSearchQuery] = useState(searchQuery)
     const [resetTrigger, setResetTrigger] = useState(0)
 
-    if (!isAuthenticated) {
-        return (
-            <UnauthorizedModal
-                isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                message={errorMessage}
-            />
-        )
-    }
+    useEffect(() => {
+        if (!isAuthenticated) {
+            router.push('/login')
+        } else if (isAuthenticated && user) {
+            fetchItems(searchQuery)
+            fetchFavorites()
+        }
+    }, [isAuthenticated, user, router, searchQuery])
 
     const BASE_URL = `http://localhost:8080`
     const getFullImageUrl = (imageUrls: string | string[]): string[] => {
@@ -57,19 +55,6 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
         }
         return [processUrl(imageUrls)]
     }
-
-    useEffect(() => {
-        if (!isAuthenticated) {
-            setErrorMessage('You must be logged in to access the marketplace. Redirecting to login.')
-            setModalOpen(true)
-            setTimeout(() => {
-                router.push('/login')
-            }, 2000)
-        } else {
-            fetchItems(searchQuery)
-            fetchFavorites()
-        }
-    }, [isAuthenticated, router, searchQuery])
 
     const fetchItems = async (query = '', tags: string[] = selectedTags, tgSearch = tagSearch) => {
         setLoading(true)
@@ -263,69 +248,75 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
     }
 
     return (
-        <div className='flex flex-col min-h-screen bg-orange-50 text-orange-500'>
-            <Navbar searchQuery={currentSearchQuery} />
-            <div className="flex flex-1 overflow-hidden">
-                <aside className="w-64 bg-orange-50 flex-shrink-0 border-r border-orange-200">
-                    <FilterSidebar
-                        sortOptions={[
-                            { label: 'Price: Low to High', value: 'price_asc' },
-                            { label: 'Price: High to Low', value: 'price_desc' },
-                            { label: 'Newest First', value: 'date_desc' },
-                            { label: 'Oldest First', value: 'date_asc' }
-                        ]}
-                        priceFilter={true}
-                        minPrice={minPrice}
-                        maxPrice={maxPrice}
-                        priceRange={priceRange}
-                        onSort={handleSort}
-                        onPriceFilter={handlePriceFilter}
-                        onDescriptionSearch={handleDescriptionSearch}
-                        onTagSearch={handleTagSearch}
-                        onTagFilter={handleTagFilter}
-                        allTags={allTags}
-                        resetTrigger={resetTrigger}
-                    />
-                </aside>
-                <div className='flex-1 flex flex-col overflow-hidden'>
-                    <div className='bg-orange-100 py-4 mb-6 flex items-center justify-center'>
-                        <BeaverIcon className='text-orange-700 mr-4' />
-                        <h1 className='text-2xl font-bold text-center text-orange-700'> Welcome to the Marketplace </h1>
-                        <BeaverIcon className='text-orange-700 ml-4' />
-                    </div>
-                    <main className='flex-1 overflow-y-auto px-6 py-6'>
-                        <div className='max-w-6xl mx-auto'>
-                            {loading ? (
-                                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
-                                    {[...Array(8)].map((_, index) => (
-                                        <SkeletonCard key={index} />
-                                    ))}
-                                </div>
-                            ) : filteredItems.length > 0 ? (
-                                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
-                                    {filteredItems.map(item => (
-                                        <MarketplaceItemCard
-                                            key={item.id}
-                                            item={item}
-                                            onToggleFavorite={toggleFavorite}
-                                            getFullImageUrl={getFullImageUrl}
+        <div>
+            {isAuthenticated ? (
+                <div className='flex flex-col min-h-screen bg-orange-50 text-orange-500'>
+                    <Navbar searchQuery={currentSearchQuery} />
+                    <div className="flex flex-1 overflow-hidden">
+                        <aside className="w-64 bg-orange-50 flex-shrink-0 border-r border-orange-200">
+                            <FilterSidebar
+                                sortOptions={[
+                                    { label: 'Price: Low to High', value: 'price_asc' },
+                                    { label: 'Price: High to Low', value: 'price_desc' },
+                                    { label: 'Newest First', value: 'date_desc' },
+                                    { label: 'Oldest First', value: 'date_asc' }
+                                ]}
+                                priceFilter={true}
+                                minPrice={minPrice}
+                                maxPrice={maxPrice}
+                                priceRange={priceRange}
+                                onSort={handleSort}
+                                onPriceFilter={handlePriceFilter}
+                                onDescriptionSearch={handleDescriptionSearch}
+                                onTagSearch={handleTagSearch}
+                                onTagFilter={handleTagFilter}
+                                allTags={allTags}
+                                resetTrigger={resetTrigger}
+                            />
+                        </aside>
+                        <div className='flex-1 flex flex-col overflow-hidden'>
+                            <div className='bg-orange-100 py-4 mb-6 flex items-center justify-center'>
+                                <BeaverIcon className='text-orange-700 mr-4' />
+                                <h1 className='text-2xl font-bold text-center text-orange-700'> Welcome to the Marketplace </h1>
+                                <BeaverIcon className='text-orange-700 ml-4' />
+                            </div>
+                            <main className='flex-1 overflow-y-auto px-6 py-6'>
+                                <div className='max-w-6xl mx-auto'>
+                                    {loading ? (
+                                        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
+                                            {[...Array(8)].map((_, index) => (
+                                                <SkeletonCard key={index} />
+                                            ))}
+                                        </div>
+                                    ) : filteredItems.length > 0 ? (
+                                        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
+                                            {filteredItems.map(item => (
+                                                <MarketplaceItemCard
+                                                    key={item.id}
+                                                    item={item}
+                                                    onToggleFavorite={toggleFavorite}
+                                                    getFullImageUrl={getFullImageUrl}
+                                                />
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <EmptyStateCard
+                                            title='No items found'
+                                            description='There are currently no items in the marketplace matching your criteria.'
+                                            actionText='Clear Filters'
+                                            onAction={handleClearFilters}
+                                            icon={<FaShoppingBasket className='text-orange-500 text-5xl' />}
                                         />
-                                    ))}
+                                    )}
                                 </div>
-                            ) : (
-                                <EmptyStateCard
-                                    title='No items found'
-                                    description='There are currently no items in the marketplace matching your criteria.'
-                                    actionText='Clear Filters'
-                                    onAction={handleClearFilters}
-                                    icon={<FaShoppingBasket className='text-orange-500 text-5xl' />}
-                                />
-                            )}
+                            </main>
                         </div>
-                    </main>
+                    </div>
+                    <Footer />
                 </div>
-            </div>
-            <Footer />
+            ) : (
+                <div></div>
+            )}
         </div>
     )
 }

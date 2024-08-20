@@ -77,11 +77,6 @@ const OrderItemCard: React.FC<OrderItemCardProps> = ({ order, currentImageIndex,
                         )}
                     </div>
                 </div>
-                <Button
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white text-xs py-1 mt-1"
-                >
-                    View Details
-                </Button>
             </div>
         </Card>
     )

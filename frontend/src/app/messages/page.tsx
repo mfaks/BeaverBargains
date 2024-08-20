@@ -12,7 +12,7 @@ const Messages: React.FC = () => {
   return (
     <div className='flex flex-col min-h-screen bg-orange-50'>
       <NavBar />
-      <Suspense fallback={<div className="flex-1 flex items-center justify-center">Loading...</div>}>
+      <Suspense fallback={<div className="flex-1 flex items-center justify-center"></div>}>
         <DynamicMessages />
       </Suspense>
       <Footer />

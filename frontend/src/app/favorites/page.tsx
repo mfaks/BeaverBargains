@@ -8,7 +8,6 @@ import FilterSidebar from '../../components/ui/FilterSidebar'
 import FavoriteItemCard from './FavoriteItemCard'
 import Navbar from '@/components/ui/Navbar'
 import Footer from '@/components/ui/Footer'
-import UnauthorizedModal from '@/components/ui/UnauthorizedModal'
 import EmptyStateCard from '@/components/ui/EmptyStateCard'
 import { useToast } from "@/components/ui/use-toast"
 import { SkeletonCard } from '@/components/ui/SkeletonCard'
@@ -22,7 +21,7 @@ export default function Favorites() {
     const [favorites, setFavorites] = useState<number[]>([])
     const [errorMessage, setErrorMessage] = useState("")
     const [modalOpen, setModalOpen] = useState(false)
-    const { isAuthenticated, token } = useAuth()
+    const { isAuthenticated, user, token } = useAuth()
     const router = useRouter()
     const { toast } = useToast()
     const [minPrice, setMinPrice] = useState<number>(0)
@@ -38,16 +37,12 @@ export default function Favorites() {
     const [resetTrigger, setResetTrigger] = useState(0)
 
     useEffect(() => {
-        if (!isAuthenticated) {
-            setErrorMessage("You must be logged in to access your favorites. Redirecting to login.")
-            setModalOpen(true)
-            setTimeout(() => {
-                router.push('/login')
-            }, 2000)
+        if (!loading && !isAuthenticated) {
+            router.push('/login')
         } else {
             fetchItems()
         }
-    }, [isAuthenticated, router])
+    }, [isAuthenticated, loading, user, router])
 
     const fetchItems = async () => {
         setLoading(true)
@@ -216,84 +211,85 @@ export default function Favorites() {
     }
 
     return (
-        <div className='flex flex-col min-h-screen bg-orange-50 text-orange-500'>
-            <Navbar />
-            <div className="flex flex-1 overflow-hidden">
-                <aside className="w-64 bg-orange-50 flex-shrink-0 border-r border-orange-200">
-                    <FilterSidebar
-                        sortOptions={[
-                            { label: 'Price: Low to High', value: 'price_asc' },
-                            { label: 'Price: High to Low', value: 'price_desc' },
-                            { label: 'Newest First', value: 'date_desc' },
-                            { label: 'Oldest First', value: 'date_asc' }
-                        ]}
-                        priceFilter={true}
-                        minPrice={minPrice}
-                        maxPrice={maxPrice}
-                        priceRange={priceRange}
-                        onSort={handleSort}
-                        onPriceFilter={handlePriceFilter}
-                        onDescriptionSearch={handleDescriptionSearch}
-                        onTagSearch={handleTagSearch}
-                        onTagFilter={handleTagFilter}
-                        allTags={allTags}
-                        resetTrigger={resetTrigger}
-                    />
-                </aside>
-                <div className='flex-1 flex flex-col overflow-hidden'>
-                    <div className='bg-orange-100 py-4 mb-6 flex items-center justify-center'>
-                        <BeaverIcon className='text-orange-700 mr-4' />
-                        <h1 className='text-2xl font-bold text-center text-orange-700'> Your Favorite Items </h1>
-                        <BeaverIcon className='text-orange-700 ml-4' />
-                    </div>
-                    <main className='flex-1 overflow-y-auto pl-0 pr-6 py-6'>
-                        <div className='max-w-6xl mx-auto'>
-                            {loading ? (
-                                <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
-                                    {[...Array(8)].map((_, index) => (
-                                        <SkeletonCard key={index} />
-                                    ))}
-                                </div>
-                            ) : items.length > 0 ? (
-                                filteredItems.length > 0 ? (
-                                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
-                                        {filteredItems.map(item => (
-                                            <FavoriteItemCard
-                                                key={item.id}
-                                                item={item}
-                                                onToggleFavorite={toggleFavorite}
-                                                getFullImageUrl={getFullImageUrl}
+        <div>
+            {isAuthenticated ? (
+                <div className='flex flex-col min-h-screen bg-orange-50 text-orange-500'>
+                    <Navbar />
+                    <div className="flex flex-1 overflow-hidden">
+                        <aside className="w-64 bg-orange-50 flex-shrink-0 border-r border-orange-200">
+                            <FilterSidebar
+                                sortOptions={[
+                                    { label: 'Price: Low to High', value: 'price_asc' },
+                                    { label: 'Price: High to Low', value: 'price_desc' },
+                                    { label: 'Newest First', value: 'date_desc' },
+                                    { label: 'Oldest First', value: 'date_asc' }
+                                ]}
+                                priceFilter={true}
+                                minPrice={minPrice}
+                                maxPrice={maxPrice}
+                                priceRange={priceRange}
+                                onSort={handleSort}
+                                onPriceFilter={handlePriceFilter}
+                                onDescriptionSearch={handleDescriptionSearch}
+                                onTagSearch={handleTagSearch}
+                                onTagFilter={handleTagFilter}
+                                allTags={allTags}
+                                resetTrigger={resetTrigger}
+                            />
+                        </aside>
+                        <div className='flex-1 flex flex-col overflow-hidden'>
+                            <div className='bg-orange-100 py-4 mb-6 flex items-center justify-center'>
+                                <BeaverIcon className='text-orange-700 mr-4' />
+                                <h1 className='text-2xl font-bold text-center text-orange-700'> Your Favorite Items </h1>
+                                <BeaverIcon className='text-orange-700 ml-4' />
+                            </div>
+                            <main className='flex-1 overflow-y-auto pl-0 pr-6 py-6'>
+                                <div className='max-w-6xl mx-auto'>
+                                    {loading ? (
+                                        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
+                                            {[...Array(8)].map((_, index) => (
+                                                <SkeletonCard key={index} />
+                                            ))}
+                                        </div>
+                                    ) : items.length > 0 ? (
+                                        filteredItems.length > 0 ? (
+                                            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'>
+                                                {filteredItems.map(item => (
+                                                    <FavoriteItemCard
+                                                        key={item.id}
+                                                        item={item}
+                                                        onToggleFavorite={toggleFavorite}
+                                                        getFullImageUrl={getFullImageUrl}
+                                                    />
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <EmptyStateCard
+                                                title='No favorites found'
+                                                description='There are currently no favorited items matching your criteria.'
+                                                actionText='Clear Filters'
+                                                onAction={handleClearFilters}
+                                                icon={<FaHeart className='text-orange-500 text-5xl' />}
                                             />
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <EmptyStateCard
-                                        title='No favorites found'
-                                        description='There are currently no favorited items matching your criteria.'
-                                        actionText='Clear Filters'
-                                        onAction={handleClearFilters}
-                                        icon={<FaHeart className='text-orange-500 text-5xl' />}
-                                    />
-                                )
-                            ) : (
-                                <EmptyStateCard
-                                    title='No favorites yet'
-                                    description="You haven't added any items to your favorites. Browse the marketplace to find items you like!"
-                                    actionText='Go to Marketplace'
-                                    onAction={() => router.push('/marketplace')}
-                                    icon={<FaShoppingBasket className='text-orange-500 text-5xl' />}
-                                />
-                            )}
+                                        )
+                                    ) : (
+                                        <EmptyStateCard
+                                            title='No favorites yet'
+                                            description="You haven't added any items to your favorites. Browse the marketplace to find items you like!"
+                                            actionText='Go to Marketplace'
+                                            onAction={() => router.push('/marketplace')}
+                                            icon={<FaShoppingBasket className='text-orange-500 text-5xl' />}
+                                        />
+                                    )}
+                                </div>
+                            </main>
                         </div>
-                    </main>
+                    </div>
+                    <Footer />
                 </div>
-            </div>
-            <Footer />
-            <UnauthorizedModal
-                isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                message={errorMessage}
-            />
+            ) : (
+                <div></div>
+            )}
         </div>
     )
 }
