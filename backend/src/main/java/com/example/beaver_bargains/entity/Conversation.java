@@ -58,5 +58,4 @@ public class Conversation {
     public void setLastMessageTimestamp(Instant lastMessageTimestamp) {
         this.lastMessageTimestamp = lastMessageTimestamp;
     }
-
 }

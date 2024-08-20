@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '../auth/AuthContext'
-import FilterSidebar from '../FilterSidebar'
+import { useAuth } from '../../components/auth/AuthContext'
+import FilterSidebar from '../../components/ui/FilterSidebar'
 import ListingItemCard from './ListingItemCard'
 import Navbar from '@/components/ui/Navbar'
 import Footer from '@/components/ui/Footer'
@@ -14,34 +14,34 @@ import { SkeletonCard } from '@/components/ui/SkeletonCard'
 import { FaClipboardList } from 'react-icons/fa'
 import { Item } from '@/types/Item'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import BeaverIcon from '@/components/ui/BeaverIcon'
 
 export default function Listings() {
     const [activeItems, setActiveItems] = useState<Item[]>([])
     const [soldItems, setSoldItems] = useState<Item[]>([])
     const [filteredItems, setFilteredItems] = useState<Item[]>([])
     const [selectedItems, setSelectedItems] = useState<number[]>([])
-    const [errorMessage, setErrorMessage] = useState('')
-    const [modalOpen, setModalOpen] = useState(false)
     const [minPrice, setMinPrice] = useState<number>(0)
-    const [maxPrice, setMaxPrice] = useState<number>(Infinity)
+    const [maxPrice, setMaxPrice] = useState<number>(0)
+    const [priceRange, setPriceRange] = useState<[number, number]>([0, 0])
+    const [originalMinPrice, setOriginalMinPrice] = useState<number>(0)
+    const [originalMaxPrice, setOriginalMaxPrice] = useState<number>(0)
     const [loading, setLoading] = useState(true)
-    const [searchTerm, setSearchTerm] = useState('')
+    const [isTabChanging, setIsTabChanging] = useState(false)
+    const [descriptionSearch, setDescriptionSearch] = useState('')
+    const [tagSearch, setTagSearch] = useState('')
+    const [allTags, setAllTags] = useState<string[]>([])
+    const [selectedTags, setSelectedTags] = useState<string[]>([])
     const [activeTab, setActiveTab] = useState('active')
+    const [resetTrigger, setResetTrigger] = useState(0)
+    const [lastUpdatedItem, setLastUpdatedItem] = useState<Item | null>(null)
     const { isAuthenticated, token } = useAuth()
     const router = useRouter()
     const { toast } = useToast()
-    const [allTags, setAllTags] = useState<string[]>([])
-    const [selectedTags, setSelectedTags] = useState<string[]>([])
-    const [showNoResultsModal, setShowNoResultsModal] = useState(false)
 
     useEffect(() => {
         if (!isAuthenticated || !token) {
-            setErrorMessage('You must be logged in to access your listings. Redirecting to login.')
-            setModalOpen(true)
-            setTimeout(() => {
-                router.push(`/login`)
-            }, 2000)
+            router.push(`/login`)
         } else {
             fetchItems()
         }
@@ -57,23 +57,24 @@ export default function Listings() {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
 
-            const activeItems = activeResponse.data
-            const soldItems = soldResponse.data
+            setActiveItems(activeResponse.data)
+            setSoldItems(soldResponse.data)
+            setFilteredItems(activeResponse.data)
 
-            const tags = new Set([
-                ...activeItems.flatMap(item => item.tags || []),
-                ...soldItems.flatMap(item => item.tags || [])
-            ])
-            setAllTags(Array.from(tags))
+            const allItems = [...activeResponse.data, ...soldResponse.data]
 
-            setActiveItems(activeItems)
-            setSoldItems(soldItems)
-            setFilteredItems(activeItems)
+            const uniqueTags = new Set(allItems.flatMap(item => item.tags || []))
+            setAllTags(Array.from(uniqueTags))
 
-            if (activeItems.length > 0) {
-                const prices = activeItems.map(item => item.price)
-                setMinPrice(Math.min(...prices))
-                setMaxPrice(Math.max(...prices))
+            if (allItems.length > 0) {
+                const prices = allItems.map(item => item.price)
+                const minItemPrice = Math.min(...prices)
+                const maxItemPrice = Math.max(...prices)
+                setMinPrice(minItemPrice)
+                setMaxPrice(maxItemPrice)
+                setOriginalMinPrice(minItemPrice)
+                setOriginalMaxPrice(maxItemPrice)
+                setPriceRange([minItemPrice, maxItemPrice])
             }
         } catch (error) {
             console.error('Error fetching items:', error)
@@ -88,48 +89,88 @@ export default function Listings() {
         }
     }
 
-    const handleFilters = () => {
-        const items = activeTab === 'active' ? activeItems : soldItems
-        const filtered = items.filter(item =>
-            (selectedTags.length === 0 || selectedTags.every(tag => item.tags.includes(tag))) &&
-            item.price >= minPrice &&
-            item.price <= maxPrice &&
-            (item.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                item.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
-        )
-        setFilteredItems(filtered)
-        setShowNoResultsModal(filtered.length === 0)
-    }
+    useEffect(() => {
+        if (lastUpdatedItem) {
+            const updateItemsList = (items: Item[]) =>
+                items.map(item => item.id === lastUpdatedItem.id ? lastUpdatedItem : item)
+
+            setActiveItems(updateItemsList)
+            setSoldItems(updateItemsList)
+            setFilteredItems(updateItemsList)
+
+            const updatedTags = new Set([...allTags, ...(lastUpdatedItem.tags || [])])
+            setAllTags(Array.from(updatedTags))
+
+            const allItems = [...activeItems, ...soldItems, lastUpdatedItem]
+            const allPrices = allItems.map(item => item.price)
+            const newMinPrice = Math.min(...allPrices)
+            const newMaxPrice = Math.max(...allPrices)
+
+            if (newMinPrice !== minPrice || newMaxPrice !== maxPrice) {
+                setMinPrice(newMinPrice)
+                setMaxPrice(newMaxPrice)
+                setOriginalMinPrice(newMinPrice)
+                setOriginalMaxPrice(newMaxPrice)
+                setPriceRange([newMinPrice, newMaxPrice])
+            }
+
+            setLastUpdatedItem(null)
+        }
+    }, [lastUpdatedItem, activeItems, soldItems, allTags, minPrice, maxPrice])
 
     const handleDescriptionSearch = (term: string) => {
-        setSearchTerm(term)
-        handleFilters()
+        setDescriptionSearch(term)
+        const itemsToFilter = activeTab === 'active' ? activeItems : soldItems
+        applyFilters(term, selectedTags, priceRange[0], priceRange[1], itemsToFilter)
     }
 
     const handleTagSearch = (term: string) => {
-        setSearchTerm(term)
-        handleFilters()
+        setTagSearch(term)
     }
 
     const handleTagFilter = (tags: string[]) => {
         setSelectedTags(tags)
-        handleFilters()
+        const itemsToFilter = activeTab === 'active' ? activeItems : soldItems
+        applyFilters(descriptionSearch, tags, priceRange[0], priceRange[1], itemsToFilter)
     }
 
     const handlePriceFilter = (min: number, max: number) => {
-        setMinPrice(min)
-        setMaxPrice(max)
-        handleFilters()
+        setPriceRange([min, max])
+        const itemsToFilter = activeTab === 'active' ? activeItems : soldItems
+        applyFilters(descriptionSearch, selectedTags, min, max, itemsToFilter)
     }
 
-    const clearFilters = () => {
-        setMinPrice(0)
-        setMaxPrice(Infinity)
-        setSearchTerm('')
+    const applyFilters = (descSearch: string, tags: string[], min: number, max: number, items: Item[]) => {
+        let filtered = items
+
+        if (descSearch) {
+            filtered = filtered.filter(item =>
+                item.description.toLowerCase().includes(descSearch.toLowerCase()) ||
+                item.title.toLowerCase().includes(descSearch.toLowerCase())
+            )
+        }
+
+        if (tags.length > 0) {
+            filtered = filtered.filter(item =>
+                tags.every(tag => item.tags.includes(tag))
+            )
+        }
+
+        filtered = filtered.filter(item =>
+            item.price >= min && item.price <= max
+        )
+
+        setFilteredItems(filtered)
+    }
+
+    const handleClearFilters = () => {
+        setDescriptionSearch('')
+        setTagSearch('')
         setSelectedTags([])
-        setFilteredItems(activeTab === 'active' ? activeItems : soldItems)
-        setShowNoResultsModal(false)
+        setPriceRange([originalMinPrice, originalMaxPrice])
+        setResetTrigger(prev => prev + 1)
+        const itemsToFilter = activeTab === 'active' ? activeItems : soldItems
+        setFilteredItems(itemsToFilter)
     }
 
     const toggleSelectItem = (itemId: number) => {
@@ -140,30 +181,60 @@ export default function Listings() {
         )
     }
 
-    const handleItemUpdate = (updatedItem: Item) => {
-        if (updatedItem.status === 'ACTIVE') {
-            setActiveItems(prev => [...prev, updatedItem])
-            setSoldItems(prev => prev.filter(item => item.id !== updatedItem.id))
-        } else if (updatedItem.status === 'SOLD') {
-            setActiveItems(prev => prev.filter(item => item.id !== updatedItem.id))
-            setSoldItems(prev => [...prev, updatedItem])
+    const handleItemUpdate = async (updatedItem: Item) => {
+        try {
+            const updateItemsList = (items: Item[]) =>
+                items.map(item => item.id === updatedItem.id ? updatedItem : item)
+
+            setActiveItems(updateItemsList)
+            setSoldItems(updateItemsList)
+            setFilteredItems(updateItemsList)
+
+            const updatedTags = new Set([...allTags, ...(updatedItem.tags || [])])
+            setAllTags(Array.from(updatedTags))
+
+            const allItems = [...activeItems, ...soldItems]
+            const allPrices = allItems.map(item => item.price)
+            const newMinPrice = Math.min(...allPrices, updatedItem.price)
+            const newMaxPrice = Math.max(...allPrices, updatedItem.price)
+
+            if (newMinPrice !== minPrice || newMaxPrice !== maxPrice) {
+                setMinPrice(newMinPrice)
+                setMaxPrice(newMaxPrice)
+                setOriginalMinPrice(newMinPrice)
+                setOriginalMaxPrice(newMaxPrice)
+                setPriceRange([newMinPrice, newMaxPrice])
+            }
+
+            toast({
+                title: 'Success',
+                description: 'Item details updated successfully.',
+                duration: 3000,
+            })
+        } catch (error) {
+            console.error('Error updating item details:', error)
+            toast({
+                title: 'Error',
+                description: 'Failed to update item details. Please try again.',
+                variant: 'destructive',
+                duration: 5000,
+            })
         }
-        setFilteredItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item))
     }
 
     const handleMarkAsSold = async (itemId: number, buyerId: number, purchaseDate: string) => {
+        const formattedDate = purchaseDate.replace('Z', '')
         try {
             const response = await axios.put<Item>(
-                `http://localhost:8080/api/items/${itemId}/mark-as-sold`,
-                { buyerId, purchaseDate },
-                {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                }
+                `http://localhost:8080/api/items/${itemId}/mark-as-sold?buyerId=${buyerId}&purchaseDate=${encodeURIComponent(formattedDate)}`,
+                {},
+                { headers: { 'Authorization': `Bearer ${token}` } }
             )
             const updatedItem = response.data
-            setActiveItems(prev => prev.filter(item => item.id !== itemId))
+
+            setActiveItems(prev => prev.filter(item => item.id !== updatedItem.id))
             setSoldItems(prev => [...prev, updatedItem])
-            setFilteredItems(prev => prev.filter(item => item.id !== itemId))
+            setFilteredItems(prev => prev.filter(item => item.id !== updatedItem.id))
 
             toast({
                 title: 'Success',
@@ -202,6 +273,14 @@ export default function Listings() {
         setFilteredItems(sorted)
     }
 
+    const handleTabChange = (newTab: string) => {
+        setIsTabChanging(true)
+        setActiveTab(newTab)
+        const itemsToFilter = newTab === 'active' ? activeItems : soldItems
+        applyFilters(descriptionSearch, selectedTags, priceRange[0], priceRange[1], itemsToFilter)
+        setIsTabChanging(false)
+    }
+
     const BASE_URL = `http://localhost:8080`
     const getFullImageUrl = (imageUrl: string) => {
         if (imageUrl.startsWith(`http`)) {
@@ -210,145 +289,132 @@ export default function Listings() {
         return `${BASE_URL}/uploads/${imageUrl}`
     }
 
-
     return (
-        <div className="flex flex-col min-h-screen bg-orange-50">
-            <Navbar />
-            <div className="flex flex-1 overflow-hidden mb-10">
-                {!loading && (activeItems.length > 0 || soldItems.length > 0) && (
-                    <aside className="w-64 bg-orange-50 flex-shrink-0">
-                        <FilterSidebar
-                            sortOptions={[
-                                { label: 'Price: Low to High', value: 'price_asc' },
-                                { label: 'Price: High to Low', value: 'price_desc' },
-                                { label: 'Newest First', value: 'date_desc' },
-                                { label: 'Oldest First', value: 'date_asc' }
-                            ]}
-                            priceFilter={true}
-                            minPrice={minPrice}
-                            maxPrice={maxPrice}
-                            onSort={handleSort}
-                            onPriceFilter={handlePriceFilter}
-                            onDescriptionSearch={handleDescriptionSearch}
-                            onTagSearch={handleTagSearch}
-                            onTagFilter={handleTagFilter}
-                            allTags={allTags}
-                        />
-                    </aside>
-                )}
-                <main className="flex-1 overflow-y-auto pl-0 pr-6 py-6">
-                    <div className="max-w-4xl mx-auto">
-                        <div className="flex justify-center mb-6">
-                            <h1 className="text-3xl font-bold text-orange-500 border-b-2 border-orange-500 pb-1">
-                                Your Listings
-                            </h1>
-                        </div>
-                        <Tabs defaultValue="active" className="w-full mb-6">
-                            <TabsList>
-                                <TabsTrigger
-                                    value="active"
-                                    onClick={() => {
-                                        setActiveTab('active')
-                                        setFilteredItems(activeItems)
-                                    }}
-                                >
-                                    Active Listings
-                                </TabsTrigger>
-                                <TabsTrigger
-                                    value="sold"
-                                    onClick={() => {
-                                        setActiveTab('sold')
-                                        setFilteredItems(soldItems)
-                                    }}
-                                >
-                                    Sold Items
-                                </TabsTrigger>
-                            </TabsList>
-                            <TabsContent value="active">
-                                {loading ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                                        {[...Array(6)].map((_, index) => (
-                                            <SkeletonCard key={index} />
-                                        ))}
-                                    </div>
-                                ) : activeItems.length > 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                                        {filteredItems.map(item => (
-                                            <ListingItemCard
-                                                key={item.id}
-                                                item={item}
-                                                getFullImageUrl={getFullImageUrl}
-                                                isSelected={selectedItems.includes(item.id)}
-                                                onToggleSelect={() => toggleSelectItem(item.id)}
-                                                token={token}
-                                                onItemUpdate={handleItemUpdate}
-                                                onMarkAsSold={handleMarkAsSold}
-                                                isSold={item.status === 'SOLD'}
+        <div>
+            {isAuthenticated ? (
+                <div className="flex flex-col min-h-screen bg-orange-50">
+                    <Navbar />
+                    <div className="flex flex-1 overflow-hidden">
+                        <aside className="w-64 bg-orange-50 flex-shrink-0 border-r border-orange-200">
+                            <FilterSidebar
+                                sortOptions={[
+                                    { label: 'Price: Low to High', value: 'price_asc' },
+                                    { label: 'Price: High to Low', value: 'price_desc' },
+                                    { label: 'Newest First', value: 'date_desc' },
+                                    { label: 'Oldest First', value: 'date_asc' }
+                                ]}
+                                priceFilter={true}
+                                minPrice={minPrice}
+                                maxPrice={maxPrice}
+                                priceRange={priceRange}
+                                onSort={handleSort}
+                                onPriceFilter={handlePriceFilter}
+                                onDescriptionSearch={handleDescriptionSearch}
+                                onTagSearch={handleTagSearch}
+                                onTagFilter={handleTagFilter}
+                                allTags={allTags}
+                                resetTrigger={resetTrigger}
+                            />
+                        </aside>
+                        <main className="flex-1 overflow-y-auto">
+                            <div className="bg-orange-100 py-4 w-full sticky top-0 z-10">
+                                <div className="max-w-6xl mx-auto flex items-center justify-center">
+                                    <BeaverIcon className="text-orange-700 mr-4" />
+                                    <h1 className="text-2xl font-bold text-center text-orange-700">Your Listing History</h1>
+                                    <BeaverIcon className="text-orange-700 ml-4" />
+                                </div>
+                            </div>
+                            <div className="max-w-6xl mx-auto p-6">
+                                <Tabs defaultValue="active" className="w-full mb-6">
+                                    <TabsList className="grid w-full grid-cols-2">
+                                        <TabsTrigger
+                                            value="active"
+                                            onClick={() => handleTabChange('active')}
+                                        >
+                                            Active Listings
+                                        </TabsTrigger>
+                                        <TabsTrigger
+                                            value="sold"
+                                            onClick={() => handleTabChange('sold')}
+                                        >
+                                            Sold Items
+                                        </TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent value="active" className={`tab-content ${isTabChanging ? 'loading' : ''}`}>
+                                        {loading || isTabChanging ? (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                                {[...Array(8)].map((_, index) => (
+                                                    <SkeletonCard key={index} />
+                                                ))}
+                                            </div>
+                                        ) : filteredItems.length > 0 ? (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                                {filteredItems.map(item => (
+                                                    <ListingItemCard
+                                                        key={item.id}
+                                                        item={item}
+                                                        getFullImageUrl={getFullImageUrl}
+                                                        isSelected={selectedItems.includes(item.id)}
+                                                        onToggleSelect={() => toggleSelectItem(item.id)}
+                                                        token={token}
+                                                        onItemUpdate={handleItemUpdate}
+                                                        onMarkAsSold={handleMarkAsSold}
+                                                        isSold={false}
+                                                    />
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <EmptyStateCard
+                                                title={activeItems.length > 0 ? "No items found" : "No active listings"}
+                                                description={activeItems.length > 0 ? "There are no items matching your current filters." : "You don't have any active listings. Start selling to see your listings here!"}
+                                                actionText={activeItems.length > 0 ? "Clear Filters" : "Create Listing"}
+                                                onAction={activeItems.length > 0 ? handleClearFilters : () => router.push('/sell')}
+                                                icon={<FaClipboardList className="text-orange-500" />}
                                             />
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <EmptyStateCard
-                                        title="No active listings"
-                                        description="You don't have any active listings. Start selling to see your listings here!"
-                                        actionText="Create Listing"
-                                        onAction={() => router.push('/sell')}
-                                        icon={<FaClipboardList className="text-orange-500" />}
-                                    />
-                                )}
-                            </TabsContent>
-                            <TabsContent value="sold">
-                                {loading ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                                        {[...Array(6)].map((_, index) => (
-                                            <SkeletonCard key={index} />
-                                        ))}
-                                    </div>
-                                ) : soldItems.length > 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                                        {filteredItems.map(item => (
-                                            <ListingItemCard
-                                                key={item.id}
-                                                item={item}
-                                                getFullImageUrl={getFullImageUrl}
-                                                isSelected={selectedItems.includes(item.id)}
-                                                onToggleSelect={() => toggleSelectItem(item.id)}
-                                                token={token}
-                                                onItemUpdate={handleItemUpdate}
-                                                onMarkAsSold={handleMarkAsSold}
-                                                isSold={item.status === 'SOLD'}
+                                        )}
+                                    </TabsContent>
+                                    <TabsContent value="sold" className={`tab-content ${isTabChanging ? 'loading' : ''}`}>
+                                        {loading || isTabChanging ? (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                                {[...Array(8)].map((_, index) => (
+                                                    <SkeletonCard key={index} />
+                                                ))}
+                                            </div>
+                                        ) : filteredItems.length > 0 ? (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                                                {filteredItems.map(item => (
+                                                    <ListingItemCard
+                                                        key={item.id}
+                                                        item={item}
+                                                        getFullImageUrl={getFullImageUrl}
+                                                        isSelected={selectedItems.includes(item.id)}
+                                                        onToggleSelect={() => toggleSelectItem(item.id)}
+                                                        token={token}
+                                                        onItemUpdate={handleItemUpdate}
+                                                        onMarkAsSold={handleMarkAsSold}
+                                                        isSold={true}
+                                                    />
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <EmptyStateCard
+                                                title={soldItems.length > 0 ? "No items found" : "No sold items"}
+                                                description={soldItems.length > 0 ? "There are no items matching your current filters." : "You haven't sold any items yet. Keep listing and promoting your items!"}
+                                                actionText={soldItems.length > 0 ? "Clear Filters" : "View Active Listings"}
+                                                onAction={soldItems.length > 0 ? handleClearFilters : () => handleTabChange('active')}
+                                                icon={<FaClipboardList className="text-orange-500" />}
                                             />
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <EmptyStateCard
-                                        title="No sold items"
-                                        description="You haven't sold any items yet. Keep listing and promoting your items!"
-                                        actionText="View Active Listings"
-                                        onAction={() => {
-                                            setActiveTab('active')
-                                            setFilteredItems(activeItems)
-                                        }}
-                                        icon={<FaClipboardList className="text-orange-500" />}
-                                    />
-                                )}
-                            </TabsContent>
-                        </Tabs>
+                                        )}
+                                    </TabsContent>
+                                </Tabs>
+                            </div>
+                        </main>
                     </div>
-                </main>
-            </div>
-            <Footer />
-            <Dialog open={showNoResultsModal} onOpenChange={setShowNoResultsModal}>
-                <DialogContent>
-                    <EmptyStateCard
-                        title="No items found"
-                        description="There are no items matching your current filters."
-                        actionText="Clear Filters"
-                        onAction={clearFilters}
-                        icon={<FaClipboardList className="text-orange-500" />}
-                    />
-                </DialogContent>
-            </Dialog>
+                    <Footer />
+                </div>
+            ) : (
+                <div></div>
+            )}
         </div>
     )
 }

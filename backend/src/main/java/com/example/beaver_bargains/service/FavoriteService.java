@@ -28,41 +28,30 @@ public class FavoriteService {
     private ItemRepository itemRepository;
 
     public List<Long> getFavoriteItemIds(String userEmail) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findByEmail(userEmail).orElseThrow(() -> new RuntimeException("User not found"));
 
         return favoriteRepository.findByUser(user).stream()
-                .map(favorite -> favorite.getItem().getId())
-                .collect(Collectors.toList());
+            .map(favorite -> favorite.getItem().getId())
+            .collect(Collectors.toList());
     }
 
     @Transactional
     public void addFavorite(String userEmail, Long itemId) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item not found"));
-
-        if (favoriteRepository.findByUserAndItem(user, item).isPresent()) {
-            throw new RuntimeException("Item is already favorited");
-        }
-
+        User user = userRepository.findByEmail(userEmail).orElseThrow(() -> new RuntimeException("User not found"));
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException("Item not found"));   
         Favorite favorite = new Favorite(user, item);
         favoriteRepository.save(favorite);
     }
 
     @Transactional
     public void removeFavorite(String userEmail, Long itemId) {
-        User user = userRepository.findByEmail(userEmail)
-            .orElseThrow(() -> new RuntimeException("User not found"));
-        Item item = itemRepository.findById(itemId)
-            .orElseThrow(() -> new RuntimeException("Item not found"));
-
-        favoriteRepository.findByUserAndItem(user, item)
-            .ifPresentOrElse(
-                favorite -> favoriteRepository.delete(favorite),
-                () -> {
-                    throw new RuntimeException("Favorite not found");
-                });
+        User user = userRepository.findByEmail(userEmail).orElseThrow(() -> new RuntimeException("User not found"));
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException("Item not found"));
+    
+        List<Favorite> favorites = favoriteRepository.findByUserAndItem(user, item);
+        
+        if (!favorites.isEmpty()) {
+            favoriteRepository.deleteAll(favorites);
+        }
     }
 }

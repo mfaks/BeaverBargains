@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'BeaverBargains - The Marketplace for Beavs',
   icons: {
-    icon: '/beaver.svg',
+    icon: '/icons/beaver.svg',
   },
 }
 

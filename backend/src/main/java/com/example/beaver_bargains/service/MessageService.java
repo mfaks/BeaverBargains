@@ -33,8 +33,7 @@ public class MessageService {
         UserDto receiverDto = userService.getUserDetails(receiverId);
         User receiver = receiverDto.toUser();
 
-        Optional<Conversation> existingConversation = conversationRepository.findByUser1AndUser2OrUser1AndUser2(sender,
-                receiver, receiver, sender);
+        Optional<Conversation> existingConversation = conversationRepository.findByUser1AndUser2OrUser1AndUser2(sender, receiver, receiver, sender);
 
         return existingConversation.orElseGet(() -> {
             Conversation newConversation = new Conversation();
@@ -55,20 +54,17 @@ public class MessageService {
         List<Conversation> conversations = conversationRepository.findByUser1OrUser2(currentUser, currentUser);
 
         return conversations.stream()
-                .map(conversation -> conversation.getUser1().equals(currentUser) ? conversation.getUser2()
-                        : conversation.getUser1())
-                .distinct()
-                .map(user -> new UserDto(user))
-                .collect(Collectors.toList());
+            .map(conversation -> conversation.getUser1().equals(currentUser) ? conversation.getUser2(): conversation.getUser1())
+            .distinct()
+            .map(user -> new UserDto(user))
+            .collect(Collectors.toList());
     }
 
     public Message sendMessage(String senderEmail, Long conversationId, String content) {
         User sender = userService.getUserByEmail(senderEmail);
-        Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
+        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
 
-        User receiver = (conversation.getUser1().getId().equals(sender.getId())) ? conversation.getUser2()
-                : conversation.getUser1();
+        User receiver = (conversation.getUser1().getId().equals(sender.getId())) ? conversation.getUser2() : conversation.getUser1();
 
         Message message = new Message();
         message.setSender(sender);
@@ -81,8 +77,7 @@ public class MessageService {
     }
 
     public List<Message> getConversationMessages(Long conversationId) {
-        Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
+        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
         return messageRepository.findByConversationOrderByTimestampAsc(conversation);
     }
 }

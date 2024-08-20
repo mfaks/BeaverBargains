@@ -10,8 +10,12 @@ import com.example.beaver_bargains.entity.User;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
     List<Item> findBySeller(User seller);
+
     List<Item> findBySellerNot(User seller);
+
     List<Item> findByStatus(ItemStatus status);
+
     List<Item> findByStatusAndSellerNot(ItemStatus status, User seller);
+
     List<Item> findByBuyerAndStatus(User buyer, ItemStatus status);
 }

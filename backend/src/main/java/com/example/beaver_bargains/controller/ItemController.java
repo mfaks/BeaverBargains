@@ -65,6 +65,13 @@ public class ItemController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/marketplace")
+    public ResponseEntity<List<Item>> getAllActiveItems(Authentication authentication) {
+        String userEmail = authentication.getName();
+        List<Item> items = itemService.getAllActiveItemsExceptUser(userEmail);
+        return ResponseEntity.ok(items);
+    }
+
     @GetMapping("/search")
     public ResponseEntity<List<Item>> searchItems(@RequestParam(required = false) String query, @RequestParam(required = false) List<String> tags, Authentication authentication) {
         String userEmail = authentication.getName();
@@ -77,13 +84,6 @@ public class ItemController {
         String userEmail = authentication.getName();
         Set<String> tags = itemService.getAllTags(userEmail);
         return ResponseEntity.ok(tags);
-    }
-
-    @GetMapping("/marketplace")
-    public ResponseEntity<List<Item>> getAllActiveItems(Authentication authentication) {
-        String userEmail = authentication.getName();
-        List<Item> items = itemService.getAllActiveItemsExceptUser(userEmail);
-        return ResponseEntity.ok(items);
     }
 
     @GetMapping("/user/active")

@@ -3,34 +3,26 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '../auth/AuthContext'
-import UnauthorizedModal from '@/components/ui/UnauthorizedModal'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useAuth } from '../../components/auth/AuthContext'
 import { Conversation } from '@/types/Conversation'
 import { User } from '@/types/User'
 import { ConversationWithUnread } from '@/types/ConversationsWithUnread'
 import { UpdatedConversationsProps } from '@/types/UpdatedConversationProps'
+import { SkeletonCard } from '@/components/ui/SkeletonCard'
 
 const Conversations: React.FC<UpdatedConversationsProps> = ({ userId, conversations, setConversations, onSelectConversation, selectedConversationId, onConversationRead }) => {
-
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const { isAuthenticated, token } = useAuth()
-    const [modalOpen, setModalOpen] = useState(false)
-    const [errorMessage, setErrorMessage] = useState('')
+    const { isAuthenticated, user, token } = useAuth()
     const router = useRouter()
 
     useEffect(() => {
-        if (!isAuthenticated) {
-            setErrorMessage('You must be logged in to access messages. Redirecting to login.')
-            setModalOpen(true)
-            setTimeout(() => {
-                router.push('/login')
-            }, 2000)
-        } else if (token) {
+        if (!loading && !isAuthenticated) {
+            router.push('/login')
+        } else if (isAuthenticated && user) {
             fetchConversationsAndUnreadMessages()
         }
-    }, [isAuthenticated, token, router])
+    }, [isAuthenticated, loading, user, router])
 
     const fetchConversationsAndUnreadMessages = async () => {
         setLoading(true)
@@ -87,54 +79,13 @@ const Conversations: React.FC<UpdatedConversationsProps> = ({ userId, conversati
         onSelectConversation(conversationId, otherUserId)
     }
 
-    const getInitials = (firstName?: string, lastName?: string) => {
-        if (!firstName || !lastName) return '??'
-        return (firstName.charAt(0) + lastName.charAt(0)).toUpperCase()
-    }
-
     const getOtherUser = (conversation: Conversation): User => {
         return conversation.user1.id === userId ? conversation.user2 : conversation.user1
     }
 
-    const getLastMessageSender = (conversation: Conversation): string => {
-        if (!conversation.lastMessageSenderId) {
-            return 'No messages yet'
-        }
-        return conversation.lastMessageSenderId === userId ? 'You' : getOtherUser(conversation).firstName
-    }
-
-    const formatDateTime = (timestamp: string) => {
-        return new Date(timestamp).toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-        })
-    }
-
-    if (!isAuthenticated) {
-        return (
-            <UnauthorizedModal
-                isOpen={modalOpen}
-                onClose={() => setModalOpen(false)}
-                message={errorMessage}
-            />
-        )
-    }
-
-    if (loading) {
-        return <div className='w-1/5 border-r p-4'>Loading conversations.. .</div>
-    }
-
-    if (error) {
-        return <div className='w-1/5 border-r p-4 text-red-500'>{error}</div>
-    }
-
     const BASE_URL = 'http://localhost:8080'
     const getFullImageUrl = (imageUrl: string | undefined): string => {
-        if (!imageUrl){
+        if (!imageUrl) {
             return ''
         }
         if (imageUrl.startsWith('http')) {
@@ -144,55 +95,48 @@ const Conversations: React.FC<UpdatedConversationsProps> = ({ userId, conversati
     }
 
     return (
-        <div className='w-1/5 border-r overflow-y-auto'>
-            <h2 className='text-xl font-semibold p-4 text-center border-b'>My Messages</h2>
-            {conversations.map((conversation: ConversationWithUnread) => {
-                const otherUser = getOtherUser(conversation)
-                const lastMessageSender = getLastMessageSender(conversation)
-
-                return (
-                    <div
-                        key={conversation.id}
-                        className={`px-4 py-3 hover:bg-gray-100 cursor-pointer border-b ${selectedConversationId === conversation.id ? 'bg-orange-100' : ''
-                            } ${conversation.unreadCount > 0 ? 'bg-orange-50' : ''
-                            }`}
-                        onClick={() => handleConversationClick(conversation.id, otherUser.id)}
-                    >
-                        <div className='flex items-center'>
-                            {conversation.unreadCount > 0 && (
-                                <div className='w-2 h-2 bg-orange-600 rounded-full mr-2'></div>
-                            )}
-                            <Avatar className='w-10 h-10 mr-3'>
-                                <AvatarImage
-                                    src={getFullImageUrl(otherUser.profileImageUrl)}
-                                    alt={`${otherUser.firstName} ${otherUser.lastName}`}
-                                />
-                                <AvatarFallback>
-                                    {getInitials(otherUser.firstName, otherUser.lastName)}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className='flex-grow overflow-hidden'>
-                                <h3 className={`font-semibold ${conversation.unreadCount > 0 ? 'text-orange-600' : ''
-                                    }`}>
-                                    {`${otherUser.firstName} ${otherUser.lastName}`}
-                                </h3>
-                                <p className='text-sm text-gray-600 truncate'>
-                                    {conversation.lastMessageTimestamp
-                                        ? `Last message sent by ${lastMessageSender}`
-                                        : 'No messages yet'}
-                                </p>
+        <div>
+            {isAuthenticated ? (
+                <div className="flex flex-col h-full">
+                    <div className="flex-1 overflow-y-auto">
+                        {loading ? (
+                            <div className="space-y-4 p-4">
+                                {[...Array(5)].map((_, index) => (
+                                    <SkeletonCard key={index} />
+                                ))}
                             </div>
-                        </div>
-                        {conversation.lastMessageTimestamp && (
-                            <p className='text-xs text-gray-400 mt-1'>
-                                {formatDateTime(conversation.lastMessageTimestamp)}
-                            </p>
+                        ) : (
+                            conversations.map((conversation: ConversationWithUnread) => {
+                                const otherUser = getOtherUser(conversation)
+                                return (
+                                    <div
+                                        key={conversation.id}
+                                        className={`flex items-center gap-3 px-4 py-4 cursor-pointer border-b border-orange-200 ${selectedConversationId === conversation.id ? 'bg-orange-200' : ''} hover:bg-orange-100`}
+                                        onClick={() => handleConversationClick(conversation.id, otherUser.id)}
+                                    >
+                                        <span className="relative flex shrink-0 overflow-hidden rounded-full w-10 h-10 border">
+                                            <img
+                                                className="aspect-square h-full w-full"
+                                                alt={`${otherUser.firstName} ${otherUser.lastName}`}
+                                                src={getFullImageUrl(otherUser.profileImageUrl) || "/placeholder-user.jpg"}
+                                            />
+                                        </span>
+                                        <div className="flex-1 min-w-0 flex items-center">
+                                            <span className="text-sm font-medium truncate">{`${otherUser.firstName} ${otherUser.lastName}`}</span>
+                                            {conversation.unreadCount > 0 && (
+                                                <div className="ml-2 flex-shrink-0 w-2 h-2 bg-orange-500 rounded-full" />
+                                            )}
+                                        </div>
+                                    </div>
+                                )
+                            })
                         )}
                     </div>
-                )
-            })}
+                </div>
+            ) : (
+                <div></div>
+            )}
         </div>
     )
 }
-
 export default Conversations
