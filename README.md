@@ -52,7 +52,7 @@ Since this application was designed to benefit the Oregon State community, users
 
 ## What's Next? 🚀
 
-- **In-App Payments:** Integrate the Stripe API to enable secure in-app payments and facilitate transactions directly through the platform.
+- **In-App Payments:** Integrate the Stripe API to enable secure in-app payments directly through the platform.
 - **Mobile App:** Develop a mobile version of BeaverBargains to increase accessibility and convenience for users on the go.
 - **Community Engagement:** Implement features to enhance community engagement, such as event listings and user forums.
 
