@@ -33,11 +33,12 @@ public class Message {
 
     @Column(nullable = false)
     private Instant timestamp;
-    
+
     @Column(name = "is_read", nullable = false)
     private boolean isRead = false;
 
-    public Message() {}
+    public Message() {
+    }
 
     public Message(Conversation conversation, User sender, User receiver, String content, Instant timestamp) {
         this.conversation = conversation;

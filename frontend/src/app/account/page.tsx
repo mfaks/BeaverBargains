@@ -295,303 +295,254 @@ export default function Account() {
       {isAuthenticated ? (
         <div className='flex flex-col min-h-screen bg-orange-50 text-orange-500'>
           <NavBar />
-          <div className='flex flex-1 overflow-hidden'>
-            <div className='flex-1 flex flex-col overflow-hidden'>
-              <div className='bg-orange-100 py-3 mb-3 flex items-center justify-center'>
-                <BeaverIcon className='text-orange-700 mr-3' />
-                <h1 className='text-xl font-bold text-center text-orange-700'>My Account</h1>
-                <BeaverIcon className='text-orange-700 ml-3' />
-              </div>
-              <main className='flex-1 overflow-y-auto px-3 py-3'>
-                <div className='max-w-6xl mx-auto'>
-                  <div className='grid grid-cols-1 md:grid-cols-2 gap-3'>
-                    {loading ? (
-                      <div>
-                        <SkeletonCard />
-                        <SkeletonCard />
+          <div className='flex-1 overflow-hidden'>
+            <div className='bg-orange-100 py-3 mb-6 flex items-center justify-center'>
+              <BeaverIcon className='text-orange-700 mr-3' />
+              <h1 className='text-xl font-bold text-center text-orange-700'>My Account</h1>
+              <BeaverIcon className='text-orange-700 ml-3' />
+            </div>
+            <main className='container mx-auto px-4 py-6'>
+              {loading ? (
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-6'>
+                  <SkeletonCard />
+                  <SkeletonCard />
+                </div>
+              ) : (
+                <div className='grid grid-cols-1 md:grid-cols-2 gap-6 mb-6'>
+                  {/* Profile Card */}
+                  <Card className='bg-white shadow rounded-lg text-black'>
+                    <CardHeader className='flex items-center justify-center gap-2 p-3'>
+                      <div className='flex flex-col items-center space-y-2'>
+                        <CardHeader className='p-2'>
+                          <CardTitle className='text-base font-semibold text-center'>My Profile</CardTitle>
+                        </CardHeader>
+                        <Avatar
+                          className='h-20 w-20 cursor-pointer'
+                          onDoubleClick={() => handleImageDoubleClick(getFullImageUrl(userDetails?.profileImageUrl))}
+                        >
+                          <AvatarImage src={getFullImageUrl(userDetails?.profileImageUrl)} alt={userDetails?.firstName || 'User'} />
+                          <AvatarFallback>{userDetails?.firstName?.charAt(0)}{userDetails?.lastName?.charAt(0)}</AvatarFallback>
+                        </Avatar>
                       </div>
-                    ) : (
-                      <div>
-                        <Card className='bg-white shadow rounded-lg text-black'>
-                          <CardHeader className='flex items-center justify-center gap-2 p-3'>
-                            <div className='flex flex-col items-center space-y-2'>
-                              <CardHeader className='p-2'>
-                                <CardTitle className='text-base font-semibold text-center'>My Profile</CardTitle>
-                              </CardHeader>
-                              <Avatar
-                                className='h-20 w-20 cursor-pointer'
-                                onDoubleClick={() => handleImageDoubleClick(getFullImageUrl(userDetails?.profileImageUrl))}
-                              >
-                                <AvatarImage src={getFullImageUrl(userDetails?.profileImageUrl)} alt={userDetails?.firstName || 'User'} />
-                                <AvatarFallback>{userDetails?.firstName?.charAt(0)}{userDetails?.lastName?.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                            </div>
-                            <div className='text-center'>
-                              <CardTitle className='text-lg font-semibold'>{user?.firstName} {user?.lastName}</CardTitle>
-                              <CardDescription className='text-xs text-gray-600'>{user?.email}</CardDescription>
-                            </div>
-                          </CardHeader>
-                          <CardContent className='p-3'>
-                            <div className='space-y-2'>
-                              <div>
-                                <Label className='text-xs font-medium'>First Name</Label>
-                                <Input placeholder='First Name' defaultValue={user?.firstName} className='border-gray-300 h-8 text-sm' readOnly />
-                              </div>
-                              <div>
-                                <Label className='text-xs font-medium'>Last Name</Label>
-                                <Input placeholder='Last Name' defaultValue={user?.lastName} className='border-gray-300 h-8 text-sm' readOnly />
-                              </div>
-                              <div>
-                                <Label className='text-xs font-medium'>Email</Label>
-                                <Input placeholder='Email' defaultValue={user?.email} className='border-gray-300 h-8 text-sm' readOnly />
-                              </div>
-                              <div>
-                                <Label className='text-xs font-medium'>Biography</Label>
-                                <Input
-                                  placeholder='Include a short bio to introduce yourself to buyers'
-                                  value={bio}
-                                  onChange={(e) => {
-                                    setBio(e.target.value)
-                                    setBioChanged(userDetails ? e.target.value !== userDetails.bio : false)
-                                  }}
-                                  className='border-gray-300 h-8 text-sm'
-                                />
-                              </div>
-                            </div>
-                          </CardContent>
-                          <CardFooter className='p-3'>
-                            <Button
-                              variant='outline'
-                              className={`text-xs py-1 px-2 w-full ${bioChanged ? 'bg-orange-500 text-white' : 'text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white'}`}
-                              onClick={handleSaveProfile}
-                              disabled={!bioChanged}
-                            >
-                              Save Biography
-                            </Button>
-                          </CardFooter>
-                        </Card>
-                        <Card className='bg-white shadow rounded-lg text-black flex flex-col'>
-                          <CardHeader className='p-3'>
-                            <CardTitle className='text-base font-semibold text-center'>Account Settings</CardTitle>
-                          </CardHeader>
-                          <CardContent className='p-3 flex-1 space-y-2'>
-                            <div className='flex flex-col items-center space-y-2'>
-                              <Label className='text-xs font-medium'>Profile Picture</Label>
-                              <Avatar className='h-24 w-24'>
-                                <AvatarImage src={getFullImageUrl(userDetails?.profileImageUrl)} alt={userDetails?.firstName || 'User'} />
-                                <AvatarFallback>{userDetails?.firstName?.charAt(0)}{userDetails?.lastName?.charAt(0)}</AvatarFallback>
-                              </Avatar>
-                              <div className='flex justify-center space-x-2'>
-                                {userDetails?.profileImageUrl && !isNewImageUploaded ? (
-                                  <AlertDialog open={showRemoveImageConfirmation} onOpenChange={setShowRemoveImageConfirmation}>
-                                    <AlertDialogTrigger asChild>
-                                      <Button
-                                        variant='destructive'
-                                        onClick={handleRemoveProfileImage}
-                                        className='text-[10px] py-0.5 px-1.5 h-6 min-h-0 font-normal'
-                                      >
-                                        Remove Picture
-                                      </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent className="bg-white rounded-lg shadow-lg border border-orange-200 p-6 max-w-md mx-auto">
-                                      <AlertDialogHeader>
-                                        <AlertDialogTitle className="text-xl font-semibold text-orange-700 mb-2">Remove Profile Picture</AlertDialogTitle>
-                                        <AlertDialogDescription className="text-sm text-gray-600">
-                                          Are you sure you want to remove your profile picture? This action cannot be undone.
-                                        </AlertDialogDescription>
-                                      </AlertDialogHeader>
-                                      <AlertDialogFooter className="mt-6 flex justify-end space-x-2">
-                                        <AlertDialogCancel className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors">Cancel</AlertDialogCancel>
-                                        <AlertDialogAction
-                                          onClick={confirmRemoveProfileImage}
-                                          className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                                        >
-                                          Remove
-                                        </AlertDialogAction>
-                                      </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                  </AlertDialog>
-                                ) : (
-                                  <ImageUploadAndCropper
-                                    onImageCropped={(file) => {
-                                      setCroppedImage(file)
-                                      handleProfileImageChange(file)
-                                    }}
-                                    onClose={() => { }}
-                                    currentImage={user?.profileImageUrl || null}
-                                  />
-                                )}
-                              </div>
-                            </div>
-                            <div>
-                              <Label className='text-xs font-medium'>Current Password</Label>
-                              <Input
-                                type='password'
-                                placeholder='Enter your current password'
-                                value={currentPassword}
-                                onChange={(e) => setCurrentPassword(e.target.value)}
-                                className='border-gray-300 h-8 text-sm'
-                              />
-                            </div>
-                            <div>
-                              <Label className='text-xs font-medium'>New Password</Label>
-                              <Input
-                                type='password'
-                                placeholder='Enter your new password'
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                className='border-gray-300 h-8 text-sm'
-                              />
-                            </div>
-                            <div>
-                              <Label className='text-xs font-medium'>Confirm New Password</Label>
-                              <Input
-                                type='password'
-                                placeholder='Confirm your new password'
-                                value={confirmNewPassword}
-                                onChange={(e) => setConfirmNewPassword(e.target.value)}
-                                className='border-gray-300 h-8 text-sm'
-                              />
-                            </div>
-                            {passwordError && <p className='text-red-500 text-xs'>{passwordError}</p>}
-                            <div className='flex justify-center'>
-                              <Button
-                                variant='outline'
-                                className={`w-full text-xs py-1 ${newPassword && confirmNewPassword && newPassword === confirmNewPassword
-                                  ? 'bg-orange-500 text-white'
-                                  : 'text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white'
-                                  } `}
-                                onClick={handlePasswordChange}
-                                disabled={!newPassword || !confirmNewPassword || newPassword !== confirmNewPassword}
-                              >
-                                Change Password
-                              </Button>
-                            </div>
-                          </CardContent>
-                          <CardFooter className='p-3 flex justify-center'>
-                            <AlertDialog>
+                      <div className='text-center'>
+                        <CardTitle className='text-lg font-semibold'>{user?.firstName} {user?.lastName}</CardTitle>
+                        <CardDescription className='text-xs text-gray-600'>{user?.email}</CardDescription>
+                      </div>
+                    </CardHeader>
+                    <CardContent className='p-3'>
+                      <div className='space-y-2'>
+                        <div>
+                          <Label className='text-xs font-medium'>First Name</Label>
+                          <Input placeholder='First Name' defaultValue={user?.firstName} className='border-gray-300 h-8 text-sm' readOnly />
+                        </div>
+                        <div>
+                          <Label className='text-xs font-medium'>Last Name</Label>
+                          <Input placeholder='Last Name' defaultValue={user?.lastName} className='border-gray-300 h-8 text-sm' readOnly />
+                        </div>
+                        <div>
+                          <Label className='text-xs font-medium'>Email</Label>
+                          <Input placeholder='Email' defaultValue={user?.email} className='border-gray-300 h-8 text-sm' readOnly />
+                        </div>
+                        <div>
+                          <Label className='text-xs font-medium'>Biography</Label>
+                          <Input
+                            placeholder='Include a short bio to introduce yourself to buyers'
+                            value={bio}
+                            onChange={(e) => {
+                              setBio(e.target.value)
+                              setBioChanged(userDetails ? e.target.value !== userDetails.bio : false)
+                            }}
+                            className='border-gray-300 h-8 text-sm'
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                    <CardFooter className='p-3'>
+                      <Button
+                        variant='outline'
+                        className={`text-xs py-1 px-2 w-full ${bioChanged ? 'bg-orange-500 text-white' : 'text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white'}`}
+                        onClick={handleSaveProfile}
+                        disabled={!bioChanged}
+                      >
+                        Save Biography
+                      </Button>
+                    </CardFooter>
+                  </Card>
+
+                  {/* Account Settings Card */}
+                  <Card className='bg-white shadow rounded-lg text-black flex flex-col'>
+                    <CardHeader className='p-3'>
+                      <CardTitle className='text-base font-semibold text-center'>Account Settings</CardTitle>
+                    </CardHeader>
+                    <CardContent className='p-3 flex-1 space-y-2'>
+                      <div className='flex flex-col items-center space-y-2'>
+                        <Label className='text-xs font-medium'>Profile Picture</Label>
+                        <Avatar className='h-24 w-24'>
+                          <AvatarImage src={getFullImageUrl(userDetails?.profileImageUrl)} alt={userDetails?.firstName || 'User'} />
+                          <AvatarFallback>{userDetails?.firstName?.charAt(0)}{userDetails?.lastName?.charAt(0)}</AvatarFallback>
+                        </Avatar>
+                        <div className='flex justify-center space-x-2'>
+                          {userDetails?.profileImageUrl && !isNewImageUploaded ? (
+                            <AlertDialog open={showRemoveImageConfirmation} onOpenChange={setShowRemoveImageConfirmation}>
                               <AlertDialogTrigger asChild>
                                 <Button
                                   variant='destructive'
-                                  className='w-full max-w-xs text-white bg-red-600 hover:bg-red-700 border-red-600 text-xs py-1'
+                                  onClick={handleRemoveProfileImage}
+                                  className='text-[10px] py-0.5 px-1.5 h-6 min-h-0 font-normal'
                                 >
-                                  Delete My Account
+                                  Remove Picture
                                 </Button>
                               </AlertDialogTrigger>
                               <AlertDialogContent className="bg-white rounded-lg shadow-lg border border-orange-200 p-6 max-w-md mx-auto">
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle className="text-xl font-semibold text-orange-700 mb-2">Are you absolutely sure?</AlertDialogTitle>
+                                  <AlertDialogTitle className="text-xl font-semibold text-orange-700 mb-2">Remove Profile Picture</AlertDialogTitle>
                                   <AlertDialogDescription className="text-sm text-gray-600">
-                                    This action cannot be undone. This will permanently delete your account and remove your data from our servers.
+                                    Are you sure you want to remove your profile picture? This action cannot be undone.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter className="mt-6 flex justify-end space-x-2">
-                                  <AlertDialogCancel className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors">
-                                    Cancel
-                                  </AlertDialogCancel>
+                                  <AlertDialogCancel className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors">Cancel</AlertDialogCancel>
                                   <AlertDialogAction
-                                    onClick={handleDeleteAccount}
+                                    onClick={confirmRemoveProfileImage}
                                     className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                                   >
-                                    Delete Account
+                                    Remove
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
                             </AlertDialog>
+                          ) : (
+                            <ImageUploadAndCropper
+                              onImageCropped={(file) => {
+                                setCroppedImage(file)
+                                handleProfileImageChange(file)
+                              }}
+                              onClose={() => { }}
+                              currentImage={user?.profileImageUrl || null}
+                            />
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <Label className='text-xs font-medium'>Current Password</Label>
+                        <Input
+                          type='password'
+                          placeholder='Enter your current password'
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          className='border-gray-300 h-8 text-sm'
+                        />
+                      </div>
+                      <div>
+                        <Label className='text-xs font-medium'>New Password</Label>
+                        <Input
+                          type='password'
+                          placeholder='Enter your new password'
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className='border-gray-300 h-8 text-sm'
+                        />
+                      </div>
+                      <div>
+                        <Label className='text-xs font-medium'>Confirm New Password</Label>
+                        <Input
+                          type='password'
+                          placeholder='Confirm your new password'
+                          value={confirmNewPassword}
+                          onChange={(e) => setConfirmNewPassword(e.target.value)}
+                          className='border-gray-300 h-8 text-sm'
+                        />
+                      </div>
+                      {passwordError && <p className='text-red-500 text-xs'>{passwordError}</p>}
+                      <div className='flex justify-center'>
+                        <Button
+                          variant='outline'
+                          className={`w-full text-xs py-1 ${newPassword && confirmNewPassword && newPassword === confirmNewPassword
+                            ? 'bg-orange-500 text-white'
+                            : 'text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white'
+                            } `}
+                          onClick={handlePasswordChange}
+                          disabled={!newPassword || !confirmNewPassword || newPassword !== confirmNewPassword}
+                        >
+                          Change Password
+                        </Button>
+                      </div>
+                    </CardContent>
+                    <CardFooter className='p-3 flex justify-center'>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant='destructive'
+                            className='w-full max-w-xs text-white bg-red-600 hover:bg-red-700 border-red-600 text-xs py-1'
+                          >
+                            Delete My Account
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-white rounded-lg shadow-lg border border-orange-200 p-6 max-w-md mx-auto">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-xl font-semibold text-orange-700 mb-2">Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription className="text-sm text-gray-600">
+                              This action cannot be undone. This will permanently delete your account and remove your data from our servers.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter className="mt-6 flex justify-end space-x-2">
+                            <AlertDialogCancel className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors">
+                              Cancel
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleDeleteAccount}
+                              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                            >
+                              Delete Account
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </CardFooter>
+                  </Card>
+                </div>
+              )}
+
+              {/* Quick Actions Card */}
+              {loading ? (
+                <SkeletonCard />
+              ) : (
+                <Card className='bg-white shadow rounded-lg text-black mt-6'>
+                  <CardHeader>
+                    <CardTitle className='text-center font-semibold text-base'>Quick Actions</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
+                      {[
+                        { title: 'Messages', icon: FaFacebookMessenger, description: 'View your messages with buyers and sellers.', action: 'View Messages' },
+                        { title: 'Favorites', icon: FaHeart, description: 'View items you\'ve added to your favorites.', action: 'View Favorites' },
+                        { title: 'Listed Items', icon: FaList, description: 'Manage the items you are listing for sale.', action: 'View Listed Items' },
+                        { title: 'Orders', icon: FaBox, description: 'View the status of your orders.', action: 'Manage Orders' }
+                      ].map((item, index) => (
+                        <Card key={index} className='bg-gray-50 shadow-sm'>
+                          <CardHeader className='flex items-center justify-center p-2'>
+                            <item.icon className='text-2xl text-orange-500' />
+                          </CardHeader>
+                          <CardContent className='text-center p-2'>
+                            <CardTitle className='text-sm font-semibold'>{item.title}</CardTitle>
+                            <CardDescription className='text-xs'>{item.description}</CardDescription>
+                          </CardContent>
+                          <CardFooter className='text-center p-2'>
+                            <Button
+                              variant='outline'
+                              className='w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white text-xs py-1'
+                              onClick={() => router.push(`/${item.title.toLowerCase().replace(' ', '-')}`)}
+                            >
+                              {item.action}
+                            </Button>
                           </CardFooter>
                         </Card>
-                      </div>
-                    )}
-                  </div>
-                  <div className='mt-3'>
-                    {loading ? (
-                      <SkeletonCard />
-                    ) : (
-                      <Card className='bg-white shadow rounded-lg text-black'>
-                        <CardHeader>
-                          <CardTitle className='text-center font-semibold text-base'>Quick Actions</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className='grid grid-cßols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3'>
-                            {loading ? (
-                              <div>
-                                <SkeletonCard />
-                                <SkeletonCard />
-                                <SkeletonCard />
-                                <SkeletonCard />
-                              </div>
-                            ) : (
-                              <div>
-                                <Card className='bg-gray-50 shadow-sm'>
-                                  <CardHeader className='flex items-center justify-center p-2'>
-                                    <FaFacebookMessenger className='text-2xl text-orange-500' />
-                                  </CardHeader>
-                                  <CardContent className='text-center p-2'>
-                                    <CardTitle className='text-sm font-semibold'>Messages</CardTitle>
-                                    <CardDescription className='text-xs'>View your messages with buyers and sellers.</CardDescription>
-                                  </CardContent>
-                                  <CardFooter className='text-center p-2'>
-                                    <Button variant='outline' className='w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white text-xs py-1'
-                                      onClick={() => router.push('/messages')}>
-                                      View Messages
-                                    </Button>
-                                  </CardFooter>
-                                </Card>
-                                <Card className='bg-gray-50 shadow-sm'>
-                                  <CardHeader className='flex items-center justify-center p-2'>
-                                    <FaHeart className='text-2xl text-orange-500' />
-                                  </CardHeader>
-                                  <CardContent className='text-center p-2'>
-                                    <CardTitle className='text-sm font-semibold'>Favorites</CardTitle>
-                                    <CardDescription className='text-xs'>View items you've added to your favorites.</CardDescription>
-                                  </CardContent>
-                                  <CardFooter className='text-center p-2'>
-                                    <Button variant='outline' className='w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white text-xs py-1'
-                                      onClick={() => router.push('/favorites')}>
-                                      View Favorites
-                                    </Button>
-                                  </CardFooter>
-                                </Card>
-                                <Card className='bg-gray-50 shadow-sm'>
-                                  <CardHeader className='flex items-center justify-center p-2'>
-                                    <FaList className='text-2xl text-orange-500' />
-                                  </CardHeader>
-                                  <CardContent className='text-center p-2'>
-                                    <CardTitle className='text-sm font-semibold'>Listed Items</CardTitle>
-                                    <CardDescription className='text-xs'>Manage the items you are listing for sale.</CardDescription>
-                                  </CardContent>
-                                  <CardFooter className='text-center p-2'>
-                                    <Button variant='outline' className='w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white text-xs py-1'
-                                      onClick={() => router.push('/listings')}>
-                                      View Listed Items
-                                    </Button>
-                                  </CardFooter>
-                                </Card>
-                                <Card className='bg-gray-50 shadow-sm'>
-                                  <CardHeader className='flex items-center justify-center p-2'>
-                                    <FaBox className='text-2xl text-orange-500' />
-                                  </CardHeader>
-                                  <CardContent className='text-center p-2'>
-                                    <CardTitle className='text-sm font-semibold'>Orders</CardTitle>
-                                    <CardDescription className='text-xs'>View the status of your orders.</CardDescription>
-                                  </CardContent>
-                                  <CardFooter className='text-center p-2'>
-                                    <Button variant='outline' className='w-full text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white text-xs py-1'
-                                      onClick={() => router.push('/orders')}>
-                                      Manage Orders
-                                    </Button>
-                                  </CardFooter>
-                                </Card>
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                </div>
-              </main>
-            </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </main>
           </div>
           <Footer />
           {enlargedImage && (

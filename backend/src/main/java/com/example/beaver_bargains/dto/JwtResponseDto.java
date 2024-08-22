@@ -7,7 +7,7 @@ import lombok.Setter;
 @Setter
 public class JwtResponseDto {
     private String token;
-    private Long   id;
+    private Long id;
     private String firstName;
     private String lastName;
     private String email;

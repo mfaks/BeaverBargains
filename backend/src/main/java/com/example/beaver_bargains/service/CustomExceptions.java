@@ -7,7 +7,7 @@ public class CustomExceptions {
             super(message);
         }
     }
-    
+
     public static class EmailAlreadyExistsException extends RuntimeException {
         public EmailAlreadyExistsException(String message) {
             super(message);
@@ -16,6 +16,12 @@ public class CustomExceptions {
 
     public static class UnauthorizedException extends RuntimeException {
         public UnauthorizedException(String message) {
+            super(message);
+        }
+    }
+
+    public static class InvalidEmailDomainException extends RuntimeException {
+        public InvalidEmailDomainException(String message) {
             super(message);
         }
     }

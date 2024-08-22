@@ -10,6 +10,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -41,7 +44,16 @@ public class ItemService {
     @PersistenceContext
     private EntityManager entityManager;
 
+    private final Set<String> DEFAULT_TAGS = new HashSet<>(
+            Arrays.asList("Free", "Electronics", "Furniture", "Kitchen", "Books", "Clothing", "Sports", "Toys"));
 
+    @Caching(evict = {
+            @CacheEvict(value = "allItems", allEntries = true),
+            @CacheEvict(value = "itemsByUser", key = "#userEmail"),
+            @CacheEvict(value = "allItemsExceptUser", key = "#userEmail"),
+            @CacheEvict(value = "allActiveItems", allEntries = true),
+            @CacheEvict(value = "allActiveItemsExceptUser", key = "#userEmail")
+    })
     public Item createItem(ItemDto itemDto, List<MultipartFile> images, String userEmail) throws IOException {
         User seller = userService.getUserByEmail(userEmail);
         if (seller == null) {
@@ -67,10 +79,12 @@ public class ItemService {
         return itemRepository.save(item);
     }
 
+    @Cacheable(value = "allItems")
     public List<Item> getAllItems() {
         return itemRepository.findAll();
     }
 
+    @Cacheable(value = "allItems")
     public List<Item> getItemsByUser(String userEmail) {
         User user = userService.getUserByEmail(userEmail);
         if (user == null) {
@@ -79,6 +93,7 @@ public class ItemService {
         return itemRepository.findBySeller(user);
     }
 
+    @Cacheable(value = "allItemsExceptUser", key = "#userEmail")
     public List<Item> getAllItemsExceptUser(String userEmail) {
         User user = userService.getUserByEmail(userEmail);
         if (user == null) {
@@ -87,9 +102,17 @@ public class ItemService {
         return itemRepository.findBySellerNot(user);
     }
 
-    public Item updateItem(Long itemId, ItemDto itemDto, List<MultipartFile> newImages, String userEmail) throws IOException {
+    @Caching(evict = {
+            @CacheEvict(value = "allItems", allEntries = true),
+            @CacheEvict(value = "itemsByUser", key = "#userEmail"),
+            @CacheEvict(value = "allItemsExceptUser", allEntries = true),
+            @CacheEvict(value = "allActiveItems", allEntries = true),
+            @CacheEvict(value = "allActiveItemsExceptUser", allEntries = true)
+    })
+    public Item updateItem(Long itemId, ItemDto itemDto, List<MultipartFile> newImages, String userEmail)
+            throws IOException {
         Item existingItem = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException("Item not found"));
-        
+
         existingItem.setTitle(itemDto.getTitle());
         existingItem.setDescription(itemDto.getDescription());
         existingItem.setPrice(itemDto.getPrice());
@@ -111,6 +134,17 @@ public class ItemService {
         return itemRepository.save(existingItem);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "allItems", allEntries = true),
+            @CacheEvict(value = "itemsByUser", key = "#userEmail"),
+            @CacheEvict(value = "allItemsExceptUser", allEntries = true),
+            @CacheEvict(value = "allActiveItems", allEntries = true),
+            @CacheEvict(value = "allActiveItemsExceptUser", allEntries = true),
+            @CacheEvict(value = "activeItemsByUser", key = "#userEmail"),
+            @CacheEvict(value = "soldItemsByUser", key = "#userEmail"),
+            @CacheEvict(value = "purchasedItemsByUser", allEntries = true),
+            @CacheEvict(value = "allTags", allEntries = true)
+    })
     public void deleteItem(Long itemId, String userEmail) {
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException("Item not found"));
         for (String imageUrl : item.getImageUrls()) {
@@ -121,7 +155,7 @@ public class ItemService {
 
     public List<Item> searchItems(String query, List<String> tags, String userEmail) {
         User currentUser = userService.getUserByEmail(userEmail);
-        
+
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Item> cq = cb.createQuery(Item.class);
         Root<Item> root = cq.from(Item.class);
@@ -134,9 +168,8 @@ public class ItemService {
             String[] keywords = query.toLowerCase().split("\\s+");
             for (String keyword : keywords) {
                 predicates.add(cb.or(
-                    cb.like(cb.lower(root.get("title")), "%" + keyword + "%"),
-                    cb.like(cb.lower(root.get("description")), "%" + keyword + "%")
-                ));
+                        cb.like(cb.lower(root.get("title")), "%" + keyword + "%"),
+                        cb.like(cb.lower(root.get("description")), "%" + keyword + "%")));
             }
         }
 
@@ -152,31 +185,28 @@ public class ItemService {
         if (query != null && !query.trim().isEmpty()) {
             String[] keywords = query.toLowerCase().split("\\s+");
             return results.stream()
-                .sorted((item1, item2) -> Integer.compare(
-                    calculateRelevanceScore(item2, keywords),
-                    calculateRelevanceScore(item1, keywords)
-                ))
-                .collect(Collectors.toList());
+                    .sorted((item1, item2) -> Integer.compare(
+                            calculateRelevanceScore(item2, keywords),
+                            calculateRelevanceScore(item1, keywords)))
+                    .collect(Collectors.toList());
         }
 
         return results;
     }
 
-    private final Set<String> DEFAULT_TAGS = new HashSet<>(Arrays.asList("Free", "Electronics", "Furniture", "Kitchen", "Books", "Clothing", "Sports", "Toys"));
+    @Cacheable(value = "allTags", key = "#userEmail")
     public Set<String> getAllTags(String userEmail) {
         User currentUser = userService.getUserByEmail(userEmail);
-        
+
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<String> cq = cb.createQuery(String.class);
         Root<Item> root = cq.from(Item.class);
 
         cq.select(root.get("tags")).distinct(true);
         cq.where(
-            cb.and(
-                cb.notEqual(root.get("seller"), currentUser),
-                cb.equal(root.get("status"), ItemStatus.ACTIVE)
-            )
-        );
+                cb.and(
+                        cb.notEqual(root.get("seller"), currentUser),
+                        cb.equal(root.get("status"), ItemStatus.ACTIVE)));
 
         Set<String> tags = new HashSet<>(entityManager.createQuery(cq).getResultList());
         tags.addAll(DEFAULT_TAGS);
@@ -197,37 +227,42 @@ public class ItemService {
         return score;
     }
 
+    @Cacheable(value = "allActiveItems")
     public List<Item> getAllActiveItems() {
         return itemRepository.findByStatus(ItemStatus.ACTIVE);
     }
 
+    @Cacheable(value = "allActiveItemsExceptUser", key = "#userEmail")
     public List<Item> getAllActiveItemsExceptUser(String userEmail) {
         User currentUser = userService.getUserByEmail(userEmail);
         return itemRepository.findByStatusAndSellerNot(ItemStatus.ACTIVE, currentUser);
     }
 
+    @Cacheable(value = "activeItemsByUser", key = "#userEmail")
     public List<Item> getActiveItemsByUser(String userEmail) {
         User user = userService.getUserByEmail(userEmail);
         if (user == null) {
             throw new RuntimeException("User not found");
         }
         return itemRepository.findBySeller(user).stream()
-            .filter(Item::isActive)
-            .collect(Collectors.toList());
+                .filter(Item::isActive)
+                .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "soldItemsByUser", key = "#userEmail")
     public List<Item> getSoldItemsByUser(String userEmail) {
         User user = userService.getUserByEmail(userEmail);
         if (user == null) {
             throw new RuntimeException("User not found");
         }
         return itemRepository.findBySeller(user).stream()
-            .filter(Item::isSold)
+                .filter(Item::isSold)
                 .collect(Collectors.toList());
     }
 
     public Item markItemAsSold(Long itemId, Long buyerId, LocalDateTime purchaseDate, String sellerEmail) {
-        Item item = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException("Item not found with id: " + itemId));    
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Item not found with id: " + itemId));
         User buyer = userService.getUserById(buyerId);
         item.setStatus(ItemStatus.SOLD);
         item.setBuyer(buyer);
@@ -241,6 +276,7 @@ public class ItemService {
         return itemRepository.save(item);
     }
 
+    @Cacheable(value = "purchasedItemsByUser", key = "#userEmail")
     public List<Item> getPurchasedItemsByUser(String userEmail) {
         User user = userService.getUserByEmail(userEmail);
         return itemRepository.findByBuyerAndStatus(user, ItemStatus.SOLD);

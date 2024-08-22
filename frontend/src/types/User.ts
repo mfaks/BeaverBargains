@@ -5,4 +5,5 @@ export interface User {
     email: string
     bio: string
     profileImageUrl?: string
+    emailVerified: boolean
 }

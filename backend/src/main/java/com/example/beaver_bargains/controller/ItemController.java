@@ -31,7 +31,8 @@ public class ItemController {
     private ItemService itemService;
 
     @PostMapping
-    public ResponseEntity<Item> createItem(@RequestPart("item") ItemDto itemDto, @RequestPart("images") List<MultipartFile> images, Authentication authentication) throws IOException {
+    public ResponseEntity<Item> createItem(@RequestPart("item") ItemDto itemDto,
+            @RequestPart("images") List<MultipartFile> images, Authentication authentication) throws IOException {
         String userEmail = authentication.getName();
         Item createdItem = itemService.createItem(itemDto, images, userEmail);
         return ResponseEntity.ok(createdItem);
@@ -52,7 +53,9 @@ public class ItemController {
     }
 
     @PutMapping("/{itemId}")
-    public ResponseEntity<Item> updateItem(@PathVariable Long itemId, @RequestPart("item") ItemDto itemDto, @RequestPart(value = "images", required = false) List<MultipartFile> images, Authentication authentication) throws IOException {
+    public ResponseEntity<Item> updateItem(@PathVariable Long itemId, @RequestPart("item") ItemDto itemDto,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images, Authentication authentication)
+            throws IOException {
         String userEmail = authentication.getName();
         Item updatedItem = itemService.updateItem(itemId, itemDto, images, userEmail);
         return ResponseEntity.ok(updatedItem);
@@ -73,7 +76,8 @@ public class ItemController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Item>> searchItems(@RequestParam(required = false) String query, @RequestParam(required = false) List<String> tags, Authentication authentication) {
+    public ResponseEntity<List<Item>> searchItems(@RequestParam(required = false) String query,
+            @RequestParam(required = false) List<String> tags, Authentication authentication) {
         String userEmail = authentication.getName();
         List<Item> items = itemService.searchItems(query, tags, userEmail);
         return ResponseEntity.ok(items);
@@ -101,7 +105,8 @@ public class ItemController {
     }
 
     @PutMapping("/{itemId}/mark-as-sold")
-    public ResponseEntity<Item> markItemAsSold(@PathVariable Long itemId, @RequestParam Long buyerId, @RequestParam String purchaseDate, Authentication authentication) {
+    public ResponseEntity<Item> markItemAsSold(@PathVariable Long itemId, @RequestParam Long buyerId,
+            @RequestParam String purchaseDate, Authentication authentication) {
         String sellerEmail = authentication.getName();
         LocalDateTime parsedPurchaseDate = LocalDateTime.parse(purchaseDate);
         Item updatedItem = itemService.markItemAsSold(itemId, buyerId, parsedPurchaseDate, sellerEmail);

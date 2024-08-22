@@ -8,6 +8,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,10 +33,12 @@ public class FileStorageService {
         return uniqueFileName;
     }
 
+    @Cacheable(value = "filePaths", key = "#fileName")
     public Path getFilePath(String fileName) {
         return Paths.get(uploadDir).toAbsolutePath().normalize().resolve(fileName);
     }
 
+    @CacheEvict(value = "filePaths", key = "#fileName")
     public boolean deleteFile(String fileName) {
         try {
             Path filePath = getFilePath(fileName);

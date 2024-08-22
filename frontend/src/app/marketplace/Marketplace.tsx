@@ -11,7 +11,7 @@ import Footer from '@/components/ui/Footer'
 import { useToast } from '@/components/ui/use-toast'
 import EmptyStateCard from '@/components/ui/EmptyStateCard'
 import { SkeletonCard } from '@/components/ui/SkeletonCard'
-import { FaShoppingBasket } from 'react-icons/fa'
+import { FaFilter, FaShoppingBasket } from 'react-icons/fa'
 import { Item } from '@/types/Item'
 import BeaverIcon from '@/components/ui/BeaverIcon'
 
@@ -22,8 +22,6 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
     const [allItems, setAllItems] = useState<Item[]>([])
     const [filteredItems, setFilteredItems] = useState<Item[]>([])
     const [favorites, setFavorites] = useState<number[]>([])
-    const [errorMessage, setErrorMessage] = useState('')
-    const [modalOpen, setModalOpen] = useState(false)
     const [minPrice, setMinPrice] = useState<number>(0)
     const [maxPrice, setMaxPrice] = useState<number>(0)
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 0])
@@ -36,6 +34,7 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
     const [selectedTags, setSelectedTags] = useState<string[]>([])
     const [currentSearchQuery, setCurrentSearchQuery] = useState(searchQuery)
     const [resetTrigger, setResetTrigger] = useState(0)
+    const [isMarketplaceEmpty, setIsMarketplaceEmpty] = useState(false)
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -79,6 +78,7 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
 
             setAllItems(items)
             setFilteredItems(items)
+            setIsMarketplaceEmpty(items.length === 0)
 
             const uniqueTags = new Set(items.flatMap(item => item.tags || []))
             setAllTags(Array.from(uniqueTags))
@@ -92,7 +92,7 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
                 setOriginalMinPrice(minItemPrice)
                 setOriginalMaxPrice(maxItemPrice)
             }
-
+        
             setLoading(false)
 
             if ((query || tags.length > 0 || tgSearch) && items.length === 0) {
@@ -299,13 +299,21 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
                                                 />
                                             ))}
                                         </div>
+                                    ) : isMarketplaceEmpty ? (
+                                        <EmptyStateCard
+                                            title='Marketplace is empty'
+                                            description='There are currently no items in the marketplace. Check back later for new listings!'
+                                            actionText='Refresh'
+                                            onAction={() => fetchItems()}
+                                            icon={<FaShoppingBasket className='text-orange-500 text-5xl' />}
+                                        />
                                     ) : (
                                         <EmptyStateCard
-                                            title='No items found'
-                                            description='There are currently no items in the marketplace matching your criteria.'
+                                            title='No items match your filters'
+                                            description='There are items in the marketplace, but none match your current filter criteria.'
                                             actionText='Clear Filters'
                                             onAction={handleClearFilters}
-                                            icon={<FaShoppingBasket className='text-orange-500 text-5xl' />}
+                                            icon={<FaFilter className='text-orange-500 text-5xl' />}
                                         />
                                     )}
                                 </div>

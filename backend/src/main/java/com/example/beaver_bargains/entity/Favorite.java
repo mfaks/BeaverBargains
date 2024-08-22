@@ -11,7 +11,7 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "favorites")
 public class Favorite {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,7 +24,8 @@ public class Favorite {
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
-    public Favorite() {}
+    public Favorite() {
+    }
 
     public Favorite(User user, Item item) {
         this.user = user;

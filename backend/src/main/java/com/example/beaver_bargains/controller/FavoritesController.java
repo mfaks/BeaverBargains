@@ -19,7 +19,7 @@ import com.example.beaver_bargains.service.FavoriteService;
 @RestController
 @RequestMapping("/api/favorites")
 public class FavoritesController {
-    
+
     @Autowired
     private FavoriteService favoriteService;
 
