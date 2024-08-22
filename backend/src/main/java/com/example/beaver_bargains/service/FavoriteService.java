@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import com.example.beaver_bargains.entity.Favorite;
@@ -27,29 +29,32 @@ public class FavoriteService {
     @Autowired
     private ItemRepository itemRepository;
 
+    @Cacheable(value = "favoriteItemIds", key = "#userEmail")
     public List<Long> getFavoriteItemIds(String userEmail) {
         User user = userRepository.findByEmail(userEmail).orElseThrow(() -> new RuntimeException("User not found"));
 
         return favoriteRepository.findByUser(user).stream()
-            .map(favorite -> favorite.getItem().getId())
-            .collect(Collectors.toList());
+                .map(favorite -> favorite.getItem().getId())
+                .collect(Collectors.toList());
     }
 
     @Transactional
+    @CacheEvict(value = "favoriteItemIds", key = "#userEmail")
     public void addFavorite(String userEmail, Long itemId) {
         User user = userRepository.findByEmail(userEmail).orElseThrow(() -> new RuntimeException("User not found"));
-        Item item = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException("Item not found"));   
+        Item item = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException("Item not found"));
         Favorite favorite = new Favorite(user, item);
         favoriteRepository.save(favorite);
     }
 
     @Transactional
+    @CacheEvict(value = "favoriteItemIds", key = "#userEmail")
     public void removeFavorite(String userEmail, Long itemId) {
         User user = userRepository.findByEmail(userEmail).orElseThrow(() -> new RuntimeException("User not found"));
         Item item = itemRepository.findById(itemId).orElseThrow(() -> new RuntimeException("Item not found"));
-    
+
         List<Favorite> favorites = favoriteRepository.findByUserAndItem(user, item);
-        
+
         if (!favorites.isEmpty()) {
             favoriteRepository.deleteAll(favorites);
         }

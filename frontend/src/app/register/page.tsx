@@ -66,15 +66,14 @@ export default function Register() {
                 email: values.email,
                 password: values.password
             })
-            const { user, token } = response.data
-            login(user, token)
             setUserFirstName(values.firstName)
             setIsRegistrationSuccessful(true)
             setErrorMessage(null)
-            setTimeout(() => {
-                setIsRegistrationSuccessful(false)
-                router.push('/marketplace')
-            }, 2000)
+            toast({
+                title: 'Registration Successful',
+                description: 'Please check your email to verify your account.',
+                duration: 5000,
+            })
         } catch (error) {
             if (axios.isAxiosError(error) && error.response) {
                 setErrorMessage(error.response.data)
@@ -202,7 +201,7 @@ export default function Register() {
                     <DialogHeader>
                         <DialogTitle className="text-xl">Registration Successful</DialogTitle>
                         <DialogDescription className="text-base">
-                            Welcome, {userFirstName}! Redirecting you to the Marketplace.
+                            Welcome, {userFirstName}! Please check your email to verify your account.
                         </DialogDescription>
                     </DialogHeader>
                 </DialogContent>

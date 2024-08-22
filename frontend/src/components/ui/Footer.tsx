@@ -40,7 +40,7 @@ export default function Footer() {
         },
         {
             question: "What if I have a question not listed here?",
-            answer: "Feel free to contact the development team at 'beaver.bargains@gmail.com' if you have any further questions or concerns."
+            answer: "Feel free to contact the development team at 'beaverbargains2024@outlook.com' if you have any further questions or concerns."
         }
     ]
     
@@ -123,12 +123,12 @@ export default function Footer() {
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-bold text-orange-700">Contact Us</DialogTitle>
                         <DialogDescription className="text-orange-600">
-                            For any questions or concerns, please feel free to contact our development team at beaver.bargains@gmail.com.
+                            For any questions or concerns, please feel free to contact our development team at beaverbargains2024@outlook.com.
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>
                         <a
-                            href='mailto:beaver.bargains@gmail.com'
+                            href='mailto:beaverbargains2024@outlook.com'
                             className='inline-flex items-center justify-center rounded-md border border-transparent bg-orange-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-orange-400 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-300'
                         >
                             Draft Email

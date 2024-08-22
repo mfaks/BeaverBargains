@@ -23,18 +23,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [isEmailVerified, setIsEmailVerified] = useState(false)
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user')
     const storedToken = localStorage.getItem('token')
     if (storedUser && storedToken) {
-      const userData = JSON.parse(storedUser)
+      const userData: User = JSON.parse(storedUser)
       if (userData.profileImageUrl) {
         userData.profileImageUrl = getFullImageUrl(userData.profileImageUrl)
       }
       setIsAuthenticated(true)
       setUser(userData)
       setToken(storedToken)
+      setIsEmailVerified(userData.emailVerified)
     }
     setLoading(false)
   }, [])
@@ -46,6 +48,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsAuthenticated(true)
     setUser(userData)
     setToken(newToken)
+    setIsEmailVerified(userData.emailVerified)
     localStorage.setItem('user', JSON.stringify(userData))
     localStorage.setItem('token', newToken)
   }
@@ -54,6 +57,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsAuthenticated(false)
     setUser(null)
     setToken(null)
+    setIsEmailVerified(false)
     localStorage.removeItem('user')
     localStorage.removeItem('token')
   }
@@ -67,7 +71,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
-  const contextValue: AuthContext = { isAuthenticated, user, token, loading, login, logout, updateUserProfileImageUrl }
+  const contextValue: AuthContext = { 
+    isAuthenticated, 
+    user, 
+    token, 
+    loading, 
+    isEmailVerified,
+    login, 
+    logout, 
+    updateUserProfileImageUrl 
+  }
 
   return (
     <AuthContext.Provider value={contextValue}>

@@ -6,6 +6,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import com.example.beaver_bargains.dto.UserDto;
@@ -28,12 +31,18 @@ public class MessageService {
     @Autowired
     private UserService userService;
 
+    @Caching(evict = {
+            @CacheEvict(value = "userConversations", key = "#senderEmail"),
+            @CacheEvict(value = "userConversations", key = "#result.user2.email"),
+            @CacheEvict(value = "conversationUsers", allEntries = true)
+    })
     public Conversation getOrCreateConversation(String senderEmail, Long receiverId) {
         User sender = userService.getUserByEmail(senderEmail);
         UserDto receiverDto = userService.getUserDetails(receiverId);
         User receiver = receiverDto.toUser();
 
-        Optional<Conversation> existingConversation = conversationRepository.findByUser1AndUser2OrUser1AndUser2(sender, receiver, receiver, sender);
+        Optional<Conversation> existingConversation = conversationRepository.findByUser1AndUser2OrUser1AndUser2(sender,
+                receiver, receiver, sender);
 
         return existingConversation.orElseGet(() -> {
             Conversation newConversation = new Conversation();
@@ -44,27 +53,37 @@ public class MessageService {
         });
     }
 
+    @Cacheable(value = "userConversations", key = "#userEmail")
     public List<Conversation> getUserConversations(String userEmail) {
         User user = userService.getUserByEmail(userEmail);
         return conversationRepository.findByUser1OrUser2(user, user);
     }
 
+    @Cacheable(value = "conversationUsers", key = "#userEmail")
     public List<UserDto> getConversationUsers(String userEmail) {
         User currentUser = userService.getUserByEmail(userEmail);
         List<Conversation> conversations = conversationRepository.findByUser1OrUser2(currentUser, currentUser);
 
         return conversations.stream()
-            .map(conversation -> conversation.getUser1().equals(currentUser) ? conversation.getUser2(): conversation.getUser1())
-            .distinct()
-            .map(user -> new UserDto(user))
-            .collect(Collectors.toList());
+                .map(conversation -> conversation.getUser1().equals(currentUser) ? conversation.getUser2()
+                        : conversation.getUser1())
+                .distinct()
+                .map(user -> new UserDto(user))
+                .collect(Collectors.toList());
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "userConversations", allEntries = true),
+            @CacheEvict(value = "conversationMessages", key = "#conversationId"),
+            @CacheEvict(value = "conversationUsers", allEntries = true)
+    })
     public Message sendMessage(String senderEmail, Long conversationId, String content) {
         User sender = userService.getUserByEmail(senderEmail);
-        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
 
-        User receiver = (conversation.getUser1().getId().equals(sender.getId())) ? conversation.getUser2() : conversation.getUser1();
+        User receiver = (conversation.getUser1().getId().equals(sender.getId())) ? conversation.getUser2()
+                : conversation.getUser1();
 
         Message message = new Message();
         message.setSender(sender);
@@ -76,8 +95,10 @@ public class MessageService {
         return messageRepository.save(message);
     }
 
+    @Cacheable(value = "conversationMessages", key = "#conversationId")
     public List<Message> getConversationMessages(Long conversationId) {
-        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
         return messageRepository.findByConversationOrderByTimestampAsc(conversation);
     }
 }

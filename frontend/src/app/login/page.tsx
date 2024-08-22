@@ -17,6 +17,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 import { LoginForm } from '@/types/LoginForm'
+import { useToast } from "@/components/ui/use-toast"
 
 const loginSchema = z.object({
     email: z.string().email('Invalid email format'),
@@ -29,6 +30,7 @@ export default function Login() {
     const [isLoginSuccessful, setIsLoginSuccessful] = useState(false)
     const [userFirstName, setUserFirstName] = useState('')
     const { login } = useAuth()
+    const { toast } = useToast()
 
     const form = useForm<LoginForm>({
         resolver: zodResolver(loginSchema),
@@ -41,29 +43,39 @@ export default function Login() {
     const onSubmit: SubmitHandler<LoginForm> = async (values) => {
         try {
             const response = await axios.post(`http://localhost:8080/api/users/login`, values)
-            const token = response.data.token
-            localStorage.setItem('token', token);
-            login({
-                id: response.data.id,
-                firstName: response.data.firstName,
-                lastName: response.data.lastName,
-                email: values.email,
-                bio: response.data.bio,
-                profileImageUrl: response.data.profileImageUrl
-            }, token)
-            setUserFirstName(response.data.firstName)
-            setIsLoginSuccessful(true)
-            setTimeout(() => {
-                setIsLoginSuccessful(false)
-                router.push('/marketplace')
-            }, 2000)
+            if (response.data && response.data.token) {
+                if (!response.data.emailVerified) {
+                    toast({
+                        title: "Account Not Verified",
+                        description: "Please check your email (including spam folder) to verify your account. If you're experiencing issues, please contact our support team.",
+                        variant: "destructive",
+                        duration: 6000,
+                    })
+                    return
+                }
+                const token = response.data.token
+                localStorage.setItem('token', token);
+                login({
+                    id: response.data.id,
+                    firstName: response.data.firstName,
+                    lastName: response.data.lastName,
+                    email: values.email,
+                    bio: response.data.bio,
+                    profileImageUrl: response.data.profileImageUrl,
+                    emailVerified: response.data.emailVerified
+                }, token)
+                setUserFirstName(response.data.firstName)
+                setIsLoginSuccessful(true)
+                setTimeout(() => {
+                    setIsLoginSuccessful(false)
+                    router.push('/marketplace')
+                }, 2000)
+            } else {
+                setLoginError('Unexpected response from server')
+            }
         } catch (error) {
             console.error('There was a problem with the login request:', error)
-            if (axios.isAxiosError(error) && error.response) {
-                setLoginError(error.response.data || 'An error occurred during login')
-            } else {
-                setLoginError('An unexpected error occurred')
-            }
+            setLoginError('Invalid email or password')
         }
     }
 

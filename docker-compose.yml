@@ -18,6 +18,20 @@ services:
     networks:
       - app-network
 
+  redis:
+    image: redis:latest
+    container_name: redis_cache
+    ports:
+      - "6379:6379"
+    networks:
+      - app-network
+    command: redis-server --bind 0.0.0.0
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   backend:
     build:
       context: ./backend
@@ -28,14 +42,20 @@ services:
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
       FILE_UPLOAD_DIR: /app/uploads
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      SPRING_REDIS_HOST: redis
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
     volumes:
       - uploads_volume:/app/uploads
     networks:
       - app-network
+
 
   frontend:
     build:
