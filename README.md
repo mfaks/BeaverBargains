@@ -9,7 +9,7 @@ BeaverBargains was created to provide the Oregon State community with a secure p
 
 If you do not have a .oregonstate.edu email but wish to access the platform, please contact support at [beaverbargains2024@outlook.com](mailto:beaverbargains2024@outlook.com) to request an override.
 
-Try it out for free here: [https://example.com](https://example.com)
+Try it out for free here: https://beaver-bargains.vercel.app/
 
 ## Features ✨
 
