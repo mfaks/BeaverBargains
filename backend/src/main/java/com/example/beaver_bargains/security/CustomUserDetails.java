@@ -16,17 +16,20 @@ public class CustomUserDetails implements UserDetails, Serializable {
     private static final long serialVersionUID = 1L;
     
     private User user;
+    private Collection<? extends GrantedAuthority> authorities;
 
     public CustomUserDetails() {
+        this.authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     public CustomUserDetails(User user) {
         this.user = user;
+        this.authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+        return authorities;
     }
 
     @Override
@@ -65,5 +68,9 @@ public class CustomUserDetails implements UserDetails, Serializable {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public void setAuthorities(Collection<? extends GrantedAuthority> authorities) {
+        this.authorities = authorities;
     }
 }
