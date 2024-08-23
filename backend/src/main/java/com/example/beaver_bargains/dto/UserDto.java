@@ -1,5 +1,7 @@
 package com.example.beaver_bargains.dto;
 
+import java.io.Serializable;
+
 import com.example.beaver_bargains.entity.User;
 
 import lombok.Getter;
@@ -9,7 +11,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class UserDto {
+public class UserDto implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     private Long id;
     private String firstName;
     private String lastName;

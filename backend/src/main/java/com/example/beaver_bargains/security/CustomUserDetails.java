@@ -1,5 +1,6 @@
 package com.example.beaver_bargains.security;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -9,8 +10,13 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.example.beaver_bargains.entity.User;
 
-public class CustomUserDetails implements UserDetails {
-    private final User user;
+public class CustomUserDetails implements UserDetails, Serializable {
+    private static final long serialVersionUID = 1L;
+    
+    private User user;
+
+    public CustomUserDetails() {
+    }
 
     public CustomUserDetails(User user) {
         this.user = user;
@@ -53,5 +59,9 @@ public class CustomUserDetails implements UserDetails {
 
     public User getUser() {
         return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 }
