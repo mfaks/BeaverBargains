@@ -1,0 +1,24 @@
+services:
+- type: web
+  name: BeaverBargains
+  runtime: docker
+  repo: https://github.com/mfaks/BeaverBargains
+  plan: free
+  envVars:
+  - key: NEXT_PUBLIC_API_URL
+    sync: false
+  - key: EMAIL_PASSWORD
+    sync: false
+  - key: POSTGRES_DB
+    sync: false
+  - key: DB_PASSWORD
+    sync: false
+  - key: DB_USERNAME
+    sync: false
+  - key: DB_URL
+    sync: false
+  region: oregon
+  dockerCommand: docker-compose up
+  dockerContext: .
+  dockerfilePath: ./Dockerfile
+version: "1"
