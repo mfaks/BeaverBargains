@@ -1,22 +1,25 @@
 package com.example.beaver_bargains.security;
 
-import java.io.Serializable;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.example.beaver_bargains.entity.User;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class CustomUserDetails implements UserDetails, Serializable {
+public class CustomUserDetails implements UserDetails {
     private static final long serialVersionUID = 1L;
     
     private User user;
-    private Collection<? extends GrantedAuthority> authorities;
+    
+    @JsonSerialize(contentUsing = SimpleGrantedAuthoritySerializer.class)
+    @JsonDeserialize(contentUsing = SimpleGrantedAuthorityDeserializer.class)
+    private List<SimpleGrantedAuthority> authorities;
 
     public CustomUserDetails() {
         this.authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
@@ -28,7 +31,7 @@ public class CustomUserDetails implements UserDetails, Serializable {
     }
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
+    public List<SimpleGrantedAuthority> getAuthorities() {
         return authorities;
     }
 
@@ -70,7 +73,7 @@ public class CustomUserDetails implements UserDetails, Serializable {
         this.user = user;
     }
 
-    public void setAuthorities(Collection<? extends GrantedAuthority> authorities) {
+    public void setAuthorities(List<SimpleGrantedAuthority> authorities) {
         this.authorities = authorities;
     }
 }
