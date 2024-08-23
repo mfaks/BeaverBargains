@@ -1,6 +1,5 @@
 package com.example.beaver_bargains.entity;
 
-import java.io.Serializable;
 import java.time.Instant;
 
 import jakarta.persistence.Column;
@@ -12,9 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
 @Entity
-public class Message implements Serializable {
-    private static final long serialVersionUID = 1L;
-
+public class Message {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

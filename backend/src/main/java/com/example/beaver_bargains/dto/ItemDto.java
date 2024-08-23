@@ -1,6 +1,5 @@
 package com.example.beaver_bargains.dto;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -11,9 +10,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ItemDto implements Serializable{
-    private static final long serialVersionUID = 1L;
-
+public class ItemDto {
     private Long id;
     private String title;
     private String description;

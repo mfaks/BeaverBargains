@@ -1,7 +1,5 @@
 package com.example.beaver_bargains.entity;
 
-import java.io.Serializable;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,8 +13,7 @@ import lombok.Setter;
 @Table(name = "users")
 @Getter
 @Setter
-public class User implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

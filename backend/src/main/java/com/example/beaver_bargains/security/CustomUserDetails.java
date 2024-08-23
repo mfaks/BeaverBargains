@@ -7,18 +7,11 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import com.example.beaver_bargains.entity.User;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class CustomUserDetails implements UserDetails {
     private static final long serialVersionUID = 1L;
     
     private User user;
-    
-    @JsonSerialize(contentUsing = SimpleGrantedAuthoritySerializer.class)
-    @JsonDeserialize(contentUsing = SimpleGrantedAuthorityDeserializer.class)
     private List<SimpleGrantedAuthority> authorities;
 
     public CustomUserDetails() {
