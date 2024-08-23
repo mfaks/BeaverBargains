@@ -44,7 +44,7 @@ export default function NavBar({ searchQuery = '' }: NavBarProps) {
           const config = {
             headers: { Authorization: `Bearer ${token}` }
           }
-          const response = await axios.get<User>(`http://localhost:8080/api/users/${user.id}`, config)
+          const response = await axios.get<User>(`https://beaverbargains.onrender.com/api/users/${user.id}`, config)
           const updatedUser = response.data
           setFullProfileImageUrl(getFullImageUrl(updatedUser.profileImageUrl))
         } catch (error) {
@@ -60,7 +60,7 @@ export default function NavBar({ searchQuery = '' }: NavBarProps) {
     setSearchTerm(searchQuery)
   }, [searchQuery])
 
-  const BASE_URL = 'http://localhost:8080'
+  const BASE_URL = 'https://beaverbargains.onrender.com'
   const getFullImageUrl = (imageUrl: string | undefined): string => {
     if (!imageUrl) {
       return ''

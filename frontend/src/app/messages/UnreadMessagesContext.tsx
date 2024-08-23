@@ -14,7 +14,7 @@ export const UnreadMessagesProvider: React.FC<{ children: React.ReactNode }> = (
   const fetchUnreadCount = async () => {
     if (isAuthenticated && token) {
       try {
-        const response = await axios.get('http://localhost:8080/api/messages/unread/count', {
+        const response = await axios.get('https://beaverbargains.onrender.com/api/messages/unread/count', {
           headers: { 'Authorization': `Bearer ${token}` }
         })
         setUnreadCount(response.data)

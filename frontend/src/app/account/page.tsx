@@ -57,7 +57,7 @@ export default function Account() {
             'Content-Type': 'multipart/form-data'
           }
         }
-        const response = await axios.put(`http://localhost:8080/api/users/${user?.id}/profile-image`, formData, config)
+        const response = await axios.put(`https://beaverbargains.onrender.com/api/users/${user?.id}/profile-image`, formData, config)
         const updatedUser = response.data
         const fullImageUrl = getFullImageUrl(updatedUser.profileImageUrl)
 
@@ -106,7 +106,7 @@ export default function Account() {
         const config = {
           headers: { Authorization: `Bearer ${token}` }
         }
-        const response = await axios.get<User>(`http://localhost:8080/api/users/${user.id}`, config)
+        const response = await axios.get<User>(`https://beaverbargains.onrender.com/api/users/${user.id}`, config)
         setUserDetails({
           ...response.data,
           profileImageUrl: getFullImageUrl(response.data.profileImageUrl)
@@ -139,7 +139,7 @@ export default function Account() {
           'Authorization': `Bearer ${token}`,
         }
       }
-      await axios.delete(`http://localhost:8080/api/users/${user?.id}/profile-image`, config)
+      await axios.delete(`https://beaverbargains.onrender.com/api/users/${user?.id}/profile-image`, config)
 
       if (user && userDetails) {
         const newUser: User = {
@@ -224,11 +224,11 @@ export default function Account() {
       }
 
       if (bioChanged) {
-        await axios.put(`http://localhost:8080/api/users/${user?.id}/biography`, updateDto, config)
+        await axios.put(`https://beaverbargains.onrender.com/api/users/${user?.id}/biography`, updateDto, config)
       }
 
       if (currentPassword && newPassword) {
-        await axios.put(`http://localhost:8080/api/users/${user?.id}/password`, {
+        await axios.put(`https://beaverbargains.onrender.com/api/users/${user?.id}/password`, {
           currentPassword,
           newPassword
         }, config)
@@ -260,7 +260,7 @@ export default function Account() {
         const config = {
           headers: { Authorization: `Bearer ${token}` }
         }
-        await axios.delete(`http://localhost:8080/api/users/${user?.id}`, config)
+        await axios.delete(`https://beaverbargains.onrender.com/api/users/${user?.id}`, config)
         toast({
           title: 'Success',
           description: 'Your account has been deleted successfully. Navigating back to home.',
@@ -279,7 +279,7 @@ export default function Account() {
     }
   }
 
-  const BASE_URL = 'http://localhost:8080'
+  const BASE_URL = 'https://beaverbargains.onrender.com'
   const getFullImageUrl = (imageUrl: string | undefined): string => {
     if (!imageUrl) {
       return ''

@@ -40,7 +40,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
     const fetchReceiverInfo = async () => {
         if (!otherUserId) return
         try {
-            const response = await axios.get(`http://localhost:8080/api/users/${otherUserId}`, {
+            const response = await axios.get(`https://beaverbargains.onrender.com/api/users/${otherUserId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
             setReceiverInfo({
@@ -68,7 +68,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
             let currentConversationId = conversationId
             if (!currentConversationId) {
                 const response = await axios.post<Conversation>(
-                    'http://localhost:8080/api/messages',
+                    'https://beaverbargains.onrender.com/api/messages',
                     { receiverId: otherUserId },
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 )
@@ -77,7 +77,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
             }
 
             const response = await axios.get<Message[]>(
-                `http://localhost:8080/api/messages/conversations/${currentConversationId}`,
+                `https://beaverbargains.onrender.com/api/messages/conversations/${currentConversationId}`,
                 {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }
@@ -116,7 +116,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
             let currentConversationId = conversationId
             if (!currentConversationId) {
                 const conversationResponse = await axios.post<Conversation>(
-                    'http://localhost:8080/api/messages',
+                    'https://beaverbargains.onrender.com/api/messages',
                     { receiverId: otherUserId },
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 )
@@ -125,7 +125,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
             }
 
             const response = await axios.post<Message>(
-                `http://localhost:8080/api/messages/conversations/${currentConversationId}/messages`,
+                `https://beaverbargains.onrender.com/api/messages/conversations/${currentConversationId}/messages`,
                 { content: newMessage },
                 { headers: { 'Authorization': `Bearer ${token}` } }
             )
@@ -164,7 +164,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({ userId, conversationId: i
         })
     }
 
-    const BASE_URL = 'http://localhost:8080'
+    const BASE_URL = 'https://beaverbargains.onrender.com'
     const getFullImageUrl = (imageUrl: string | undefined): string => {
         if (!imageUrl) {
             return ''

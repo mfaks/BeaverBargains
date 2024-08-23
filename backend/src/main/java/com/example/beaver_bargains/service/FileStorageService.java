@@ -17,17 +17,22 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class FileStorageService {
 
-    @Value("${file.upload-dir}")
-    private String uploadDir;
+    private final Path fileStorageLocation;
+
+    public FileStorageService(@Value("${RENDER_APP_DIR:/tmp}") String uploadDir) {
+        this.fileStorageLocation = Paths.get(uploadDir).resolve("uploads").toAbsolutePath().normalize();
+        try {
+            Files.createDirectories(this.fileStorageLocation);
+        } catch (IOException ex) {
+            throw new RuntimeException("Could not create the directory where the uploaded files will be stored.", ex);
+        }
+    }
 
     public String storeFile(MultipartFile file) throws IOException {
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
         String uniqueFileName = UUID.randomUUID().toString() + "_" + fileName;
 
-        Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
-        Files.createDirectories(uploadPath);
-
-        Path targetLocation = uploadPath.resolve(uniqueFileName);
+        Path targetLocation = this.fileStorageLocation.resolve(uniqueFileName);
         Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 
         return uniqueFileName;
@@ -35,7 +40,7 @@ public class FileStorageService {
 
     @Cacheable(value = "filePaths", key = "#fileName")
     public Path getFilePath(String fileName) {
-        return Paths.get(uploadDir).toAbsolutePath().normalize().resolve(fileName);
+        return this.fileStorageLocation.resolve(fileName);
     }
 
     @CacheEvict(value = "filePaths", key = "#fileName")

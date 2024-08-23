@@ -38,7 +38,7 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
     const [isConfirmCloseDialogOpen, setIsConfirmCloseDialogOpen] = useState(false)
     const [isConfirmSaveDialogOpen, setIsConfirmSaveDialogOpen] = useState(false)
 
-    const BASE_URL = 'http://localhost:8080'
+    const BASE_URL = 'https://beaverbargains.onrender.com'
     const getFullProfileImageUrl = (imageUrl: string | undefined): string => {
         if (!imageUrl) {
             return '/default-profile-image.jpg'
@@ -68,7 +68,7 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
 
     const fetchBuyers = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/messages/conversation-users', {
+            const response = await axios.get('https://beaverbargains.onrender.com/api/messages/conversation-users', {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
             const filteredBuyers = response.data.filter((user: any) => user.id !== item.seller.id)
@@ -148,7 +148,7 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
                 formData.append('images', image)
             })
 
-            const response = await axios.put(`http://localhost:8080/api/items/${item.id}`, formData, {
+            const response = await axios.put(`https://beaverbargains.onrender.com/api/items/${item.id}`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'Authorization': `Bearer ${token}`
@@ -221,7 +221,7 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({ item, getFullImageUrl
 
     const handleReactivate = async () => {
         try {
-            const response = await axios.put(`http://localhost:8080/api/items/${item.id}/reactivate`, null, {
+            const response = await axios.put(`https://beaverbargains.onrender.com/api/items/${item.id}/reactivate`, null, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
             onItemUpdate(response.data)

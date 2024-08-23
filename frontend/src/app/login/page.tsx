@@ -42,7 +42,7 @@ export default function Login() {
 
     const onSubmit: SubmitHandler<LoginForm> = async (values) => {
         try {
-            const response = await axios.post(`http://localhost:8080/api/users/login`, values)
+            const response = await axios.post(`https://beaverbargains.onrender.com/api/users/login`, values)
             if (response.data && response.data.token) {
                 if (!response.data.emailVerified) {
                     toast({

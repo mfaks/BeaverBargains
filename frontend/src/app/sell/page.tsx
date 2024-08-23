@@ -144,7 +144,7 @@ export default function Sell() {
                 formData.append(`images`, image)
             })
 
-            const response = await axios.post(`http://localhost:8080/api/items`, formData, {
+            const response = await axios.post(`https://beaverbargains.onrender.com/api/items`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'Authorization': `Bearer ${token}`

@@ -29,10 +29,10 @@ const Conversations: React.FC<UpdatedConversationsProps> = ({ userId, conversati
         setError(null)
         try {
             const [conversationsResponse, unreadMessagesResponse] = await Promise.all([
-                axios.get<Conversation[]>(`http://localhost:8080/api/messages`, {
+                axios.get<Conversation[]>(`https://beaverbargains.onrender.com/api/messages`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }),
-                axios.get<UnreadMessage[]>(`http://localhost:8080/api/messages/unread`, {
+                axios.get<UnreadMessage[]>(`https://beaverbargains.onrender.com/api/messages/unread`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 })
             ])
@@ -59,7 +59,7 @@ const Conversations: React.FC<UpdatedConversationsProps> = ({ userId, conversati
     const markConversationAsRead = async (conversationId: number) => {
         try {
             await axios.post(
-                `http://localhost:8080/api/messages/conversations/${conversationId}/read`,
+                `https://beaverbargains.onrender.com/api/messages/conversations/${conversationId}/read`,
                 {},
                 { headers: { 'Authorization': `Bearer ${token}` } }
             )
@@ -83,7 +83,7 @@ const Conversations: React.FC<UpdatedConversationsProps> = ({ userId, conversati
         return conversation.user1.id === userId ? conversation.user2 : conversation.user1
     }
 
-    const BASE_URL = 'http://localhost:8080'
+    const BASE_URL = 'https://beaverbargains.onrender.com'
     const getFullImageUrl = (imageUrl: string | undefined): string => {
         if (!imageUrl) {
             return ''

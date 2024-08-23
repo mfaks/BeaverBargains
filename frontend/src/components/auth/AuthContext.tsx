@@ -7,7 +7,7 @@ import { AuthProviderProps } from '../../types/AuthProviderProps'
 
 const AuthContext = createContext<AuthContext | undefined>(undefined)
 
-const BASE_URL = 'http://localhost:8080'
+const BASE_URL = 'https://beaverbargains.onrender.com'
 const getFullImageUrl = (imageUrl: string | undefined): string => {
   if (!imageUrl) {
     return ''

@@ -45,7 +45,7 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
         }
     }, [isAuthenticated, user, router, searchQuery])
 
-    const BASE_URL = `http://localhost:8080`
+    const BASE_URL = `https://beaverbargains.onrender.com`
     const getFullImageUrl = (imageUrls: string | string[]): string[] => {
         const processUrl = (url: string) => url.startsWith('http') ? url : `${BASE_URL}/uploads/${url}`
 
@@ -58,7 +58,7 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
     const fetchItems = async (query = '', tags: string[] = selectedTags, tgSearch = tagSearch) => {
         setLoading(true)
         try {
-            let url = 'http://localhost:8080/api/items/search'
+            let url = 'https://beaverbargains.onrender.com/api/items/search'
             const params = new URLSearchParams()
             if (query) params.append('query', query)
             if (tgSearch) params.append('tagSearch', tgSearch)
@@ -67,7 +67,7 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
             const response = await axios.get<Item[]>(`${url}?${params.toString()}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
-            const favoritesResponse = await axios.get<number[]>('http://localhost:8080/api/favorites', {
+            const favoritesResponse = await axios.get<number[]>('https://beaverbargains.onrender.com/api/favorites', {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
 
@@ -116,7 +116,7 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
 
     const fetchFavorites = async () => {
         try {
-            const response = await axios.get<number[]>('http://localhost:8080/api/favorites', {
+            const response = await axios.get<number[]>('https://beaverbargains.onrender.com/api/favorites', {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
             setFavorites(response.data)
@@ -128,14 +128,14 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
     const toggleFavorite = async (itemId: number) => {
         try {
             if (favorites.includes(itemId)) {
-                await axios.delete(`http://localhost:8080/api/favorites/${itemId}`, {
+                await axios.delete(`https://beaverbargains.onrender.com/api/favorites/${itemId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 })
                 setFavorites(favorites.filter(id => id !== itemId))
             } else {
-                await axios.post(`http://localhost:8080/api/favorites`, { itemId }, {
+                await axios.post(`https://beaverbargains.onrender.com/api/favorites`, { itemId }, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }

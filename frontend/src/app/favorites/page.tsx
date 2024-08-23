@@ -47,11 +47,11 @@ export default function Favorites() {
     const fetchItems = async () => {
         setLoading(true)
         try {
-            const favoritesResponse = await axios.get<number[]>('http://localhost:8080/api/favorites', {
+            const favoritesResponse = await axios.get<number[]>('https://beaverbargains.onrender.com/api/favorites', {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
 
-            const itemsResponse = await axios.get<Item[]>('http://localhost:8080/api/items', {
+            const itemsResponse = await axios.get<Item[]>('https://beaverbargains.onrender.com/api/items', {
                 headers: { 'Authorization': `Bearer ${token}` }
             })
 
@@ -113,13 +113,13 @@ export default function Favorites() {
                 const newFavoritedStatus = !itemToUpdate.isFavorited
 
                 if (newFavoritedStatus) {
-                    await axios.post(`http://localhost:8080/api/favorites`, { itemId }, {
+                    await axios.post(`https://beaverbargains.onrender.com/api/favorites`, { itemId }, {
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }
                     })
                 } else {
-                    await axios.delete(`http://localhost:8080/api/favorites/${itemId}`, {
+                    await axios.delete(`https://beaverbargains.onrender.com/api/favorites/${itemId}`, {
                         headers: {
                             'Authorization': `Bearer ${token}`
                         }
@@ -195,7 +195,7 @@ export default function Favorites() {
         setFilteredItems(filtered)
     }
 
-    const BASE_URL = 'http://localhost:8080'
+    const BASE_URL = 'https://beaverbargains.onrender.com'
     const getFullImageUrl = (imageUrl: string) => {
         return `${BASE_URL}/uploads/${imageUrl}`
     }

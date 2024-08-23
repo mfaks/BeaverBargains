@@ -25,7 +25,7 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
     const [fullImageUrls, setFullImageUrls] = useState<string[]>([])
     const [sellerProfileImageUrl, setSellerProfileImageUrl] = useState('')
 
-    const BASE_URL = 'http://localhost:8080'
+    const BASE_URL = 'https://beaverbargains.onrender.com'
     const getFullProfileImageUrl = (imageUrl: string | undefined): string => {
         if (!imageUrl) {
             return ''
@@ -55,7 +55,7 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
     const handleMessageClick = async () => {
         try {
             const conversationsResponse = await axios.get(
-                'http://localhost:8080/api/messages',
+                'https://beaverbargains.onrender.com/api/messages',
                 { headers: { 'Authorization': `Bearer ${token}` } }
             )
 
@@ -67,7 +67,7 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
                 conversationId = existingConversation.id
             } else {
                 const newConversationResponse = await axios.post(
-                    'http://localhost:8080/api/messages',
+                    'https://beaverbargains.onrender.com/api/messages',
                     { receiverId: item.seller.id },
                     { headers: { 'Authorization': `Bearer ${token}` } }
                 )
@@ -75,7 +75,7 @@ const MarketplaceItemCard: React.FC<MarketplaceItemCardProps> = ({ item, onToggl
             }
 
             await axios.post(
-                `http://localhost:8080/api/messages/conversations/${conversationId}/messages`,
+                `https://beaverbargains.onrender.com/api/messages/conversations/${conversationId}/messages`,
                 { content: messageContent },
                 { headers: { 'Authorization': `Bearer ${token}` } }
             )
