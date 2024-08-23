@@ -1,6 +1,8 @@
 import { JSX, SVGProps } from "react";
 
-export default function BeaverIcon(props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>) {
+export default function BeaverIcon(
+  props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement>,
+) {
   return (
     <svg
       {...props}

@@ -1,13 +1,12 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import Navbar from "@/components/ui/Navbar"
-import Footer from "@/components/ui/Footer"
-import { Button } from "@/components/ui/button"
-import CardCarousel from "./CardCarousel"
+import Link from "next/link";
+import Navbar from "@/components/ui/Navbar";
+import Footer from "@/components/ui/Footer";
+import { Button } from "@/components/ui/button";
+import CardCarousel from "./CardCarousel";
 
 export default function LandingPage() {
-
   return (
     <div className="flex flex-col min-h-[100dvh] bg-orange-50 text-orange-500">
       <Navbar />
@@ -21,7 +20,10 @@ export default function LandingPage() {
                     BeaverBargains - The Marketplace for Beaver Nation.
                   </h1>
                   <p className="max-w-[600px] text-orange-700 md:text-xl">
-                    BeaverBargains is the premier platform for Oregon State community members to buy, sell, and trade their belongings in a safe and secure environment. Create your account to get started.
+                    BeaverBargains is the premier platform for Oregon State
+                    community members to buy, sell, and trade their belongings
+                    in a safe and secure environment. Create your account to get
+                    started.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -63,7 +65,9 @@ export default function LandingPage() {
                   Your One-Stop Shop for All Your Bargain Hunting Needs
                 </h2>
                 <p className="text-orange-500">
-                  Whether you're quickly looking to offload items when you move out or hunt for deals in the Beaver community, an online marketplace has never been this safe and easy.
+                  Whether you're quickly looking to offload items when you move
+                  out or hunt for deals in the Beaver community, an online
+                  marketplace has never been this safe and easy.
                 </p>
               </div>
             </div>
@@ -76,7 +80,8 @@ export default function LandingPage() {
                         Buy, Sell, Trade
                       </h3>
                       <p className="text-orange-500">
-                        List your items in seconds and browse a wide selection of products listed by members of Beaver Nation.
+                        List your items in seconds and browse a wide selection
+                        of products listed by members of Beaver Nation.
                       </p>
                     </div>
                   </li>
@@ -86,22 +91,31 @@ export default function LandingPage() {
                         Safety is Our Top Priority
                       </h3>
                       <p className="text-orange-500">
-                        With only authenticated users from the Oregon State community, bad actors are prohibited from accessing the site or your information.
+                        With only authenticated users from the Oregon State
+                        community, bad actors are prohibited from accessing the
+                        site or your information.
                       </p>
                     </div>
                   </li>
                   <li>
                     <div className="grid gap-1">
-                      <h3 className="text-xl font-bold text-orange-700">Beaver Nation</h3>
+                      <h3 className="text-xl font-bold text-orange-700">
+                        Beaver Nation
+                      </h3>
                       <p className="text-orange-500">
-                        Connect with other OSU community members, share your experiences, and build lasting relationships.
+                        Connect with other OSU community members, share your
+                        experiences, and build lasting relationships.
                       </p>
                     </div>
                   </li>
                 </ul>
               </div>
               <div className="flex-1 flex flex-col justify-center space-y-4">
-                <img src="/images/BeaverCommunity.jpg" alt="Beaver Nation" className="w-5/6 h-auto rounded-lg shadow-lg" />
+                <img
+                  src="/images/BeaverCommunity.jpg"
+                  alt="Beaver Nation"
+                  className="w-5/6 h-auto rounded-lg shadow-lg"
+                />
               </div>
             </div>
           </div>
@@ -115,7 +129,9 @@ export default function LandingPage() {
                     Join BeaverBargains Today
                   </h2>
                   <p>
-                    Experience the all-in-one marketplace where you can buy, sell, favorite items, track your order history, and safely message verified sellers.
+                    Experience the all-in-one marketplace where you can buy,
+                    sell, favorite items, track your order history, and safely
+                    message verified sellers.
                   </p>
                 </Link>
               </div>
@@ -126,5 +142,5 @@ export default function LandingPage() {
       </main>
       <Footer />
     </div>
-  )
+  );
 }

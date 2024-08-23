@@ -1,3 +1,3 @@
 interface NavBarProps {
-    searchQuery?: string
+  searchQuery?: string;
 }

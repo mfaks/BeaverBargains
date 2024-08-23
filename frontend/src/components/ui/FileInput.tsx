@@ -1,6 +1,9 @@
-import React from 'react'
+import React from "react";
 
-const FileInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>((props, ref) => {
+const FileInput = React.forwardRef<
+  HTMLInputElement,
+  React.InputHTMLAttributes<HTMLInputElement>
+>((props, ref) => {
   return (
     <input
       type="file"

@@ -1,93 +1,106 @@
-import React, { useState, useRef, forwardRef } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import ReactCrop, { PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop'
-import 'react-image-crop/dist/ReactCrop.css'
-import { Button } from '@/components/ui/button'
-import { ImageUploadAndCropperProps } from '@/types/ImageUploadAndCropperProps'
-import { CustomCrop } from '@/types/CustomCrop'
+import React, { useState, useRef, forwardRef } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import ReactCrop, {
+  PixelCrop,
+  centerCrop,
+  makeAspectCrop,
+} from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
+import { Button } from "@/components/ui/button";
+import { ImageUploadAndCropperProps } from "@/types/ImageUploadAndCropperProps";
+import { CustomCrop } from "@/types/CustomCrop";
 
-const ImageUploadAndCropper = forwardRef<HTMLDivElement, ImageUploadAndCropperProps>(({ onImageCropped, onClose, currentImage }, ref) => {
-  const [image, setImage] = useState<string | null>(null)
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [crop, setCrop] = useState<CustomCrop>()
-  const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null)
-  const imageRef = useRef<HTMLImageElement | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+const ImageUploadAndCropper = forwardRef<
+  HTMLDivElement,
+  ImageUploadAndCropperProps
+>(({ onImageCropped, onClose, currentImage }, ref) => {
+  const [image, setImage] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [crop, setCrop] = useState<CustomCrop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
+  const imageRef = useRef<HTMLImageElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setImage(reader.result as string)
-        setDialogOpen(true)
-      }
-      reader.readAsDataURL(file)
+        setImage(reader.result as string);
+        setDialogOpen(true);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const clearFileInput = () => {
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''
+      fileInputRef.current.value = "";
     }
-    setImage(null)
-  }
+    setImage(null);
+  };
 
   const removeProfilePicture = () => {
-    onImageCropped(null)
-    clearFileInput()
-  }
+    onImageCropped(null);
+    clearFileInput();
+  };
 
   const onImageLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const { width, height } = e.currentTarget
+    const { width, height } = e.currentTarget;
     const crop = centerCrop(
       makeAspectCrop(
         {
-          unit: '%',
+          unit: "%",
           width: 90,
         },
         1,
         width,
-        height
+        height,
       ),
       width,
-      height
-    )
-    setCrop(crop)
-  }
+      height,
+    );
+    setCrop(crop);
+  };
 
   const handleCropComplete = (crop: PixelCrop) => {
-    setCompletedCrop(crop)
-  }
+    setCompletedCrop(crop);
+  };
 
   const handleCrop = () => {
     if (completedCrop && imageRef.current) {
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
       if (!ctx) {
-        throw new Error('No 2d context')
+        throw new Error("No 2d context");
       }
 
-      const scaleX = imageRef.current.naturalWidth / imageRef.current.width
-      const scaleY = imageRef.current.naturalHeight / imageRef.current.height
+      const scaleX = imageRef.current.naturalWidth / imageRef.current.width;
+      const scaleY = imageRef.current.naturalHeight / imageRef.current.height;
 
-      const pixelRatio = window.devicePixelRatio
-      canvas.width = completedCrop.width * pixelRatio
-      canvas.height = completedCrop.height * pixelRatio
+      const pixelRatio = window.devicePixelRatio;
+      canvas.width = completedCrop.width * pixelRatio;
+      canvas.height = completedCrop.height * pixelRatio;
 
-      ctx.scale(pixelRatio, pixelRatio)
-      ctx.imageSmoothingQuality = 'high'
+      ctx.scale(pixelRatio, pixelRatio);
+      ctx.imageSmoothingQuality = "high";
 
-      const cropX = completedCrop.x * scaleX
-      const cropY = completedCrop.y * scaleY
+      const cropX = completedCrop.x * scaleX;
+      const cropY = completedCrop.y * scaleY;
 
-      const centerX = canvas.width / 2 / pixelRatio
-      const centerY = canvas.height / 2 / pixelRatio
+      const centerX = canvas.width / 2 / pixelRatio;
+      const centerY = canvas.height / 2 / pixelRatio;
 
-      ctx.save()
-      ctx.beginPath()
-      ctx.arc(centerX, centerY, completedCrop.width / 2, 0, 2 * Math.PI)
-      ctx.clip()
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, completedCrop.width / 2, 0, 2 * Math.PI);
+      ctx.clip();
 
       ctx.drawImage(
         imageRef.current,
@@ -98,42 +111,44 @@ const ImageUploadAndCropper = forwardRef<HTMLDivElement, ImageUploadAndCropperPr
         0,
         0,
         completedCrop.width,
-        completedCrop.height
-      )
+        completedCrop.height,
+      );
 
-      ctx.restore()
+      ctx.restore();
 
       canvas.toBlob((blob) => {
         if (blob) {
-          const croppedFile = new File([blob], 'profile-pic.jpg', { type: 'image/jpeg' })
-          onImageCropped(croppedFile)
-          setDialogOpen(false)
+          const croppedFile = new File([blob], "profile-pic.jpg", {
+            type: "image/jpeg",
+          });
+          onImageCropped(croppedFile);
+          setDialogOpen(false);
         }
-      }, 'image/jpeg')
+      }, "image/jpeg");
     }
-  }
+  };
 
   return (
     <div>
       <input
-        type='file'
-        accept='image/*'
+        type="file"
+        accept="image/*"
         onChange={handleImageChange}
         ref={fileInputRef}
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
       />
-      <div className='flex space-x-2'>
+      <div className="flex space-x-2">
         <Button
-          variant='outline'
-          className='text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white'
+          variant="outline"
+          className="text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
           onClick={() => fileInputRef.current?.click()}
         >
           Choose New File
         </Button>
         {currentImage && (
           <Button
-            variant='outline'
-            className='text-red-500 border-red-500 hover:bg-red-500 hover:text-white'
+            variant="outline"
+            className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
             onClick={removeProfilePicture}
           >
             Remove Profile Picture
@@ -157,17 +172,17 @@ const ImageUploadAndCropper = forwardRef<HTMLDivElement, ImageUploadAndCropperPr
               >
                 <img src={image} ref={imageRef} onLoad={onImageLoad} />
               </ReactCrop>
-              <div className='flex justify-between mt-4'>
+              <div className="flex justify-between mt-4">
                 <Button
-                  variant='outline'
-                  className='bg-orange-500 text-white hover:bg-orange-600'
+                  variant="outline"
+                  className="bg-orange-500 text-white hover:bg-orange-600"
                   onClick={handleCrop}
                 >
                   Save & Upload
                 </Button>
                 <Button
-                  variant='outline'
-                  className='text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white'
+                  variant="outline"
+                  className="text-orange-500 border-orange-500 hover:bg-orange-500 hover:text-white"
                   onClick={() => setDialogOpen(false)}
                 >
                   Cancel
@@ -178,7 +193,7 @@ const ImageUploadAndCropper = forwardRef<HTMLDivElement, ImageUploadAndCropperPr
         </DialogContent>
       </Dialog>
     </div>
-  )
-})
+  );
+});
 
-export default ImageUploadAndCropper
+export default ImageUploadAndCropper;

@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { Suspense } from 'react'
-import Marketplace from './Marketplace'
-import { useSearchParams } from 'next/navigation'
-import SkeletonLoading from '@/components/ui/SkeletonLoading'
+import { Suspense } from "react";
+import Marketplace from "./Marketplace";
+import { useSearchParams } from "next/navigation";
+import SkeletonLoading from "@/components/ui/SkeletonLoading";
 
 function MarketplaceWrapper() {
-  const searchParams = useSearchParams()
-  const searchQuery = searchParams?.get('search') || ''
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams?.get("search") || "";
 
-  return <Marketplace searchQuery={searchQuery} />
+  return <Marketplace searchQuery={searchQuery} />;
 }
 
 export default function MarketplacePage() {
@@ -17,5 +17,5 @@ export default function MarketplacePage() {
     <Suspense fallback={<SkeletonLoading />}>
       <MarketplaceWrapper />
     </Suspense>
-  )
+  );
 }

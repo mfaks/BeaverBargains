@@ -1,5 +1,5 @@
-import { Crop } from 'react-image-crop'
+import { Crop } from "react-image-crop";
 
 export interface CustomCrop extends Crop {
-    aspect?: number
+  aspect?: number;
 }

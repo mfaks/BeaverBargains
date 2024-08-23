@@ -1,54 +1,65 @@
-"use client"
+"use client";
 
-import React, { createContext, useState, useContext, useEffect } from 'react'
-import axios from 'axios'
-import { useAuth } from '../../components/auth/AuthContext'
-import { UnreadMessagesContextType } from '@/types/UnreadMessageContextType'
+import React, { createContext, useState, useContext, useEffect } from "react";
+import axios from "axios";
+import { useAuth } from "../../components/auth/AuthContext";
+import { UnreadMessagesContextType } from "@/types/UnreadMessageContextType";
 
-const UnreadMessagesContext = createContext<UnreadMessagesContextType | undefined>(undefined)
+const UnreadMessagesContext = createContext<
+  UnreadMessagesContextType | undefined
+>(undefined);
 
-export const UnreadMessagesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [unreadCount, setUnreadCount] = useState(0)
-  const { isAuthenticated, token, loading } = useAuth()
+export const UnreadMessagesProvider: React.FC<{
+  children: React.ReactNode;
+}> = ({ children }) => {
+  const [unreadCount, setUnreadCount] = useState(0);
+  const { isAuthenticated, token, loading } = useAuth();
 
   const fetchUnreadCount = async () => {
     if (isAuthenticated && token) {
       try {
-        const response = await axios.get('https://beaverbargains.onrender.com/api/messages/unread/count', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
-        setUnreadCount(response.data)
+        const response = await axios.get(
+          "https://beaverbargains.onrender.com/api/messages/unread/count",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+        setUnreadCount(response.data);
       } catch (error) {
-        console.error('Error fetching unread message count:', error)
+        console.error("Error fetching unread message count:", error);
       }
     }
-  }
+  };
 
   const clearUnreadCount = () => {
-    setUnreadCount(0)
-  }
+    setUnreadCount(0);
+  };
 
   useEffect(() => {
     if (!loading) {
       if (isAuthenticated) {
-        fetchUnreadCount()
+        fetchUnreadCount();
       } else {
-        clearUnreadCount()
+        clearUnreadCount();
       }
     }
-  }, [isAuthenticated, token, loading])
+  }, [isAuthenticated, token, loading]);
 
   return (
-    <UnreadMessagesContext.Provider value={{ unreadCount, fetchUnreadCount, clearUnreadCount }}>
+    <UnreadMessagesContext.Provider
+      value={{ unreadCount, fetchUnreadCount, clearUnreadCount }}
+    >
       {children}
     </UnreadMessagesContext.Provider>
-  )
-}
+  );
+};
 
 export const useUnreadMessages = () => {
-  const context = useContext(UnreadMessagesContext)
+  const context = useContext(UnreadMessagesContext);
   if (context === undefined) {
-    throw new Error('useUnreadMessages must be used within a UnreadMessagesProvider')
+    throw new Error(
+      "useUnreadMessages must be used within a UnreadMessagesProvider",
+    );
   }
-  return context
-}
+  return context;
+};

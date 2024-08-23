@@ -1,25 +1,23 @@
-"use client"
+"use client";
 
-import React from 'react'
-import { AuthProviderWrapper } from '../components/auth/AuthProviderWrapper'
-import { UnreadMessagesProvider } from './messages/UnreadMessagesContext'
-import { useAuth } from '../components/auth/AuthContext'
-import { Skeleton } from "@/components/ui/skeleton"
+import React from "react";
+import { AuthProviderWrapper } from "./auth/AuthProviderWrapper";
+import { UnreadMessagesProvider } from "../app/messages/UnreadMessagesContext";
+import { useAuth } from "./auth/AuthContext";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ClientWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <AuthProviderWrapper>
       <UnreadMessagesProvider>
-        <AuthStateWrapper>
-          {children}
-        </AuthStateWrapper>
+        <AuthStateWrapper>{children}</AuthStateWrapper>
       </UnreadMessagesProvider>
     </AuthProviderWrapper>
-  )
-}
+  );
+};
 
 const AuthStateWrapper = ({ children }: { children: React.ReactNode }) => {
-  const { loading } = useAuth()
+  const { loading } = useAuth();
 
   if (loading) {
     return (
@@ -28,10 +26,10 @@ const AuthStateWrapper = ({ children }: { children: React.ReactNode }) => {
         <Skeleton className="h-4 w-[200px]" />
         <Skeleton className="h-4 w-[150px]" />
       </div>
-    )
+    );
   }
 
-  return <>{children}</>
-}
+  return <>{children}</>;
+};
 
-export default ClientWrapper
+export default ClientWrapper;

@@ -1,4 +1,4 @@
 export interface DateIconProps {
-    date: Date
-    className?: string
+  date: Date;
+  className?: string;
 }
