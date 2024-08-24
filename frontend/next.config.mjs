@@ -11,7 +11,7 @@ const nextConfig = {
           { key: "Access-Control-Allow-Credentials", value: "true" },
           {
             key: "Access-Control-Allow-Origin",
-            value: "https://beaverbargains.onrender.com",
+            value: "http://localhost:8080",
           },
           {
             key: "Access-Control-Allow-Methods",

@@ -51,7 +51,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     if (!otherUserId) return;
     try {
       const response = await axios.get(
-        `https://beaverbargains.onrender.com/api/users/${otherUserId}`,
+        `http://localhost:8080/api/users/${otherUserId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -83,7 +83,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
       let currentConversationId = conversationId;
       if (!currentConversationId) {
         const response = await axios.post<Conversation>(
-          "https://beaverbargains.onrender.com/api/messages",
+          "http://localhost:8080/api/messages",
           { receiverId: otherUserId },
           { headers: { Authorization: `Bearer ${token}` } },
         );
@@ -92,7 +92,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
       }
 
       const response = await axios.get<Message[]>(
-        `https://beaverbargains.onrender.com/api/messages/conversations/${currentConversationId}`,
+        `http://localhost:8080/api/messages/conversations/${currentConversationId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -138,7 +138,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
       let currentConversationId = conversationId;
       if (!currentConversationId) {
         const conversationResponse = await axios.post<Conversation>(
-          "https://beaverbargains.onrender.com/api/messages",
+          "http://localhost:8080/api/messages",
           { receiverId: otherUserId },
           { headers: { Authorization: `Bearer ${token}` } },
         );
@@ -147,7 +147,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
       }
 
       const response = await axios.post<Message>(
-        `https://beaverbargains.onrender.com/api/messages/conversations/${currentConversationId}/messages`,
+        `http://localhost:8080/api/messages/conversations/${currentConversationId}/messages`,
         { content: newMessage },
         { headers: { Authorization: `Bearer ${token}` } },
       );
@@ -188,7 +188,7 @@ const MessageThread: React.FC<MessageThreadProps> = ({
     });
   };
 
-  const BASE_URL = "https://beaverbargains.onrender.com";
+  const BASE_URL = "http://localhost:8080";
   const getFullImageUrl = (imageUrl: string | undefined): string => {
     if (!imageUrl) {
       return "";

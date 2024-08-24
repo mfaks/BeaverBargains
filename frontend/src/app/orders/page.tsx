@@ -48,7 +48,7 @@ export default function Orders() {
     setLoading(true);
     try {
       const response = await axios.get<OrderItem[]>(
-        "https://beaverbargains.onrender.com/api/items/user/purchased",
+        "http://localhost:8080/api/items/user/purchased",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -177,7 +177,7 @@ export default function Orders() {
   };
 
   const getFullImageUrl = (imageUrl: string) => {
-    const BASE_URL = "https://beaverbargains.onrender.com";
+    const BASE_URL = "http://localhost:8080";
     return `${BASE_URL}/uploads/${imageUrl}`;
   };
 

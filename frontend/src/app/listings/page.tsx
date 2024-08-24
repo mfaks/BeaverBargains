@@ -51,13 +51,13 @@ export default function Listings() {
     setLoading(true);
     try {
       const activeResponse = await axios.get<Item[]>(
-        `https://beaverbargains.onrender.com/api/items/user/active`,
+        `http://localhost:8080/api/items/user/active`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
       const soldResponse = await axios.get<Item[]>(
-        `https://beaverbargains.onrender.com/api/items/user/sold`,
+        `http://localhost:8080/api/items/user/sold`,
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -260,7 +260,7 @@ export default function Listings() {
     const formattedDate = purchaseDate.replace("Z", "");
     try {
       const response = await axios.put<Item>(
-        `https://beaverbargains.onrender.com/api/items/${itemId}/mark-as-sold?buyerId=${buyerId}&purchaseDate=${encodeURIComponent(formattedDate)}`,
+        `http://localhost:8080/api/items/${itemId}/mark-as-sold?buyerId=${buyerId}&purchaseDate=${encodeURIComponent(formattedDate)}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } },
       );
@@ -333,7 +333,7 @@ export default function Listings() {
     setIsTabChanging(false);
   };
 
-  const BASE_URL = `https://beaverbargains.onrender.com`;
+  const BASE_URL = `http://localhost:8080`;
   const getFullImageUrl = (imageUrl: string) => {
     if (imageUrl.startsWith(`http`)) {
       return imageUrl;

@@ -70,7 +70,7 @@ const FavoriteItemCard: React.FC<FavoriteItemCardProps> = ({
   const handleMessageClick = async () => {
     try {
       const conversationsResponse = await axios.get(
-        "https://beaverbargains.onrender.com/api/messages",
+        "http://localhost:8080/api/messages",
         { headers: { Authorization: `Bearer ${token}` } },
       );
 
@@ -83,7 +83,7 @@ const FavoriteItemCard: React.FC<FavoriteItemCardProps> = ({
         conversationId = existingConversation.id;
       } else {
         const newConversationResponse = await axios.post(
-          "https://beaverbargains.onrender.com/api/messages",
+          "http://localhost:8080/api/messages",
           { receiverId: item.seller.id },
           { headers: { Authorization: `Bearer ${token}` } },
         );
@@ -91,7 +91,7 @@ const FavoriteItemCard: React.FC<FavoriteItemCardProps> = ({
       }
 
       await axios.post(
-        `https://beaverbargains.onrender.com/api/messages/conversations/${conversationId}/messages`,
+        `http://localhost:8080/api/messages/conversations/${conversationId}/messages`,
         { content: messageContent },
         { headers: { Authorization: `Bearer ${token}` } },
       );
@@ -119,7 +119,7 @@ const FavoriteItemCard: React.FC<FavoriteItemCardProps> = ({
     );
   };
 
-  const BASE_URL = "https://beaverbargains.onrender.com";
+  const BASE_URL = "http://localhost:8080";
   const getFullProfileImageUrl = (imageUrl: string | undefined): string => {
     if (!imageUrl) {
       return "";

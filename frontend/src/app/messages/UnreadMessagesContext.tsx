@@ -19,7 +19,7 @@ export const UnreadMessagesProvider: React.FC<{
     if (isAuthenticated && token) {
       try {
         const response = await axios.get(
-          "https://beaverbargains.onrender.com/api/messages/unread/count",
+          "http://localhost:8080/api/messages/unread/count",
           {
             headers: { Authorization: `Bearer ${token}` },
           },

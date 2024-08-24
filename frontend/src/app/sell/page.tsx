@@ -180,7 +180,7 @@ export default function Sell() {
       });
 
       const response = await axios.post(
-        `https://beaverbargains.onrender.com/api/items`,
+        `http://localhost:8080/api/items`,
         formData,
         {
           headers: {

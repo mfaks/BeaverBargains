@@ -77,7 +77,7 @@ export default function Account() {
           },
         };
         const response = await axios.put(
-          `https://beaverbargains.onrender.com/api/users/${user?.id}/profile-image`,
+          `http://localhost:8080/api/users/${user?.id}/profile-image`,
           formData,
           config,
         );
@@ -133,7 +133,7 @@ export default function Account() {
           headers: { Authorization: `Bearer ${token}` },
         };
         const response = await axios.get<User>(
-          `https://beaverbargains.onrender.com/api/users/${user.id}`,
+          `http://localhost:8080/api/users/${user.id}`,
           config,
         );
         setUserDetails({
@@ -169,7 +169,7 @@ export default function Account() {
         },
       };
       await axios.delete(
-        `https://beaverbargains.onrender.com/api/users/${user?.id}/profile-image`,
+        `http://localhost:8080/api/users/${user?.id}/profile-image`,
         config,
       );
 
@@ -265,7 +265,7 @@ export default function Account() {
 
       if (bioChanged) {
         await axios.put(
-          `https://beaverbargains.onrender.com/api/users/${user?.id}/biography`,
+          `http://localhost:8080/api/users/${user?.id}/biography`,
           updateDto,
           config,
         );
@@ -273,7 +273,7 @@ export default function Account() {
 
       if (currentPassword && newPassword) {
         await axios.put(
-          `https://beaverbargains.onrender.com/api/users/${user?.id}/password`,
+          `http://localhost:8080/api/users/${user?.id}/password`,
           {
             currentPassword,
             newPassword,
@@ -313,7 +313,7 @@ export default function Account() {
           headers: { Authorization: `Bearer ${token}` },
         };
         await axios.delete(
-          `https://beaverbargains.onrender.com/api/users/${user?.id}`,
+          `http://localhost:8080/api/users/${user?.id}`,
           config,
         );
         toast({
@@ -335,7 +335,7 @@ export default function Account() {
     }
   };
 
-  const BASE_URL = "https://beaverbargains.onrender.com";
+  const BASE_URL = "http://localhost:8080";
   const getFullImageUrl = (imageUrl: string | undefined): string => {
     if (!imageUrl) {
       return "";

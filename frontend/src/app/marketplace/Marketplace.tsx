@@ -45,7 +45,7 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
     }
   }, [isAuthenticated, user, router, searchQuery]);
 
-  const BASE_URL = `https://beaverbargains.onrender.com`;
+  const BASE_URL = `http://localhost:8080`;
   const getFullImageUrl = (imageUrls: string | string[]): string[] => {
     const processUrl = (url: string) =>
       url.startsWith("http") ? url : `${BASE_URL}/uploads/${url}`;
@@ -63,7 +63,7 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
   ) => {
     setLoading(true);
     try {
-      let url = "https://beaverbargains.onrender.com/api/items/search";
+      let url = "http://localhost:8080/api/items/search";
       const params = new URLSearchParams();
       if (query) params.append("query", query);
       if (tgSearch) params.append("tagSearch", tgSearch);
@@ -73,7 +73,7 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
         headers: { Authorization: `Bearer ${token}` },
       });
       const favoritesResponse = await axios.get<number[]>(
-        "https://beaverbargains.onrender.com/api/favorites",
+        "http://localhost:8080/api/favorites",
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -126,7 +126,7 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
   const fetchFavorites = async () => {
     try {
       const response = await axios.get<number[]>(
-        "https://beaverbargains.onrender.com/api/favorites",
+        "http://localhost:8080/api/favorites",
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -141,7 +141,7 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
     try {
       if (favorites.includes(itemId)) {
         await axios.delete(
-          `https://beaverbargains.onrender.com/api/favorites/${itemId}`,
+          `http://localhost:8080/api/favorites/${itemId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -151,7 +151,7 @@ export default function Marketplace({ searchQuery }: { searchQuery: string }) {
         setFavorites(favorites.filter((id) => id !== itemId));
       } else {
         await axios.post(
-          `https://beaverbargains.onrender.com/api/favorites`,
+          `http://localhost:8080/api/favorites`,
           { itemId },
           {
             headers: {

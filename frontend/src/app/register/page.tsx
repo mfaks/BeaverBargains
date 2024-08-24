@@ -86,7 +86,7 @@ export default function Register() {
   const onSubmit: SubmitHandler<RegistrationForm> = async (values) => {
     try {
       const response = await axios.post(
-        `https://beaverbargains.onrender.com/api/users/register`,
+        `http://localhost:8080/api/users/register`,
         {
           firstName: values.firstName,
           lastName: values.lastName,

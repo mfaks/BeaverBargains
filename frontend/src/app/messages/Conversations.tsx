@@ -38,13 +38,13 @@ const Conversations: React.FC<UpdatedConversationsProps> = ({
       const [conversationsResponse, unreadMessagesResponse] = await Promise.all(
         [
           axios.get<Conversation[]>(
-            `https://beaverbargains.onrender.com/api/messages`,
+            `http://localhost:8080/api/messages`,
             {
               headers: { Authorization: `Bearer ${token}` },
             },
           ),
           axios.get<UnreadMessage[]>(
-            `https://beaverbargains.onrender.com/api/messages/unread`,
+            `http://localhost:8080/api/messages/unread`,
             {
               headers: { Authorization: `Bearer ${token}` },
             },
@@ -80,7 +80,7 @@ const Conversations: React.FC<UpdatedConversationsProps> = ({
   const markConversationAsRead = async (conversationId: number) => {
     try {
       await axios.post(
-        `https://beaverbargains.onrender.com/api/messages/conversations/${conversationId}/read`,
+        `http://localhost:8080/api/messages/conversations/${conversationId}/read`,
         {},
         { headers: { Authorization: `Bearer ${token}` } },
       );
@@ -109,7 +109,7 @@ const Conversations: React.FC<UpdatedConversationsProps> = ({
       : conversation.user1;
   };
 
-  const BASE_URL = "https://beaverbargains.onrender.com";
+  const BASE_URL = "http://localhost:8080";
   const getFullImageUrl = (imageUrl: string | undefined): string => {
     if (!imageUrl) {
       return "";

@@ -108,7 +108,7 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({
   const fetchBuyers = async () => {
     try {
       const response = await axios.get(
-        "https://beaverbargains.onrender.com/api/messages/conversation-users",
+        "http://localhost:8080/api/messages/conversation-users",
         {
           headers: { Authorization: `Bearer ${token}` },
         },
@@ -203,7 +203,7 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({
       });
 
       const response = await axios.put(
-        `https://beaverbargains.onrender.com/api/items/${item.id}`,
+        `http://localhost:8080/api/items/${item.id}`,
         formData,
         {
           headers: {
@@ -283,7 +283,7 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({
   const handleReactivate = async () => {
     try {
       const response = await axios.put(
-        `https://beaverbargains.onrender.com/api/items/${item.id}/reactivate`,
+        `http://localhost:8080/api/items/${item.id}/reactivate`,
         null,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -381,7 +381,7 @@ const ListingItemCard: React.FC<ListingItemCardProps> = ({
     }
   };
 
-  const BASE_URL = "https://beaverbargains.onrender.com";
+  const BASE_URL = "http://localhost:8080";
   const getFullProfileImageUrl = (imageUrl: string | undefined): string => {
     if (!imageUrl) {
       return "/default-profile-image.jpg";
