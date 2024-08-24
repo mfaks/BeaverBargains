@@ -97,7 +97,9 @@ public class AuthController {
             response.setLastName(authenticatedUser.getLastName());
             response.setEmail(authenticatedUser.getEmail());
             response.setBio(authenticatedUser.getBio());
-
+            response.setProfileImageUrl(authenticatedUser.getProfileImageUrl());
+            response.setEmailVerified(authenticatedUser.isEmailVerified()); 
+            
             return ResponseEntity.ok(response);
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");

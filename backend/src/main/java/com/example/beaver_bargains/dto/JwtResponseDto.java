@@ -13,4 +13,5 @@ public class JwtResponseDto {
     private String email;
     private String bio;
     private String profileImageUrl;
+    private boolean emailVerified;
 }
