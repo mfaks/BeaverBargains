@@ -38,17 +38,65 @@ Try it out for free here: https://beaver-bargains.vercel.app/
 ### Testing & Deployment
 
 [![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
-[![JUnit](https://img.shields.io/badge/JUnit-25A162?style=for-the-badge&logo=junit5&logoColor=white)](https://junit.org/junit5/)
+[![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
+[![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com/)
 
 ## Contributing 🤝
 
 Since this application was designed to benefit the Oregon State community, users looking to contribute to app improvements are more than welcome! When contributing, please follow these steps.
 
+### Prerequisites
+- Docker Desktop installed on your local machine
+
+### Setup Instructions
 1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/your-feature`).
-3. Commit your changes (`git commit -m 'Add some feature'`).
-4. Push to the branch (`git push origin feature/your-feature`).
-5. Open a pull request.
+2. Clone your fork of the `dev` branch:
+```
+   git clone -b dev https://github.com/YOUR_USERNAME/beaver-bargains.git
+```
+```
+   cd beaver-bargains
+```
+3. Create a .env file in the root directory with the following content:
+
+```
+DB_URL=      
+DB_USERNAME=        
+DB_PASSWORD=        
+POSTGRES_DB=        
+EMAIL_PASSWORD=      
+NEXT_PUBLIC_API_URL=      
+JWT_SECRET_KEY=      
+REDIS_HOST=        
+REDIS_PORT=
+```
+5. Run the application locally using Docker Compose:
+```
+docker-compose up
+```
+
+### Making Changes
+
+1. Create a new branch for your feature:
+```
+git checkout -b feature/your-feature-name
+```
+
+2. Make your changes and commit them:        
+```
+git commit -m 'Add some feature'
+```
+
+4. Push to your fork:        
+```
+git push origin feature/your-feature-name
+```
+
+5. Open a pull request to the dev branch of the main repository.
+
+### Review Process
+
+The Beaver Bargains team will review your changes. If approved, your changes will be merged into the dev branch.
 
 ## What's Next? 🚀
 
