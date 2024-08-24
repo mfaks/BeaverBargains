@@ -1,5 +1,7 @@
 package com.example.beaver_bargains.dto;
 
+import java.util.List;
+
 import com.example.beaver_bargains.entity.User;
 
 import lombok.Getter;
@@ -16,6 +18,8 @@ public class UserDto {
     private String email;
     private String bio;
     private String profileImageUrl;
+    private List<Long> itemIds;
+    private List<Long> purchasedItemIds;
 
     public UserDto(User user) {
         this.id = user.getId();

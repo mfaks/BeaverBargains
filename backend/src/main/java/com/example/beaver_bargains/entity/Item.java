@@ -1,9 +1,12 @@
 package com.example.beaver_bargains.entity;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
@@ -18,7 +21,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
 @Entity
-public class Item {
+public class Item implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,10 +49,12 @@ public class Item {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonIgnoreProperties({"items", "purchasedItems", "password", "emailVerified", "verificationToken"})
     private User seller;
 
     @ManyToOne
     @JoinColumn(name = "buyer_id")
+    @JsonIgnoreProperties({"items", "purchasedItems", "password", "emailVerified", "verificationToken"})
     private User buyer;
 
     public Long getId() {

@@ -21,5 +21,7 @@ public class ItemDto {
     private Set<String> tags;
     private String status;
     private Long sellerId;
+    private String sellerName;
     private Long buyerId;
+    private String buyerName;
 }
