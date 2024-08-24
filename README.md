@@ -87,7 +87,7 @@ http://localhost:3000
 git checkout -b feature/your-feature-name
 ```
 
-2. Make your changes and commit them:        
+3. Make your changes and commit them:        
 ```
 git commit -m 'Add some feature'
 ```
