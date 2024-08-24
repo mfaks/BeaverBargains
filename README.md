@@ -70,9 +70,14 @@ JWT_SECRET_KEY=
 REDIS_HOST=        
 REDIS_PORT=
 ```
-5. Run the application locally using Docker Compose:
+4. Run the application locally using Docker Compose:
 ```
 docker-compose up
+```
+
+5. Once the application is running, you can view it by opening your browser and navigating to:
+```
+http://localhost:3000
 ```
 
 ### Making Changes
