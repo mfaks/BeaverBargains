@@ -1,0 +1,4 @@
+# This is a CODEOWNERS file for the BeaverBargains repository
+
+# mfaks is the owner of all files in the repository
+*       @mfaks
